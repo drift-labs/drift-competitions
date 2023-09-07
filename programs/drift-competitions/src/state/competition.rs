@@ -14,7 +14,7 @@ use drift::math::safe_math::SafeMath;
 
 use super::Competitor;
 
-#[derive(Clone, Copy, BorshSerialize, BorshDeserialize, PartialEq, Eq)]
+#[derive(Default, Clone, Copy, BorshSerialize, BorshDeserialize, PartialEq, Eq, Debug)]
 pub enum CompetitionRoundStatus {
     Active,
     Complete,
@@ -58,11 +58,8 @@ impl Competition {
             .safe_add(self.round_duration.safe_mul(self.round_number)?.cast()?)
     }
 
-    pub fn validate_round_ready_for_settlement(&self, now: i64) -> DriftResult {
-        validate!(
-            now >= self.calculate_round_end_ts(),
-            ErrorCode::Default
-        )?;
+    pub fn validate_round_ready_for_settlement(&self, now: i64) -> CompetitionResult {
+        validate!(now >= self.calculate_round_end_ts()?, ErrorCode::Default)?;
         validate!(
             self.competition_expiry_ts == 0 || self.competition_expiry_ts > now,
             ErrorCode::Default
@@ -71,11 +68,12 @@ impl Competition {
         Ok(())
     }
 
-    pub fn validate_round_settlement_complete(&self) -> DriftResult {
+    pub fn validate_round_settlement_complete(&self) -> CompetitionResult {
         validate!(
             self.number_of_competitors == self.number_of_competitors_settled,
             ErrorCode::Default
         )?;
+
         validate!(
             self.status == CompetitionRoundStatus::Complete,
             ErrorCode::Default
@@ -84,8 +82,7 @@ impl Competition {
         Ok(())
     }
 
-    pub fn reset_round(&mut self) -> DriftResult {
-        
+    pub fn reset_round(&mut self) -> CompetitionResult {
         self.validate_round_settlement_complete()?;
 
         self.total_score_settled = 0;
@@ -102,8 +99,7 @@ impl Competition {
         competitor: &mut Competitor,
         user_stats: UserStats,
         now: i64,
-    ) -> DriftResult {
-
+    ) -> CompetitionResult {
         self.validate_round_ready_for_settlement(now)?;
 
         let round_score = competitor.calculate_score(user_stats)?;
