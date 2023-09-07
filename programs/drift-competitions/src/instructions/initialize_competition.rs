@@ -1,6 +1,6 @@
-use anchor_lang::prelude::*;
 use crate::state::Competition;
 use crate::state::Size;
+use anchor_lang::prelude::*;
 
 pub fn initialize_competition<'info>(
     ctx: Context<'_, '_, '_, 'info, InitializeCompetition<'info>>,
