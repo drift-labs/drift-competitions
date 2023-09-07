@@ -14,12 +14,20 @@ use drift::math::safe_math::SafeMath;
 
 use super::Competitor;
 
+#[derive(Clone, Copy, BorshSerialize, BorshDeserialize, PartialEq, Eq)]
+pub enum CompetitionRoundStatus {
+    Active,
+    Complete,
+    Expired,
+}
+
 #[account(zero_copy)]
 #[derive(Default, Eq, PartialEq, Debug)]
 #[repr(C)]
 pub struct Competition {
     pub name: [u8; 32],
     pub sponsor: Pubkey,
+    pub status: CompetitionRoundStatus,
 
     pub round_number: u64,
 
@@ -38,7 +46,7 @@ pub struct Competition {
 }
 
 impl Size for Competition {
-    const SIZE: usize = 176 + 8;
+    const SIZE: usize = 184 + 8;
 }
 
 const_assert_eq!(Competition::SIZE, std::mem::size_of::<Competition>() + 8);
@@ -50,9 +58,41 @@ impl Competition {
             .safe_add(self.round_duration.safe_mul(self.round_number)?.cast()?)
     }
 
+    pub fn validate_round_ready_for_settlement(&self, now: i64) -> DriftResult {
+        validate!(
+            now >= self.calculate_round_end_ts(),
+            ErrorCode::Default
+        )?;
+        validate!(
+            self.competition_expiry_ts == 0 || self.competition_expiry_ts > now,
+            ErrorCode::Default
+        )?;
+
+        Ok(())
+    }
+
+    pub fn validate_round_settlement_complete(&self) -> DriftResult {
+        validate!(
+            self.number_of_competitors == self.number_of_competitors_settled,
+            ErrorCode::Default
+        )?;
+        validate!(
+            self.status == CompetitionRoundStatus::Complete,
+            ErrorCode::Default
+        )?;
+
+        Ok(())
+    }
+
     pub fn reset_round(&mut self) -> DriftResult {
+        
+        self.validate_round_settlement_complete()?;
+
         self.total_score_settled = 0;
         self.number_of_competitors_settled = 0;
+        self.round_number = self.round_number.safe_add(1)?;
+
+        self.status = CompetitionRoundStatus::Active;
 
         Ok(())
     }
@@ -61,7 +101,11 @@ impl Competition {
         &mut self,
         competitor: &mut Competitor,
         user_stats: UserStats,
+        now: i64,
     ) -> DriftResult {
+
+        self.validate_round_ready_for_settlement(now)?;
+
         let round_score = competitor.calculate_score(user_stats)?;
 
         let new_total_score_settled = self.total_score_settled.safe_add(round_score.cast()?)?;
@@ -85,8 +129,8 @@ impl Competition {
         )?;
 
         self.winning_draw = get_random_draw(self.total_score_settled)?;
+        self.status = CompetitionRoundStatus::Complete;
 
-        self.reset_round()?;
         Ok(())
     }
 }
