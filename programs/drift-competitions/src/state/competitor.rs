@@ -39,4 +39,9 @@ impl Competitor {
 
         Ok(round_score)
     }
+
+    pub fn claim_entry(&mut self) -> DriftResult {
+        self.bonus_score = self.bonus_score.saturating_add(1);
+        Ok(())
+    }
 }

@@ -13,12 +13,20 @@ use drift::math::casting::Cast;
 use drift::math::safe_math::SafeMath;
 
 use super::Competitor;
+use borsh::{BorshDeserialize, BorshSerialize};
 
-#[derive(Default, Clone, Copy, BorshSerialize, BorshDeserialize, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, BorshSerialize, BorshDeserialize, PartialEq, Eq, Debug)]
 pub enum CompetitionRoundStatus {
     Active,
-    Complete,
+    DrawComplete,
+    SettlementComplete,
     Expired,
+}
+
+impl Default for CompetitionRoundStatus {
+    fn default() -> Self {
+        CompetitionRoundStatus::Active
+    }
 }
 
 #[account(zero_copy)]
@@ -42,11 +50,12 @@ pub struct Competition {
     pub competition_expiry_ts: i64, // when competition ends, perpetual when == 0
     pub round_duration: u64,
 
+    pub prize_draw: u128,
     pub winning_draw: u128,
 }
 
 impl Size for Competition {
-    const SIZE: usize = 184 + 8;
+    const SIZE: usize = 200 + 8;
 }
 
 const_assert_eq!(Competition::SIZE, std::mem::size_of::<Competition>() + 8);
@@ -59,6 +68,10 @@ impl Competition {
     }
 
     pub fn validate_round_ready_for_settlement(&self, now: i64) -> CompetitionResult {
+        validate!(
+            self.status == CompetitionRoundStatus::Active,
+            ErrorCode::Default
+        )?;
         validate!(now >= self.calculate_round_end_ts()?, ErrorCode::Default)?;
         validate!(
             self.competition_expiry_ts == 0 || self.competition_expiry_ts > now,
@@ -75,21 +88,21 @@ impl Competition {
         )?;
 
         validate!(
-            self.status == CompetitionRoundStatus::Complete,
+            self.status == CompetitionRoundStatus::SettlementComplete,
             ErrorCode::Default
         )?;
 
         Ok(())
     }
 
-    pub fn reset_round(&mut self) -> CompetitionResult {
-        self.validate_round_settlement_complete()?;
-
-        self.total_score_settled = 0;
-        self.number_of_competitors_settled = 0;
-        self.round_number = self.round_number.safe_add(1)?;
-
-        self.status = CompetitionRoundStatus::Active;
+    pub fn validate_round_resolved(&self) -> CompetitionResult {
+        validate!(
+            self.number_of_competitors > 0
+                && self.number_of_competitors == self.number_of_competitors_settled,
+            ErrorCode::CompetitionRoundInSettlementPhase,
+            "competition round {:?} is still ongoing",
+            self.round_number
+        )?;
 
         Ok(())
     }
@@ -116,16 +129,42 @@ impl Competition {
     }
 
     pub fn resolve_round(&mut self) -> CompetitionResult {
-        validate!(
-            self.number_of_competitors > 0
-                && self.number_of_competitors == self.number_of_competitors_settled,
-            ErrorCode::CompetitionRoundInSettlementPhase,
-            "competition round {:?} is still ongoing",
-            self.round_number
-        )?;
+        self.validate_round_resolved()?;
 
         self.winning_draw = get_random_draw(self.total_score_settled)?;
-        self.status = CompetitionRoundStatus::Complete;
+        self.status = CompetitionRoundStatus::DrawComplete;
+
+        Ok(())
+    }
+
+    pub fn settle_winner(&mut self, competitor: &mut Competitor) -> CompetitionResult {
+        validate!(
+            self.round_number == competitor.competition_round_number,
+            ErrorCode::Default
+        )?;
+
+        validate!(
+            self.winning_draw >= competitor.min_draw && self.winning_draw < competitor.max_draw,
+            ErrorCode::Default
+        )?;
+
+        competitor.unclaimed_winnings = competitor
+            .unclaimed_winnings
+            .saturating_add(self.prize_draw.cast()?);
+
+        self.status = CompetitionRoundStatus::SettlementComplete;
+
+        Ok(())
+    }
+
+    pub fn reset_round(&mut self) -> CompetitionResult {
+        self.validate_round_settlement_complete()?;
+
+        self.total_score_settled = 0;
+        self.number_of_competitors_settled = 0;
+        self.round_number = self.round_number.safe_add(1)?;
+
+        self.status = CompetitionRoundStatus::Active;
 
         Ok(())
     }
