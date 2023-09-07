@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod competition_fcn {
     use crate::state::{Competition, CompetitionRoundStatus, Competitor};
-    use anchor_lang::prelude::Pubkey;
     use drift::state::user::UserStats;
 
     #[test]
