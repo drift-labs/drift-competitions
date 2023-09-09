@@ -98,17 +98,26 @@ impl Competition {
             if new_status == CompetitionRoundStatus::Active {
                 validate!(
                     self.status == CompetitionRoundStatus::WinnerSettlementComplete,
-                    ErrorCode::InvalidStatusUpdateDetected
+                    ErrorCode::InvalidStatusUpdateDetected,
+                    "new status = {:?}, current status = {:?}",
+                    new_status,
+                    self.status
                 )?;
                 self.status = new_status;
             } else {
                 validate!(
                     (new_status as i32) - (self.status as i32) == 1,
-                    ErrorCode::InvalidStatusUpdateDetected
+                    ErrorCode::InvalidStatusUpdateDetected,
+                    "new status = {:?}, current status = {:?}",
+                    new_status,
+                    self.status
                 )?;
                 validate!(
                     new_status > self.status,
-                    ErrorCode::InvalidStatusUpdateDetected
+                    ErrorCode::InvalidStatusUpdateDetected,
+                    "new status = {:?}, current status = {:?}",
+                    new_status,
+                    self.status
                 )?;
                 self.status = new_status;
             }
@@ -136,17 +145,26 @@ impl Competition {
             self.competition_expiry_ts == 0
                 || self.competition_expiry_ts > now
                 || self.status == CompetitionRoundStatus::Expired,
-            ErrorCode::CompetitionExpired
+            ErrorCode::CompetitionExpired,
+            "Competition Expired at unix_timestamp = {} ({} seconds ago)",
+            self.competition_expiry_ts,
+            now - self.competition_expiry_ts
         )?;
 
+        let round_end_ts = self.calculate_round_end_ts()?;
         validate!(
-            now >= self.calculate_round_end_ts()?,
-            ErrorCode::CompetitionRoundOngoing
+            now >= round_end_ts,
+            ErrorCode::CompetitionRoundOngoing,
+            "round ends at unix_timestamp={} (seconds remaining {})",
+            round_end_ts,
+            round_end_ts - now
         )?;
 
         validate!(
             self.status == CompetitionRoundStatus::Active,
-            ErrorCode::CompetitionStatusNotActive
+            ErrorCode::CompetitionStatusNotActive,
+            "Competition status = {:?} (should be Active)",
+            self.status
         )?;
 
         Ok(())
@@ -155,12 +173,18 @@ impl Competition {
     pub fn validate_round_settlement_complete(&self) -> CompetitionResult {
         validate!(
             self.number_of_competitors == self.number_of_competitors_settled,
-            ErrorCode::InvalidRoundSettlementDetected
+            ErrorCode::InvalidRoundSettlementDetected,
+            "{} competitiors not not settled ({} != {})",
+            self.number_of_competitors - self.number_of_competitors_settled,
+            self.number_of_competitors,
+            self.number_of_competitors_settled
         )?;
 
         validate!(
             self.status == CompetitionRoundStatus::WinnerSettlementComplete,
-            ErrorCode::InvalidRoundSettlementDetected
+            ErrorCode::InvalidRoundSettlementDetected,
+            "Competition status = {:?} (should be WinnerSettlementComplete)",
+            self.status
         )?;
 
         Ok(())
@@ -235,6 +259,7 @@ impl Competition {
             .calculate_sponsor_max_prize(spot_market, vault_balance)?
             .cast()?;
 
+        // prize ratios match [$1k, $5k, $10k] ratios, but lower prizes never exceed 1k, 5k
         let prize_buckets = [
             (1000 * QUOTE_PRECISION).min(max_prize / 10),
             (5000 * QUOTE_PRECISION).min(max_prize / 2),
