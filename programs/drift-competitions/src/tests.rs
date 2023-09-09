@@ -54,14 +54,23 @@ mod competition_fcn {
             .resolve_prize_draw(&spot_market, vault_balance)
             .unwrap();
 
-        assert_eq!(sweepstakes.status, CompetitionRoundStatus::PrizeDrawComplete);
+        assert_eq!(
+            sweepstakes.status,
+            CompetitionRoundStatus::PrizeDrawComplete
+        );
         sweepstakes
             .resolve_prize_amount(&spot_market, vault_balance)
             .unwrap();
-        assert_eq!(sweepstakes.status, CompetitionRoundStatus::PrizeAmountComplete);
+        assert_eq!(
+            sweepstakes.status,
+            CompetitionRoundStatus::PrizeAmountComplete
+        );
 
         sweepstakes.resolve_winning_draw().unwrap();
-        assert_eq!(sweepstakes.status, CompetitionRoundStatus::WinnerDrawComplete);
+        assert_eq!(
+            sweepstakes.status,
+            CompetitionRoundStatus::WinnerDrawComplete
+        );
 
         assert!(sweepstakes.reset_round().is_err());
 
@@ -70,13 +79,15 @@ mod competition_fcn {
         assert!(sweepstakes.settle_winner(comp1).is_err());
         sweepstakes.settle_winner(comp2).unwrap();
         assert!(sweepstakes.settle_winner(comp2).is_err()); // cannot settle twice
-        assert_eq!(sweepstakes.status, CompetitionRoundStatus::WinnerSettlementComplete);
+        assert_eq!(
+            sweepstakes.status,
+            CompetitionRoundStatus::WinnerSettlementComplete
+        );
 
         assert_eq!(comp2.unclaimed_winnings, sweepstakes.prize_draw as u64);
 
         sweepstakes.reset_round().unwrap();
         assert_eq!(sweepstakes.round_number, 1);
         assert_eq!(sweepstakes.status, CompetitionRoundStatus::Active);
-
     }
 }

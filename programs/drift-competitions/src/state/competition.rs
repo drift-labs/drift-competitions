@@ -298,7 +298,7 @@ impl Competition {
         self.validate_round_resolved()?;
 
         self.winning_draw = get_random_draw(self.total_score_settled)?;
-        self.update_status( CompetitionRoundStatus::WinnerDrawComplete)?;
+        self.update_status(CompetitionRoundStatus::WinnerDrawComplete)?;
 
         Ok(())
     }
@@ -327,8 +327,7 @@ impl Competition {
         competitor.unclaimed_winnings = self.prize_draw.cast()?;
         competitor.unclaimed_winnings_base = self.prize_base;
 
-        self.update_status( CompetitionRoundStatus::WinnerSettlementComplete)?;
-
+        self.update_status(CompetitionRoundStatus::WinnerSettlementComplete)?;
 
         Ok(())
     }
@@ -340,7 +339,7 @@ impl Competition {
         self.number_of_competitors_settled = 0;
         self.round_number = self.round_number.safe_add(1)?;
 
-        self.update_status(  CompetitionRoundStatus::Active)?;
+        self.update_status(CompetitionRoundStatus::Active)?;
 
         Ok(())
     }
