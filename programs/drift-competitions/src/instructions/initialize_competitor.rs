@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
 use crate::error::ErrorCode;
-use crate::instructions::constraints::is_user_stats_for_competitor;
+// use crate::instructions::constraints::is_user_stats_for_competitor;
 use crate::state::Size;
 use crate::state::{Competition, CompetitionRoundStatus, Competitor};
 use drift::math::safe_math::SafeMath;
@@ -51,7 +51,7 @@ pub struct InitializeCompetitor<'info> {
     pub competition: AccountLoader<'info, Competition>,
     #[account(
         mut,
-        constraint = is_user_stats_for_competitor(&competitor, &drift_user_stats)?
+        constraint = authority.key.eq(&drift_user_stats.load()?.authority)
     )]
     /// CHECK: checked in drift cpi
     pub drift_user_stats: AccountLoader<'info, UserStats>,

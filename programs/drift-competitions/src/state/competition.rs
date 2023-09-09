@@ -51,9 +51,7 @@ impl Default for CompetitionRoundStatus {
     }
 }
 
-#[account(zero_copy)]
-#[derive(Default, Eq, PartialEq, Debug)]
-#[repr(C)]
+#[derive(Default, Clone, Copy, AnchorSerialize, AnchorDeserialize, Eq, PartialEq, Debug)]
 pub struct SponsorInfo {
     pub sponsor: Pubkey,
     pub min_sponsor_amount: u64,   // always leave this amount for sponsor
