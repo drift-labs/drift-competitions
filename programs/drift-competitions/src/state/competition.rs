@@ -138,6 +138,8 @@ impl Competition {
     pub fn expire(&mut self, now: i64) -> CompetitionResult {
         if self.competition_expiry_ts != 0 && self.competition_expiry_ts <= now {
             self.status = CompetitionRoundStatus::Expired;
+        } else {
+            return Err(ErrorCode::CompetitionRoundOngoing);
         }
 
         Ok(())

@@ -90,4 +90,39 @@ mod competition_fcn {
         assert_eq!(sweepstakes.round_number, 1);
         assert_eq!(sweepstakes.status, CompetitionRoundStatus::Active);
     }
+
+    #[test]
+    fn test_competition_expiry() {
+        let mut now = 168000000;
+        let sweepstakes = &mut Competition::default();
+
+        sweepstakes.first_round_expiry_ts = now + 60;
+        sweepstakes.round_duration = 60;
+        assert_eq!(sweepstakes.status, CompetitionRoundStatus::Active);
+
+        sweepstakes.competition_expiry_ts = now + 88;
+
+        sweepstakes.number_of_competitors = 2;
+        let comp1 = &mut Competitor::default();
+        comp1.claim_entry().unwrap();
+
+        let comp2 = &mut Competitor::default();
+
+        assert!(sweepstakes.expire(now).is_err());
+        now += 5;
+        assert!(sweepstakes.expire(now).is_err());
+        now += 85;
+
+        assert!(sweepstakes.reset_round().is_err());
+        assert!(sweepstakes.resolve_winning_draw().is_err());
+
+        let us: &UserStats = &UserStats::default();
+
+        assert!(sweepstakes.settle_competitor(comp1, us, now).is_err());
+        assert!(sweepstakes.settle_competitor(comp2, us, now).is_err());
+
+        sweepstakes.expire(now).unwrap();
+
+        assert_eq!(sweepstakes.status, CompetitionRoundStatus::Expired);
+    }
 }

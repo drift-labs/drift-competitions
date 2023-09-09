@@ -1,9 +1,9 @@
 use crate::state::Size;
+use crate::utils::apply_rebase_to_competitor_unclaimed_winnings;
 use anchor_lang::prelude::*;
 use drift::error::DriftResult;
-use crate::utils::apply_rebase_to_competitor_unclaimed_winnings;
-use drift::math::safe_math::SafeMath;
 use drift::math::casting::Cast;
+use drift::math::safe_math::SafeMath;
 
 use drift::state::insurance_fund_stake::InsuranceFundStake;
 use drift::state::spot_market::SpotMarket;
@@ -18,7 +18,9 @@ use static_assertions::const_assert_eq;
 #[derive(Default, Eq, PartialEq, Debug)]
 #[repr(C)]
 pub struct Competitor {
+    pub authority: Pubkey,
     pub competition: Pubkey,
+    pub user_stats: Pubkey,
     pub competition_round_number: u64,
 
     pub previous_snapshot_score: u64,
@@ -33,7 +35,7 @@ pub struct Competitor {
 }
 
 impl Size for Competitor {
-    const SIZE: usize = 120 + 8;
+    const SIZE: usize = 184 + 8;
 }
 
 const_assert_eq!(Competitor::SIZE, std::mem::size_of::<Competitor>() + 8);

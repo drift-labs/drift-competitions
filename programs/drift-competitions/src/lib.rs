@@ -4,8 +4,10 @@ use instructions::*;
 mod error;
 mod instructions;
 mod state;
-mod tests;
 mod utils;
+
+#[cfg(test)]
+mod tests;
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
@@ -18,5 +20,11 @@ pub mod drift_competitions {
         params: CompetitionParams,
     ) -> Result<()> {
         instructions::initialize_competition(ctx, params)
+    }
+
+    pub fn initialize_competitor<'info>(
+        ctx: Context<'_, '_, '_, 'info, InitializeCompetitor<'info>>,
+    ) -> Result<()> {
+        instructions::initialize_competitor(ctx)
     }
 }
