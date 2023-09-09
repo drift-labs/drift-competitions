@@ -1,12 +1,12 @@
 use anchor_lang::prelude::*;
 
-use crate::state::{Competitor, CompetitionRoundStatus, Competition};
+use crate::error::ErrorCode;
+use crate::instructions::constraints::is_user_stats_for_competitor;
 use crate::state::Size;
-use drift::validate;
+use crate::state::{Competition, CompetitionRoundStatus, Competitor};
 use drift::math::safe_math::SafeMath;
 use drift::state::user::UserStats;
-use crate::instructions::constraints::is_user_stats_for_competitor;
-use crate::error::ErrorCode;
+use drift::validate;
 
 pub fn initialize_competitor<'info>(
     ctx: Context<'_, '_, '_, 'info, InitializeCompetitor<'info>>,
@@ -30,7 +30,8 @@ pub fn initialize_competitor<'info>(
 
     competitor.competition = ctx.accounts.competition.key();
     competitor.competition_round_number = competition.round_number;
-    competitor.previous_snapshot_score = competitor.calculate_snapshot_score(&competitor_user_stats)?;
+    competitor.previous_snapshot_score =
+        competitor.calculate_snapshot_score(&competitor_user_stats)?;
 
     competition.number_of_competitors = competition.number_of_competitors.safe_add(1)?;
 

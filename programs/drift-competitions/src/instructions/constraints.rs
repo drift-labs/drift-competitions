@@ -1,8 +1,7 @@
 use crate::state::Competitor;
 
-use drift::state::user::UserStats;
 use anchor_lang::prelude::*;
-
+use drift::state::user::UserStats;
 
 pub fn is_user_stats_for_competitor(
     competitor: &AccountLoader<Competitor>,
