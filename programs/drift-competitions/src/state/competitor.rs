@@ -21,17 +21,24 @@ pub struct Competitor {
     pub min_draw: u128,
     pub max_draw: u128,
     pub unclaimed_winnings: u64,
+    pub unclaimed_winnings_base: u128,
 }
 
 impl Size for Competitor {
-    const SIZE: usize = 104 + 8;
+    const SIZE: usize = 120 + 8;
 }
 
 const_assert_eq!(Competitor::SIZE, std::mem::size_of::<Competitor>() + 8);
 
 impl Competitor {
-    pub fn calculate_score(&self, user_stats: UserStats) -> DriftResult<u64> {
-        let current_snapshot_score = user_stats.fees.total_fee_paid;
+    pub fn calculate_snapshot_score(&self, user_stats: &UserStats) -> DriftResult<u64> {
+        // todo: make this a function of the competition
+        // then each competition defines how the snapshot score is calculated
+        Ok(user_stats.fees.total_fee_paid)
+    }
+
+    pub fn calculate_round_score(&self, user_stats: &UserStats) -> DriftResult<u64> {
+        let current_snapshot_score = self.calculate_snapshot_score(user_stats)?;
 
         let round_score = current_snapshot_score
             .safe_sub(self.previous_snapshot_score)?

@@ -9,7 +9,7 @@ pub fn initialize_competition<'info>(
     let mut competition = ctx.accounts.competition.load_init()?;
 
     competition.name = params.name;
-    competition.sponsor = ctx.accounts.sponsor.key();
+    competition.sponsor_info.sponsor = ctx.accounts.sponsor.key();
 
     competition.round_number = 0;
 
