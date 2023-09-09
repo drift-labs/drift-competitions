@@ -71,9 +71,10 @@ pub struct Competition {
 
     // entries
     pub number_of_competitors: u128,
-    pub max_entries_per_competitor: u128, // set a max entry per competitior
     pub number_of_competitors_settled: u128, //starts at zero and you have to settle everyone to know the winner
     pub total_score_settled: u128, // sum of all scores (when num users settled == num users)
+
+    pub max_entries_per_competitor: u64, // set a max entry per competitior
 
     // scheduling variables
     pub first_round_expiry_ts: i64,
@@ -90,7 +91,7 @@ pub struct Competition {
 }
 
 impl Size for Competition {
-    const SIZE: usize = 248 + 8;
+    const SIZE: usize = 240 + 8;
 }
 
 const_assert_eq!(Competition::SIZE, std::mem::size_of::<Competition>() + 8);
@@ -213,8 +214,9 @@ impl Competition {
             ErrorCode::CompetitionWinnerNotDetermined
         )?;
 
+        // competitor account was settled and set to next round
         validate!(
-            self.round_number == competitor.competition_round_number,
+            self.round_number.safe_add(1)? == competitor.competition_round_number,
             ErrorCode::CompetitorHasWrongRoundNumber
         )?;
 
@@ -223,12 +225,11 @@ impl Competition {
             ErrorCode::CompetitorNotWinner
         )?;
 
-        validate!(
-            competitor.unclaimed_winnings == 0,
-            ErrorCode::CompetitorNotQualified
-        )?;
-
         Ok(())
+    }
+
+    pub fn competitor_can_be_settled(&self, competitor: &Competitor) -> bool {
+        return self.round_number == competitor.competition_round_number;
     }
 
     pub fn settle_competitor(
@@ -239,13 +240,27 @@ impl Competition {
     ) -> CompetitionResult {
         self.validate_round_ready_for_settlement(now)?;
 
+        if !self.competitor_can_be_settled(competitor) {
+            return Ok(()); // gracefully skip/fail
+        }
+
         if competitor.unclaimed_winnings == 0 {
             let round_score = competitor.calculate_round_score(user_stats)?;
 
-            let new_total_score_settled = self.total_score_settled.safe_add(round_score.cast()?)?;
+            let round_score_capped = if self.max_entries_per_competitor > 0 {
+                round_score.min(self.max_entries_per_competitor)
+            } else {
+                round_score
+            };
+
+            let new_total_score_settled = self
+                .total_score_settled
+                .safe_add(round_score_capped.cast()?)?;
 
             competitor.min_draw = self.total_score_settled;
             competitor.max_draw = new_total_score_settled;
+            competitor.competition_round_number =
+                competitor.competition_round_number.safe_add(1)?;
 
             self.total_score_settled = new_total_score_settled;
         }

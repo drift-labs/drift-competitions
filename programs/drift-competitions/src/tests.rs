@@ -35,7 +35,12 @@ mod competition_fcn {
         assert!(sweepstakes.resolve_winning_draw().is_err());
 
         sweepstakes.settle_competitor(comp1, us, now).unwrap();
+        assert!(sweepstakes.number_of_competitors_settled == 1);
+        sweepstakes.settle_competitor(comp1, us, now).unwrap();
+        assert!(sweepstakes.number_of_competitors_settled == 1); // resettle a competitor doesnt increment
+
         sweepstakes.settle_competitor(comp2, us, now).unwrap();
+        assert!(sweepstakes.number_of_competitors_settled == 2);
 
         assert_eq!(comp1.min_draw, 0);
         assert_eq!(comp1.max_draw, 1);
