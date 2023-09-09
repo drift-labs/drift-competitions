@@ -1,5 +1,8 @@
 use crate::state::Size;
-use crate::utils::get_random_draw;
+use crate::utils::{
+    apply_rebase_to_competition_prize, apply_rebase_to_competitor_unclaimed_winnings,
+    get_random_draw,
+};
 use drift::{
     error::DriftResult,
     math::constants::{PERCENTAGE_PRECISION_U64, QUOTE_PRECISION},
@@ -64,7 +67,6 @@ pub struct Competition {
     pub name: [u8; 32],
     pub competition_type: CompetitionType,
     pub status: CompetitionRoundStatus,
-
     pub round_number: u64,
 
     // entries
@@ -78,6 +80,7 @@ pub struct Competition {
     pub competition_expiry_ts: i64, // when competition ends, perpetual when == 0
     pub round_duration: u64,
 
+    // giveaway details
     pub prize_draw: u128,
     pub prize_amount: u128,
     pub prize_base: u128,
@@ -197,6 +200,30 @@ impl Competition {
             ErrorCode::CompetitionRoundInSettlementPhase,
             "Competition round_number={:?} is still ongoing",
             self.round_number
+        )?;
+
+        Ok(())
+    }
+
+    pub fn validate_competitor_is_winner(&self, competitor: &Competitor) -> CompetitionResult {
+        validate!(
+            self.status == CompetitionRoundStatus::WinnerDrawComplete,
+            ErrorCode::CompetitionWinnerNotDetermined
+        )?;
+
+        validate!(
+            self.round_number == competitor.competition_round_number,
+            ErrorCode::CompetitorHasWrongRoundNumber
+        )?;
+
+        validate!(
+            self.winning_draw >= competitor.min_draw && self.winning_draw < competitor.max_draw,
+            ErrorCode::CompetitorNotWinner
+        )?;
+
+        validate!(
+            competitor.unclaimed_winnings == 0,
+            ErrorCode::CompetitorNotQualified
         )?;
 
         Ok(())
@@ -328,28 +355,24 @@ impl Competition {
         Ok(())
     }
 
-    pub fn settle_winner(&mut self, competitor: &mut Competitor) -> CompetitionResult {
-        validate!(
-            self.status == CompetitionRoundStatus::WinnerDrawComplete,
-            ErrorCode::CompetitionWinnerNotDetermined
-        )?;
+    pub fn settle_winner(
+        &mut self,
+        competitor: &mut Competitor,
+        spot_market: &SpotMarket,
+    ) -> CompetitionResult {
+        self.validate_competitor_is_winner(competitor)?;
 
-        validate!(
-            self.round_number == competitor.competition_round_number,
-            ErrorCode::CompetitorHasWrongRoundNumber
-        )?;
+        if competitor.unclaimed_winnings != 0 {
+            apply_rebase_to_competitor_unclaimed_winnings(competitor, spot_market)?;
+        }
 
-        validate!(
-            self.winning_draw >= competitor.min_draw && self.winning_draw < competitor.max_draw,
-            ErrorCode::CompetitorNotWinner
-        )?;
+        if spot_market.insurance_fund.shares_base == self.prize_base {
+            apply_rebase_to_competition_prize(self, spot_market)?;
+        }
 
-        validate!(
-            competitor.unclaimed_winnings == 0,
-            ErrorCode::CompetitorNotQualified
-        )?;
-
-        competitor.unclaimed_winnings = self.prize_draw.cast()?;
+        competitor.unclaimed_winnings = competitor
+            .unclaimed_winnings
+            .saturating_add(self.prize_amount.cast()?);
         competitor.unclaimed_winnings_base = self.prize_base;
 
         self.update_status(CompetitionRoundStatus::WinnerSettlementComplete)?;

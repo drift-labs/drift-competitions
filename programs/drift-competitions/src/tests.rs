@@ -76,15 +76,15 @@ mod competition_fcn {
 
         assert_eq!(sweepstakes.winning_draw, 2);
 
-        assert!(sweepstakes.settle_winner(comp1).is_err());
-        sweepstakes.settle_winner(comp2).unwrap();
-        assert!(sweepstakes.settle_winner(comp2).is_err()); // cannot settle twice
+        assert!(sweepstakes.settle_winner(comp1, &spot_market).is_err());
+        sweepstakes.settle_winner(comp2, &spot_market).unwrap();
+        assert!(sweepstakes.settle_winner(comp2, &spot_market).is_err()); // cannot settle twice
         assert_eq!(
             sweepstakes.status,
             CompetitionRoundStatus::WinnerSettlementComplete
         );
 
-        assert_eq!(comp2.unclaimed_winnings, sweepstakes.prize_draw as u64);
+        assert_eq!(comp2.unclaimed_winnings, sweepstakes.prize_amount as u64);
 
         sweepstakes.reset_round().unwrap();
         assert_eq!(sweepstakes.round_number, 1);

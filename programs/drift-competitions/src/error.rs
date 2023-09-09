@@ -31,6 +31,8 @@ pub enum ErrorCode {
     CompetitorNotQualified,
     #[msg("InvalidStatusUpdateDetected")]
     InvalidStatusUpdateDetected,
+    #[msg("InvalidIFRebase")]
+    InvalidIFRebase,
 }
 
 impl From<DriftErrorCode> for ErrorCode {
