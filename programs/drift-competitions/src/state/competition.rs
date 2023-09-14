@@ -22,6 +22,8 @@ use drift::math::safe_math::SafeMath;
 use super::Competitor;
 use borsh::{BorshDeserialize, BorshSerialize};
 
+use drift_macros::assert_no_slop;
+
 use drift::math::insurance::{if_shares_to_vault_amount, vault_amount_to_if_shares};
 
 #[derive(Clone, Copy, BorshSerialize, BorshDeserialize, PartialEq, Eq, Debug)]
@@ -58,6 +60,7 @@ pub struct SponsorInfo {
     pub max_sponsor_fraction: u64, // only take this percent of gain above the min amount
 }
 
+#[assert_no_slop]
 #[account(zero_copy)]
 #[derive(Default, Eq, PartialEq, Debug)]
 #[repr(C)]

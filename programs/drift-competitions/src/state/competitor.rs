@@ -13,7 +13,9 @@ use drift::validate;
 use crate::error::{CompetitionResult, ErrorCode};
 
 use static_assertions::const_assert_eq;
+use drift_macros::assert_no_slop;
 
+#[assert_no_slop]
 #[account(zero_copy)]
 #[derive(Default, Eq, PartialEq, Debug)]
 #[repr(C)]
