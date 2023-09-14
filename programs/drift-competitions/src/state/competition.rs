@@ -97,32 +97,14 @@ const_assert_eq!(Competition::SIZE, std::mem::size_of::<Competition>() + 8);
 impl Competition {
     pub fn update_status(&mut self, new_status: CompetitionRoundStatus) -> CompetitionResult {
         if new_status != CompetitionRoundStatus::Expired {
-            if new_status == CompetitionRoundStatus::Active {
-                validate!(
-                    self.status == CompetitionRoundStatus::WinnerSettlementComplete,
-                    ErrorCode::InvalidStatusUpdateDetected,
-                    "new status = {:?}, current status = {:?}",
-                    new_status,
-                    self.status
-                )?;
-                self.status = new_status;
-            } else {
-                validate!(
-                    (new_status as i32) - (self.status as i32) == 1,
-                    ErrorCode::InvalidStatusUpdateDetected,
-                    "new status = {:?}, current status = {:?}",
-                    new_status,
-                    self.status
-                )?;
-                validate!(
-                    new_status > self.status,
-                    ErrorCode::InvalidStatusUpdateDetected,
-                    "new status = {:?}, current status = {:?}",
-                    new_status,
-                    self.status
-                )?;
-                self.status = new_status;
-            }
+            validate!(
+                (new_status as i32) - (self.status as i32 % 5) == 1,
+                ErrorCode::InvalidStatusUpdateDetected,
+                "new status = {:?}, current status = {:?}",
+                new_status,
+                self.status
+            )?;
+            self.status = new_status;
         }
 
         Ok(())
@@ -242,6 +224,7 @@ impl Competition {
             return Ok(()); // gracefully skip/fail
         }
 
+        // skip unclaimed winners to give active competitors a higher probablity of winning
         if competitor.unclaimed_winnings == 0 {
             let round_score = competitor.calculate_round_score(user_stats)?;
 
@@ -381,7 +364,7 @@ impl Competition {
             apply_rebase_to_competitor_unclaimed_winnings(competitor, spot_market)?;
         }
 
-        if spot_market.insurance_fund.shares_base == self.prize_base {
+        if spot_market.insurance_fund.shares_base != self.prize_base {
             apply_rebase_to_competition_prize(self, spot_market)?;
         }
 

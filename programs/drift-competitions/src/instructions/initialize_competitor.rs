@@ -17,15 +17,10 @@ pub fn initialize_competitor<'info>(
     let competitor_user_stats = ctx.accounts.drift_user_stats.load()?;
 
     validate!(
-        competition.status != CompetitionRoundStatus::Expired,
-        ErrorCode::InvalidRoundSettlementDetected,
-        "Competition is Expired"
-    )?;
-
-    validate!(
         competition.status == CompetitionRoundStatus::Active,
         ErrorCode::InvalidRoundSettlementDetected,
-        "Cannot initialize competitior account during competition settlement"
+        "Cannot initialize competitior account during this status {:?} (must be Active)",
+        competition.status
     )?;
 
     competitor.competition = ctx.accounts.competition.key();
@@ -34,6 +29,8 @@ pub fn initialize_competitor<'info>(
         competitor.calculate_snapshot_score(&competitor_user_stats)?;
 
     competition.number_of_competitors = competition.number_of_competitors.safe_add(1)?;
+
+    // todo: add competition.bonus_score = 1; ?
 
     Ok(())
 }
@@ -48,12 +45,11 @@ pub struct InitializeCompetitor<'info> {
         payer = payer
     )]
     pub competitor: AccountLoader<'info, Competitor>,
+    #[account(mut)]
     pub competition: AccountLoader<'info, Competition>,
     #[account(
-        mut,
         constraint = authority.key.eq(&drift_user_stats.load()?.authority)
     )]
-    /// CHECK: checked in drift cpi
     pub drift_user_stats: AccountLoader<'info, UserStats>,
     pub authority: Signer<'info>,
     #[account(mut)]

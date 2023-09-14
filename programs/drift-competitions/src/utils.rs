@@ -36,7 +36,7 @@ pub fn apply_rebase_to_competition_prize(
         let old_if_shares = competition.prize_base;
         let new_if_shares = old_if_shares.safe_div(rebase_divisor)?;
 
-        competition.prize_base = new_if_shares;
+        competition.prize_amount = new_if_shares;
     }
     Ok(())
 }
