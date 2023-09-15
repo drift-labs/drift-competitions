@@ -4,7 +4,8 @@
         "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
     },
     "dependencies": {
-        "@coral-xyz/anchor": "^0.26.0"
+        "@coral-xyz/anchor": "^0.26.0",
+        "@switchboard-xyz/solana.js": "^2.6.3"
     },
     "devDependencies": {
         "chai": "^4.3.4",
