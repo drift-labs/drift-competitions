@@ -2,7 +2,7 @@
 seeds = false
 skip-lint = false
 [programs.localnet]
-drift_competitions = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+drift_competitions = "9FHbMuNCRRCXsvKEkA3V8xJmysAqkZrGfrppvUhGTq7x"
 
 [registry]
 url = "https://api.apr.dev"

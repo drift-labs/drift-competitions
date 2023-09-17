@@ -18,4 +18,12 @@ pub mod drift_competitions {
     pub fn request_randomness<'info>(ctx: Context<'_, '_, '_, 'info, RequestRandomness<'info>>) -> Result<()> {
         instructions::request_randomness(ctx)
     }
+
+    pub fn settle<'info>(ctx: Context<'_, '_, '_, 'info, Settle<'info>>, result: u32) -> Result<()> {
+        instructions::settle(ctx, result)
+    }
+
+    pub fn close_randomness_request<'info>(ctx: Context<'_, '_, '_, 'info, CloseRandomness<'info>>) -> Result<()> {
+        instructions::close_randomness_request(ctx)
+    }
 }

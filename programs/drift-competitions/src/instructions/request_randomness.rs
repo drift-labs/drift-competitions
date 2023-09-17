@@ -3,10 +3,6 @@ use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{Mint, Token};
 use switchboard_solana::prelude::*;
 
-use crate::error::ErrorCode;
-use crate::state::Size;
-use drift::validate;
-
 /// The minimum guess that can be submitted, inclusive.
 pub const MIN_RESULT: u32 = 1;
 /// The maximum guess that can be submitted, inclusive.
@@ -19,11 +15,9 @@ pub fn request_randomness<'info>(
     let payer_key = ctx.accounts.payer.key();
 
     // Create the Switchboard request account.
-    let request_init_ctx = FunctionRequestInit {
+    let request_init_and_trigger_ctx = FunctionRequestInitAndTrigger {
         request: ctx.accounts.switchboard_request.clone(),
-        authority: ctx.accounts.payer.to_account_info(),
         function: ctx.accounts.switchboard_function.to_account_info(),
-        function_authority: None, // only needed if switchboard_function.requests_require_authorization is enabled
         escrow: ctx.accounts.switchboard_request_escrow.clone(),
         mint: ctx.accounts.switchboard_mint.to_account_info(),
         state: ctx.accounts.switchboard_state.to_account_info(),
@@ -42,19 +36,16 @@ pub fn request_randomness<'info>(
         payer_key,
     );
 
-    request_init_ctx.invoke(
+    request_init_and_trigger_ctx.invoke(
         ctx.accounts.switchboard.clone(),
-        &FunctionRequestInitParams {
-            // max_container_params_len - the length of the vec containing the container params
-            // default: 256 bytes
-            max_container_params_len: Some(512),
-            // container_params - the container params
-            // default: empty vec
-            container_params: request_params.into_bytes(),
-            // garbage_collection_slot - the slot when the request can be closed by anyone and is considered dead
-            // default: None, only authority can close the request
-            garbage_collection_slot: None,
-        },
+        // bounty - optional fee to reward oracles for priority processing
+        // default: 0 lamports
+        None,
+        None,
+        Some(512),
+        Some(request_params.into_bytes()),
+        None,
+        None
     )?;
 
     Ok(())
