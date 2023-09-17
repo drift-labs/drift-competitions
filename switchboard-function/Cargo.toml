@@ -1,0 +1,16 @@
+[workspace]
+
+[package]
+name = "simple-randomness-function"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "simple-randomness-function"
+path = "src/main.rs"
+
+[dependencies]
+tokio = "^1"
+futures = "0.3"
+switchboard-solana = "0.27.18"
+bytemuck = "1.13"
