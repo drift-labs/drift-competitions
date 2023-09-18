@@ -10,6 +10,7 @@ pub fn settle(_ctx: Context<Settle>, result: u32) -> Result<()> {
 pub struct Settle<'info> {
     // RANDOMNESS PROGRAM ACCOUNTS
     /// CHECK: should be payer
+    #[account(mut)]
     pub payer: AccountInfo<'info>,
 
     // SWITCHBOARD ACCOUNTS
