@@ -21,6 +21,7 @@ pub fn close_randomness_request<'info>(
 
     close_ctx.invoke(
         ctx.accounts.switchboard.clone(),
+        None,
     )?;
 
 

@@ -18,6 +18,8 @@ pub fn request_randomness<'info>(
     let request_init_and_trigger_ctx = FunctionRequestInitAndTrigger {
         request: ctx.accounts.switchboard_request.clone(),
         function: ctx.accounts.switchboard_function.to_account_info(),
+        authority: ctx.accounts.payer.to_account_info(),
+        function_authority: None,
         escrow: ctx.accounts.switchboard_request_escrow.clone(),
         mint: ctx.accounts.switchboard_mint.to_account_info(),
         state: ctx.accounts.switchboard_state.to_account_info(),
@@ -36,11 +38,13 @@ pub fn request_randomness<'info>(
         payer_key,
     );
 
+    msg!("function {:?}", ctx.accounts.switchboard_function.key());
+
     request_init_and_trigger_ctx.invoke(
         ctx.accounts.switchboard.clone(),
         // bounty - optional fee to reward oracles for priority processing
         // default: 0 lamports
-        None,
+        Some(1),
         None,
         Some(512),
         Some(request_params.into_bytes()),
