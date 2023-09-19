@@ -33,7 +33,7 @@ pub fn update_switchboard_function<'info>(
         crate::id(),
         MIN_RESULT,
         MAX_RESULT,
-        ctx.accounts.switchboard_function.key(),
+        ctx.accounts.competition.key(),
     );
 
     request_init_ctx.invoke(
