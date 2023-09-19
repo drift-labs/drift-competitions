@@ -22,26 +22,30 @@ async fn main() {
     .unwrap();
 
     // Generate our random result
-    let random_result = generate_randomness(params.min_result, params.max_result);
-    let mut random_bytes = random_result.to_le_bytes().to_vec();
+    let winner_result = generate_randomness(params.min_result, params.max_result);
+    let mut winner_result_bytes = winner_result.to_le_bytes().to_vec();
+
+    let prize_result = generate_randomness(params.min_result, params.max_result);
+    let mut prize_result_bytes = prize_result.to_le_bytes().to_vec();
 
     // IXN DATA:
     // LEN: 12 bytes
     // [0-8]: Anchor Ixn Discriminator
     // [9-12]: Random Result as u32
-    let mut ixn_data = get_ixn_discriminator("settle").to_vec();
-    ixn_data.append(&mut random_bytes);
+    let mut ixn_data = get_ixn_discriminator("receive_randomness").to_vec();
+    ixn_data.append(&mut winner_result_bytes);
+    ixn_data.append(&mut prize_result_bytes);
 
     // ACCOUNTS:
-    // 1. User (mut): our user who guessed
+    // 1. Competition (mut)
     // 2. Switchboard Function
     // 3. Switchboard Function Request
     // 4. Enclave Signer (signer): our Gramine generated keypair
-    let settle_ixn = Instruction {
+    let receive_randomness_ixn = Instruction {
         program_id: params.program_id,
         data: ixn_data,
         accounts: vec![
-            AccountMeta::new(params.user_key, false),
+            AccountMeta::new(params.competition_key, false),
             AccountMeta::new_readonly(runner.function, false),
             AccountMeta::new_readonly(runner.function_request_key.unwrap(), false),
             AccountMeta::new_readonly(runner.signer, true),
@@ -50,7 +54,7 @@ async fn main() {
 
     // Then, write your own Rust logic and build a Vec of instructions.
     // Should  be under 700 bytes after serialization
-    let ixs: Vec<solana_program::instruction::Instruction> = vec![settle_ixn];
+    let ixs: Vec<solana_program::instruction::Instruction> = vec![receive_randomness_ixn];
 
     // Finally, emit the signed quote and partially signed transaction to the functionRunner oracle
     // The functionRunner oracle will use the last outputted word to stdout as the serialized result. This is what gets executed on-chain.

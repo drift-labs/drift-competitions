@@ -7,13 +7,11 @@ use crate::state::Competition;
 /// The minimum guess that can be submitted, inclusive.
 pub const MIN_RESULT: u32 = 1;
 /// The maximum guess that can be submitted, inclusive.
-pub const MAX_RESULT: u32 = 10;
+pub const MAX_RESULT: u32 = 1_000_000;
 
 pub fn update_switchboard_function<'info>(
     ctx: Context<'_, '_, '_, 'info, UpdateSwitchboardFunction<'info>>,
 ) -> Result<()> {
-    let sponsor_key = ctx.accounts.sponsor.key();
-
     // Create the Switchboard request account.
     let request_init_ctx = FunctionRequestInit {
         request: ctx.accounts.switchboard_request.clone(),
@@ -31,11 +29,11 @@ pub fn update_switchboard_function<'info>(
     };
 
     let request_params = format!(
-        "PID={},MIN_RESULT={},MAX_RESULT={},USER={}",
+        "PID={},MIN_RESULT={},MAX_RESULT={},COMPETITION={}",
         crate::id(),
         MIN_RESULT,
         MAX_RESULT,
-        sponsor_key,
+        ctx.accounts.switchboard_function.key(),
     );
 
     request_init_ctx.invoke(
