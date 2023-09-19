@@ -61,7 +61,7 @@ impl Competitor {
         Ok(round_score)
     }
 
-    pub fn claim_entry(&mut self) -> DriftResult {
+    pub fn claim_entry(&mut self) -> CompetitionResult {
         // todo: currently enforces only one claim.
         // for more, add economic protection to inspection inspection stack to avoid
         // more than one per transaction
@@ -78,16 +78,28 @@ impl Competitor {
     pub fn claim_winnings(
         &mut self,
         spot_market: &SpotMarket,
-        insurance_fund_stake: InsuranceFundStake,
+        insurance_fund_stake: &mut InsuranceFundStake,
     ) -> CompetitionResult {
-        if self.unclaimed_winnings != 0 {
-            apply_rebase_to_competitor_unclaimed_winnings(self, spot_market)?;
+        validate!(
+            spot_market.insurance_fund.shares_base == insurance_fund_stake.if_base,
+            ErrorCode::CompetitorNeedsToRebaseInsuranceFundStake
+        )?;
+
+        if self.unclaimed_winnings == 0 {
+            return Err(ErrorCode::CompetitorHasNoUnclaimedWinnings);
         }
 
+        apply_rebase_to_competitor_unclaimed_winnings(self, spot_market)?;
         let old_shares = insurance_fund_stake.checked_if_shares(spot_market)?;
 
         // settle to competitor's if stake
         // drift::cpi::transfer_admin_if_shares(cpi_context, to_insurance_fund_stake, amount)?;
+
+        // todo: replace with cpi call
+        insurance_fund_stake.update_if_shares(
+            old_shares.safe_add(self.unclaimed_winnings.cast()?)?,
+            spot_market,
+        )?;
 
         let new_shares = insurance_fund_stake.checked_if_shares(spot_market)?;
 

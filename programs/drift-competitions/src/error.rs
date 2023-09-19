@@ -35,6 +35,12 @@ pub enum ErrorCode {
     InvalidIFRebase,
     #[msg("CompetitorHasAlreadyClaimedEntry")]
     CompetitorHasAlreadyClaimedEntry,
+    #[msg("CompetitorNeedsToRebaseInsuranceFundStake")]
+    CompetitorNeedsToRebaseInsuranceFundStake,
+    #[msg("CompetitorHasNoUnclaimedWinnings")]
+    CompetitorHasNoUnclaimedWinnings,
+    #[msg("CompetitionPrizeAmountNotDetermined")]
+    CompetitionPrizeAmountNotDetermined,
 }
 
 impl From<DriftErrorCode> for ErrorCode {

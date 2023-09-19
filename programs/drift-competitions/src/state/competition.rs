@@ -60,7 +60,7 @@ pub struct SponsorInfo {
     pub max_sponsor_fraction: u64, // only take this percent of gain above the min amount
 }
 
-#[assert_no_slop]
+// #[assert_no_slop]
 #[account(zero_copy)]
 #[derive(Default, Eq, PartialEq, Debug)]
 #[repr(C)]
@@ -88,7 +88,6 @@ pub struct Competition {
     pub competition_type: CompetitionType,
     pub status: CompetitionRoundStatus,
     pub sponsor_info: SponsorInfo,
-
 }
 
 impl Size for Competition {
@@ -96,7 +95,6 @@ impl Size for Competition {
 }
 
 const_assert_eq!(Competition::SIZE, std::mem::size_of::<Competition>() + 8);
-
 
 impl Size for SponsorInfo {
     const SIZE: usize = 48 + 8;
@@ -239,7 +237,7 @@ impl Competition {
             let round_score = competitor.calculate_round_score(user_stats)?;
 
             let round_score_capped = if self.max_entries_per_competitor > 0 {
-                round_score.min(self.max_entries_per_competitor)
+                round_score.min(self.max_entries_per_competitor.cast()?)
             } else {
                 round_score
             };
@@ -320,7 +318,10 @@ impl Competition {
     ) -> CompetitionResult {
         self.validate_round_resolved()?;
         let (_, ratios) = self.calculate_prize_buckets_and_ratios(spot_market, vault_balance)?;
-        self.prize_draw = get_random_draw(ratios.iter().sum())?;
+
+        let ratio_sum = ratios.iter().sum();
+
+        self.prize_draw = get_random_draw(ratio_sum)?;
 
         self.update_status(CompetitionRoundStatus::PrizeDrawComplete)?;
 
@@ -338,7 +339,7 @@ impl Competition {
         let mut cumulative_ratio = 0;
         for (i, &prize_amount_i) in prize_buckets.iter().enumerate() {
             cumulative_ratio = cumulative_ratio.safe_add(ratios[i])?;
-            if self.prize_draw <= cumulative_ratio {
+            if self.prize_draw <= cumulative_ratio && self.prize_amount == 0 {
                 self.prize_amount = vault_amount_to_if_shares(
                     prize_amount_i.cast()?,
                     spot_market.insurance_fund.total_shares,
@@ -346,12 +347,13 @@ impl Competition {
                 )?;
 
                 self.prize_base = spot_market.insurance_fund.shares_base;
+                self.update_status(CompetitionRoundStatus::PrizeAmountComplete)?;
+
+                return Ok(());
             }
         }
 
-        self.update_status(CompetitionRoundStatus::PrizeAmountComplete)?;
-
-        Ok(())
+        Err(ErrorCode::CompetitionWinnerNotDetermined)
     }
 
     pub fn resolve_winning_draw(&mut self) -> CompetitionResult {

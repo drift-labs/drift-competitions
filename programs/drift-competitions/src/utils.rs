@@ -33,7 +33,13 @@ pub fn apply_rebase_to_competition_prize(
 
         competition.prize_base = spot_market.insurance_fund.shares_base;
 
-        let old_if_shares = competition.prize_base;
+        msg!(
+            "rebasing competition base: {} -> {} ",
+            competition.prize_base,
+            spot_market.insurance_fund.shares_base,
+        );
+
+        let old_if_shares = competition.prize_amount;
         let new_if_shares = old_if_shares.safe_div(rebase_divisor)?;
 
         competition.prize_amount = new_if_shares;
@@ -59,7 +65,7 @@ pub fn apply_rebase_to_competitor_unclaimed_winnings(
         let rebase_divisor = 10_u64.pow(expo_diff);
 
         msg!(
-            "rebasing insurance fund stake: base: {} -> {} ",
+            "rebasing unclaimed_winnings_base: {} -> {} ",
             competitor.unclaimed_winnings_base,
             spot_market.insurance_fund.shares_base,
         );
