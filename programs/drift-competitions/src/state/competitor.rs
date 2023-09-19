@@ -23,17 +23,19 @@ pub struct Competitor {
     pub authority: Pubkey,
     pub competition: Pubkey,
     pub user_stats: Pubkey,
-    pub competition_round_number: u64,
-
-    pub previous_snapshot_score: u64,
-    pub latest_snapshot_score: u64,
-    pub bonus_score: u64, // this can be used to claim raffle w/o purchase
 
     // assign unique range to competitor for random draws
     pub min_draw: u128,
     pub max_draw: u128,
-    pub unclaimed_winnings: u64,
     pub unclaimed_winnings_base: u128,
+    pub unclaimed_winnings: u64,
+
+    pub competition_round_number: u64,
+
+    // score snapshots + bonus
+    pub previous_snapshot_score: u64,
+    pub latest_snapshot_score: u64,
+    pub bonus_score: u64, // this can be used to claim raffle w/o purchase
 }
 
 impl Size for Competitor {
