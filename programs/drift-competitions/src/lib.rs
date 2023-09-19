@@ -15,6 +15,10 @@ pub mod drift_competitions {
         instructions::initialize_competition(ctx, params)
     }
 
+    pub fn update_switchboard_function<'info>(ctx: Context<'_, '_, '_, 'info, UpdateSwitchboardFunction<'info>>) -> Result<()> {
+        instructions::update_switchboard_function(ctx)
+    }
+
     pub fn request_randomness<'info>(ctx: Context<'_, '_, '_, 'info, RequestRandomness<'info>>) -> Result<()> {
         instructions::request_randomness(ctx)
     }
