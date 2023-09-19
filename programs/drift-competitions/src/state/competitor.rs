@@ -12,8 +12,8 @@ use drift::validate;
 
 use crate::error::{CompetitionResult, ErrorCode};
 
-use static_assertions::const_assert_eq;
 use drift_macros::assert_no_slop;
+use static_assertions::const_assert_eq;
 
 #[assert_no_slop]
 #[account(zero_copy)]
@@ -60,8 +60,16 @@ impl Competitor {
     }
 
     pub fn claim_entry(&mut self) -> DriftResult {
-        // todo: either enforce only one claim or add anti transction packing logic
+        // todo: currently enforces only one claim.
+        // for more, add economic protection to inspection inspection stack to avoid
+        // more than one per transaction
+        validate!(
+            self.bonus_score == 0,
+            ErrorCode::CompetitorHasAlreadyClaimedEntry
+        )?;
+
         self.bonus_score = self.bonus_score.saturating_add(1);
+
         Ok(())
     }
 

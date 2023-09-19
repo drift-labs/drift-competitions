@@ -33,6 +33,8 @@ pub enum ErrorCode {
     InvalidStatusUpdateDetected,
     #[msg("InvalidIFRebase")]
     InvalidIFRebase,
+    #[msg("CompetitorHasAlreadyClaimedEntry")]
+    CompetitorHasAlreadyClaimedEntry,
 }
 
 impl From<DriftErrorCode> for ErrorCode {
