@@ -26,17 +26,6 @@ use drift_macros::assert_no_slop;
 
 use drift::math::insurance::{if_shares_to_vault_amount, vault_amount_to_if_shares};
 
-#[derive(Clone, Copy, BorshSerialize, BorshDeserialize, PartialEq, Eq, Debug)]
-pub enum CompetitionType {
-    Sweepstakes,
-}
-
-impl Default for CompetitionType {
-    fn default() -> Self {
-        CompetitionType::Sweepstakes
-    }
-}
-
 #[derive(Clone, Copy, BorshSerialize, BorshDeserialize, PartialOrd, Ord, PartialEq, Eq, Debug)]
 pub enum CompetitionRoundStatus {
     Active = 1,
@@ -60,12 +49,13 @@ pub struct SponsorInfo {
     pub max_sponsor_fraction: u64, // only take this percent of gain above the min amount
 }
 
-// #[assert_no_slop]
+#[assert_no_slop]
 #[account(zero_copy)]
 #[derive(Default, Eq, PartialEq, Debug)]
 #[repr(C)]
 pub struct Competition {
     pub name: [u8; 32],
+    pub sponsor_info: SponsorInfo,
 
     // entries
     pub number_of_competitors: u128,
@@ -85,9 +75,8 @@ pub struct Competition {
     pub competition_expiry_ts: i64, // when competition ends, perpetual when == 0
     pub round_duration: u64,
 
-    pub competition_type: CompetitionType,
     pub status: CompetitionRoundStatus,
-    pub sponsor_info: SponsorInfo,
+    pub padding: [u8; 7],
 }
 
 impl Size for Competition {
