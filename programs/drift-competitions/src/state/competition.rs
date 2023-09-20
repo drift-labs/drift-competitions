@@ -28,11 +28,10 @@ pub struct Competition {
     pub competition_expiry_ts: i64, // when competition ends, perpetual when == 0
     pub round_duration: u64,
 
-    pub winner_randomness: u32,
-    pub prize_randomness: u32,
+    pub winner_randomness: u128,
+    pub prize_randomness: u128,
 
-    pub padding1: u64,
-    pub padding: [u128; 15],
+    pub padding: [u128; 14],
 }
 
 impl Size for Competition {

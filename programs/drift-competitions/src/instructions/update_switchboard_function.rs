@@ -29,8 +29,10 @@ pub fn update_switchboard_function<'info>(
     };
 
     let request_params = format!(
-        "PID={},MIN_RESULT={},MAX_RESULT={},COMPETITION={}",
+        "PID={},WINNER_MIN={},WINNER_MAX={},PRIZE_MIN={},PRIZE_MAX={},COMPETITION={}",
         crate::id(),
+        MIN_RESULT,
+        MAX_RESULT,
         MIN_RESULT,
         MAX_RESULT,
         ctx.accounts.competition.key(),
@@ -38,7 +40,7 @@ pub fn update_switchboard_function<'info>(
 
     request_init_ctx.invoke(
         ctx.accounts.switchboard.clone(),
-        Some(512),
+        Some(1024),
         Some(request_params.into_bytes()),
         None,
     )?;

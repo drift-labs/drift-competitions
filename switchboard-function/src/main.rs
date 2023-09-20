@@ -22,10 +22,10 @@ async fn main() {
     .unwrap();
 
     // Generate our random result
-    let winner_result = generate_randomness(params.min_result, params.max_result);
+    let winner_result = generate_randomness(params.winner_min_result, params.winner_max_result);
     let mut winner_result_bytes = winner_result.to_le_bytes().to_vec();
 
-    let prize_result = generate_randomness(params.min_result, params.max_result);
+    let prize_result = generate_randomness(params.prize_min_result, params.prize_max_result);
     let mut prize_result_bytes = prize_result.to_le_bytes().to_vec();
 
     // IXN DATA:
@@ -61,7 +61,7 @@ async fn main() {
     runner.emit(ixs).await.unwrap();
 }
 
-fn generate_randomness(min: u32, max: u32) -> u32 {
+fn generate_randomness(min: u128, max: u128) -> u128 {
     if min == max {
         return min;
     }
@@ -72,9 +72,9 @@ fn generate_randomness(min: u32, max: u32) -> u32 {
     // We add one so its inclusive [min, max]
     let window = (max + 1) - min;
 
-    let mut bytes: [u8; 4] = [0u8; 4];
+    let mut bytes: [u8; 16] = [0u8; 16];
     Gramine::read_rand(&mut bytes).expect("gramine failed to generate randomness");
-    let raw_result: &[u32] = bytemuck::cast_slice(&bytes[..]);
+    let raw_result: &[u128] = bytemuck::cast_slice(&bytes[..]);
 
     (raw_result[0] % window) + min
 }

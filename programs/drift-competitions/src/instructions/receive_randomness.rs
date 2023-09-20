@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use switchboard_solana::prelude::*;
 use crate::state::Competition;
 
-pub fn receive_randomness(_ctx: Context<Settle>, winner_randomness: u32, prize_randomness: u32) -> Result<()> {
+pub fn receive_randomness(_ctx: Context<Settle>, winner_randomness: u128, prize_randomness: u128) -> Result<()> {
     msg!("winner_randomness {}", winner_randomness);
     msg!("prize_randomness {}", prize_randomness);
 

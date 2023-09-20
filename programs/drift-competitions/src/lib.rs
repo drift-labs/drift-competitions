@@ -23,7 +23,7 @@ pub mod drift_competitions {
         instructions::request_randomness(ctx)
     }
 
-    pub fn receive_randomness<'info>(ctx: Context<'_, '_, '_, 'info, Settle<'info>>, winner_randomness: u32, prize_randomness: u32) -> Result<()> {
+    pub fn receive_randomness<'info>(ctx: Context<'_, '_, '_, 'info, Settle<'info>>, winner_randomness: u128, prize_randomness: u128) -> Result<()> {
         instructions::receive_randomness(ctx, winner_randomness, prize_randomness)
     }
 

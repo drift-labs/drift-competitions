@@ -1,9 +1,12 @@
 use crate::*;
 
 pub struct ContainerParams {
+
     pub program_id: Pubkey,
-    pub min_result: u32,
-    pub max_result: u32,
+    pub winner_min_result: u128,
+    pub winner_max_result: u128,
+    pub prize_min_result: u128,
+    pub prize_max_result: u128,
     pub competition_key: Pubkey,
 }
 
@@ -12,8 +15,10 @@ impl ContainerParams {
         let params = String::from_utf8(container_params.clone()).unwrap();
 
         let mut program_id: Pubkey = Pubkey::default();
-        let mut min_result: u32 = 0;
-        let mut max_result: u32 = 0;
+        let mut winner_min_result: u128 = 0;
+        let mut winner_max_result: u128 = 0;
+        let mut prize_min_result: u128 = 0;
+        let mut prize_max_result: u128 = 0;
         let mut competition_key: Pubkey = Pubkey::default();
 
         for env_pair in params.split(',') {
@@ -21,8 +26,10 @@ impl ContainerParams {
             if pair.len() == 2 {
                 match pair[0] {
                     "PID" => program_id = Pubkey::from_str(pair[1]).unwrap(),
-                    "MIN_RESULT" => min_result = pair[1].parse::<u32>().unwrap(),
-                    "MAX_RESULT" => max_result = pair[1].parse::<u32>().unwrap(),
+                    "WINNER_MIN" => winner_min_result = pair[1].parse::<u128>().unwrap(),
+                    "WINNER_MAX" => winner_max_result = pair[1].parse::<u128>().unwrap(),
+                    "PRIZE_MIN" => prize_min_result = pair[1].parse::<u128>().unwrap(),
+                    "PRIZE_MAX" => prize_max_result = pair[1].parse::<u128>().unwrap(),
                     "COMPETITION" => competition_key = Pubkey::from_str(pair[1]).unwrap(),
                     _ => {}
                 }
@@ -34,9 +41,14 @@ impl ContainerParams {
                 "PID cannot be undefined".to_string(),
             ));
         }
-        if max_result == 0 {
+        if winner_max_result == 0 {
             return Err(SwitchboardClientError::CustomMessage(
-                "MAX_GUESS must be greater than 0".to_string(),
+                "WINNER_MAX must be greater than 0".to_string(),
+            ));
+        }
+        if prize_max_result == 0 {
+            return Err(SwitchboardClientError::CustomMessage(
+                "PRIZE_MAX must be greater than 0".to_string(),
             ));
         }
         if competition_key == Pubkey::default() {
@@ -47,8 +59,10 @@ impl ContainerParams {
 
         Ok(Self {
             program_id,
-            min_result,
-            max_result,
+            winner_min_result,
+            winner_max_result,
+            prize_min_result,
+            prize_max_result,
             competition_key,
         })
     }
@@ -61,8 +75,10 @@ mod tests {
     #[test]
     fn test_params_decode() {
         let request_params_string = format!(
-            "PID={},MIN_GUESS={},MAX_GUESS={},COMPETITION={}",
+            "PID={},WINNER_MIN={},WINNER_MAX={},PRIZE_MIN={},PRIZE_MAX={},COMPETITION={}",
             anchor_spl::token::ID,
+            1,
+            6,
             1,
             6,
             anchor_spl::token::ID
@@ -72,8 +88,10 @@ mod tests {
         let params = ContainerParams::decode(&request_params_bytes).unwrap();
 
         assert_eq!(params.program_id, anchor_spl::token::ID);
-        assert_eq!(params.min_result, 1);
-        assert_eq!(params.max_result, 6);
+        assert_eq!(params.winner_min_result, 1);
+        assert_eq!(params.winner_max_result, 6);
+        assert_eq!(params.prize_min_result, 1);
+        assert_eq!(params.prize_max_result, 6);
         assert_eq!(params.competition_key, anchor_spl::token::ID);
     }
 }
