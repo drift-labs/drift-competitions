@@ -341,7 +341,7 @@ mod competition_fcn {
     }
 
     #[test]
-    fn test_competition_no_competitors_for_early_rounds() {
+    fn test_competition_multiple_rounds_with_no_competitors_for_long_initial_period() {
         let mut now = 168000000;
         let sweepstakes = &mut Competition::default();
 
