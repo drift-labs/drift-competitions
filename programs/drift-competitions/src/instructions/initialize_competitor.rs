@@ -16,12 +16,7 @@ pub fn initialize_competitor<'info>(
 
     let competitor_user_stats = ctx.accounts.drift_user_stats.load()?;
 
-    validate!(
-        competition.status == CompetitionRoundStatus::Active,
-        ErrorCode::InvalidRoundSettlementDetected,
-        "Cannot initialize competitior account during this status {:?} (must be Active)",
-        competition.status
-    )?;
+    competition.validate_round_is_active()?;
 
     competitor.competition = ctx.accounts.competition.key();
     competitor.competition_round_number = competition.round_number;

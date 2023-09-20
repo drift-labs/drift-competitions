@@ -123,11 +123,27 @@ impl Competition {
         Ok(())
     }
 
+    pub fn validate_round_is_active(&self) -> CompetitionResult {
+        validate!(
+            self.status == CompetitionRoundStatus::Active,
+            ErrorCode::CompetitionStatusNotActive,
+            "Competition status = {:?} (should be Active)",
+            self.status
+        )?;
+
+        Ok(())
+    }
+
+    pub fn is_expired(&self, now: i64) -> CompetitionResult<bool> {
+        Ok(
+            (self.competition_expiry_ts != 0 && self.competition_expiry_ts <= now)
+                || self.status == CompetitionRoundStatus::Expired
+        )
+    }
+
     pub fn validate_round_ready_for_settlement(&self, now: i64) -> CompetitionResult {
         validate!(
-            self.competition_expiry_ts == 0
-                || self.competition_expiry_ts > now
-                || self.status == CompetitionRoundStatus::Expired,
+            !self.is_expired(now)?,
             ErrorCode::CompetitionExpired,
             "Competition Expired at unix_timestamp = {} ({} seconds ago)",
             self.competition_expiry_ts,
@@ -143,12 +159,7 @@ impl Competition {
             round_end_ts - now
         )?;
 
-        validate!(
-            self.status == CompetitionRoundStatus::Active,
-            ErrorCode::CompetitionStatusNotActive,
-            "Competition status = {:?} (should be Active)",
-            self.status
-        )?;
+        self.validate_round_is_active()?;
 
         Ok(())
     }
