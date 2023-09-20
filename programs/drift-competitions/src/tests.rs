@@ -296,6 +296,7 @@ mod competition_fcn {
             round_duration: 60,
             prize_base: 5,
             prize_amount: 69,
+            prize_draw_max: 96,
             prize_draw: 48,
             winning_draw: 2,
             sponsor_info: SponsorInfo {
@@ -401,6 +402,7 @@ mod competition_fcn {
             prize_base: 1,
             prize_amount: 696202,
             prize_draw: 479,
+            prize_draw_max: 958,
             winning_draw: 1,
             sponsor_info: SponsorInfo {
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
@@ -410,6 +412,61 @@ mod competition_fcn {
         };
 
         assert_eq!(expected_sweepstakes, sweepstakes);
+
+        // do another round
+        now += 945890235;
+        comp1.bonus_score += 1;
+        comp1.unclaimed_winnings = 0;
+        sweepstakes.settle_competitor(comp1, us, now).unwrap();
+
+
+        sweepstakes
+            .resolve_winner_and_prize_draw(&spot_market, vault_balance)
+            .unwrap();
+
+        sweepstakes.prize_draw = 19999999999999; // inflate it crazy
+        assert!(sweepstakes
+            .resolve_prize_amount(&spot_market, vault_balance)
+            .is_err()); // todo: handle if balances changes between steps better
+        sweepstakes.prize_draw = sweepstakes.prize_draw_max;
+
+        sweepstakes
+        .resolve_prize_amount(&spot_market, vault_balance)
+        .unwrap();
+
+
+        assert_eq!(
+            sweepstakes.status,
+            CompetitionRoundStatus::PrizeAmountComplete
+        );
+        sweepstakes.settle_winner(comp1, &spot_market).unwrap();
+        assert_eq!(sweepstakes.round_number, 1);
+        assert_eq!(comp1.competition_round_number, 2);
+
+        sweepstakes.reset_round(now).unwrap();
+
+
+        let expected_sweepstakes2 = &mut Competition {
+            round_number: 2,
+            status: CompetitionRoundStatus::Active,
+            next_round_expiry_ts: 1113896280,
+            number_of_competitors: 1,
+            total_score_settled: 0,
+            round_duration: 60,
+            prize_base: 1,
+            prize_amount: 549499999,
+            prize_draw: 958,
+            prize_draw_max: 958,
+            winning_draw: 1,
+            sponsor_info: SponsorInfo {
+                max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
+                ..SponsorInfo::default()
+            },
+            ..Competition::default()
+        };
+
+        assert_eq!(expected_sweepstakes2, sweepstakes);
+
 
 
     }

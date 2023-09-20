@@ -63,6 +63,7 @@ pub struct Competition {
     pub max_entries_per_competitor: u128, // set a max entry per competitior
 
     // giveaway details
+    pub prize_draw_max: u128,
     pub prize_draw: u128,
     pub prize_amount: u128,
     pub prize_base: u128,
@@ -79,7 +80,7 @@ pub struct Competition {
 }
 
 impl Size for Competition {
-    const SIZE: usize = 248 + 8;
+    const SIZE: usize = 264 + 8;
 }
 
 const_assert_eq!(Competition::SIZE, std::mem::size_of::<Competition>() + 8);
@@ -306,7 +307,7 @@ impl Competition {
             .calculate_sponsor_max_prize(spot_market, vault_balance)?
             .cast()?;
 
-        // prize ratios match [$1k, $5k, $10k] ratios, but lower prizes never exceed 1k, 5k
+        // prize ratios match [$1k, $5k, >= $10k] ratios, but lower prizes never exceed 1k, 5k
         let prize_buckets = [
             (1000 * QUOTE_PRECISION).min(max_prize / 10),
             (5000 * QUOTE_PRECISION).min(max_prize / 2),
@@ -334,6 +335,7 @@ impl Competition {
         let (_, ratios) = self.calculate_prize_buckets_and_ratios(spot_market, vault_balance)?;
 
         let ratio_sum = ratios.iter().sum();
+        self.prize_draw_max = ratio_sum;
 
         self.prize_draw = get_random_draw(0, ratio_sum)?;
         self.winning_draw = get_random_draw(1, self.total_score_settled)?;
@@ -354,7 +356,7 @@ impl Competition {
         let mut cumulative_ratio = 0;
         for (i, &prize_amount_i) in prize_buckets.iter().enumerate() {
             cumulative_ratio = cumulative_ratio.safe_add(ratios[i])?;
-            if self.prize_draw <= cumulative_ratio && self.prize_amount == 0 {
+            if self.prize_draw <= cumulative_ratio {
                 self.prize_amount = vault_amount_to_if_shares(
                     prize_amount_i.cast()?,
                     spot_market.insurance_fund.total_shares,
