@@ -6,11 +6,11 @@ use crate::state::{Competition, Competitor};
 use anchor_lang::prelude::*;
 use drift::math::casting::Cast;
 use drift::math::safe_math::SafeMath;
-// use solana_program::msg;
 use drift::validate;
 
-pub fn get_random_draw(max: u128) -> DriftResult<u128> {
-    let random_number = max / 2; // todo: replace with VRF
+pub fn get_random_draw(min: u128, max: u128) -> DriftResult<u128> {
+    assert!(min <= max);
+    let random_number = (max - min)/ 2 + min; // todo: replace with VRF
 
     Ok(random_number)
 }

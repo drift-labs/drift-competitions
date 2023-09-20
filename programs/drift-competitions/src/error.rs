@@ -27,8 +27,6 @@ pub enum ErrorCode {
     CompetitorHasWrongRoundNumber,
     #[msg("CompetitorNotWinner")]
     CompetitorNotWinner,
-    #[msg("CompetitorNotQualified")]
-    CompetitorNotQualified,
     #[msg("InvalidStatusUpdateDetected")]
     InvalidStatusUpdateDetected,
     #[msg("InvalidIFRebase")]
@@ -39,8 +37,8 @@ pub enum ErrorCode {
     CompetitorNeedsToRebaseInsuranceFundStake,
     #[msg("CompetitorHasNoUnclaimedWinnings")]
     CompetitorHasNoUnclaimedWinnings,
-    #[msg("CompetitionPrizeAmountNotDetermined")]
-    CompetitionPrizeAmountNotDetermined,
+    #[msg("CompetitionRoundNumberIssue")]
+    CompetitionRoundNumberIssue,
 }
 
 impl From<DriftErrorCode> for ErrorCode {

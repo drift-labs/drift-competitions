@@ -29,11 +29,10 @@ use drift::math::insurance::{if_shares_to_vault_amount, vault_amount_to_if_share
 #[derive(Clone, Copy, BorshSerialize, BorshDeserialize, PartialOrd, Ord, PartialEq, Eq, Debug)]
 pub enum CompetitionRoundStatus {
     Active = 1,
-    PrizeDrawComplete = 2,
+    WinnerAndPrizeDrawComplete = 2,
     PrizeAmountComplete = 3,
-    WinnerDrawComplete = 4,
-    WinnerSettlementComplete = 5,
-    Expired = 6,
+    WinnerSettlementComplete = 4,
+    Expired = 5,
 }
 
 impl Default for CompetitionRoundStatus {
@@ -71,7 +70,7 @@ pub struct Competition {
 
     // scheduling variables
     pub round_number: u64,
-    pub first_round_expiry_ts: i64,
+    pub next_round_expiry_ts: i64,
     pub competition_expiry_ts: i64, // when competition ends, perpetual when == 0
     pub round_duration: u64,
 
@@ -85,17 +84,11 @@ impl Size for Competition {
 
 const_assert_eq!(Competition::SIZE, std::mem::size_of::<Competition>() + 8);
 
-impl Size for SponsorInfo {
-    const SIZE: usize = 48 + 8;
-}
-
-const_assert_eq!(SponsorInfo::SIZE, std::mem::size_of::<SponsorInfo>() + 8);
-
 impl Competition {
     pub fn update_status(&mut self, new_status: CompetitionRoundStatus) -> CompetitionResult {
         if new_status != CompetitionRoundStatus::Expired {
             validate!(
-                (new_status as i32) - (self.status as i32 % 5) == 1,
+                (new_status as i32) - (self.status as i32 % 4) == 1,
                 ErrorCode::InvalidStatusUpdateDetected,
                 "new status = {:?}, current status = {:?}",
                 new_status,
@@ -109,8 +102,28 @@ impl Competition {
 
     // calculate the end unix timestamp for round_number N
     pub fn calculate_round_end_ts(&self) -> DriftResult<i64> {
-        self.first_round_expiry_ts
+        self.next_round_expiry_ts
             .safe_add(self.round_duration.safe_mul(self.round_number)?.cast()?)
+    }
+
+    // calculate current round_number N
+    pub fn calculate_next_round_expiry_ts(&self, now: i64) -> CompetitionResult<i64> {
+        let next_round_expiry_ts = if now >= self.next_round_expiry_ts {
+            self.next_round_expiry_ts.safe_add(
+                self.round_duration
+                    .safe_mul(
+                        now.safe_sub(self.next_round_expiry_ts)?
+                            .unsigned_abs()
+                            .safe_div(self.round_duration)?
+                            .safe_add(1)?,
+                    )?
+                    .cast::<i64>()?,
+            )?
+        } else {
+            self.next_round_expiry_ts
+        };
+
+        Ok(next_round_expiry_ts)
     }
 
     pub fn expire(&mut self, now: i64) -> CompetitionResult {
@@ -123,7 +136,7 @@ impl Competition {
         Ok(())
     }
 
-    pub fn validate_round_is_active(&self) -> CompetitionResult {
+    pub fn validate_round_is_active(&self, now: i64) -> CompetitionResult {
         validate!(
             self.status == CompetitionRoundStatus::Active,
             ErrorCode::CompetitionStatusNotActive,
@@ -131,17 +144,6 @@ impl Competition {
             self.status
         )?;
 
-        Ok(())
-    }
-
-    pub fn is_expired(&self, now: i64) -> CompetitionResult<bool> {
-        Ok(
-            (self.competition_expiry_ts != 0 && self.competition_expiry_ts <= now)
-                || self.status == CompetitionRoundStatus::Expired
-        )
-    }
-
-    pub fn validate_round_ready_for_settlement(&self, now: i64) -> CompetitionResult {
         validate!(
             !self.is_expired(now)?,
             ErrorCode::CompetitionExpired,
@@ -150,16 +152,26 @@ impl Competition {
             now - self.competition_expiry_ts
         )?;
 
-        let round_end_ts = self.calculate_round_end_ts()?;
         validate!(
-            now >= round_end_ts,
+            now >= self.next_round_expiry_ts,
             ErrorCode::CompetitionRoundOngoing,
             "round ends at unix_timestamp={} (seconds remaining {})",
-            round_end_ts,
-            round_end_ts - now
+            self.next_round_expiry_ts,
+            self.next_round_expiry_ts - now
         )?;
 
-        self.validate_round_is_active()?;
+        Ok(())
+    }
+
+    pub fn is_expired(&self, now: i64) -> CompetitionResult<bool> {
+        Ok(
+            (self.competition_expiry_ts != 0 && self.competition_expiry_ts <= now)
+                || self.status == CompetitionRoundStatus::Expired,
+        )
+    }
+
+    pub fn validate_round_ready_for_settlement(&self, now: i64) -> CompetitionResult {
+        self.validate_round_is_active(now)?;
 
         Ok(())
     }
@@ -198,18 +210,20 @@ impl Competition {
 
     pub fn validate_competitor_is_winner(&self, competitor: &Competitor) -> CompetitionResult {
         validate!(
-            self.status == CompetitionRoundStatus::WinnerDrawComplete,
+            self.status == CompetitionRoundStatus::PrizeAmountComplete && self.winning_draw != 0,
             ErrorCode::CompetitionWinnerNotDetermined
         )?;
 
         // competitor account was settled and set to next round
         validate!(
-            self.round_number.safe_add(1)? == competitor.competition_round_number,
+            self.round_number < competitor.competition_round_number,
             ErrorCode::CompetitorHasWrongRoundNumber
         )?;
 
+        // winning compeitor range is specified from (min_draw, max_draw]
+        // this means winning_draw must be > 0
         validate!(
-            self.winning_draw >= competitor.min_draw && self.winning_draw < competitor.max_draw,
+            self.winning_draw > competitor.min_draw && self.winning_draw <= competitor.max_draw,
             ErrorCode::CompetitorNotWinner
         )?;
 
@@ -311,7 +325,7 @@ impl Competition {
         Ok((prize_buckets, ratios))
     }
 
-    pub fn resolve_prize_draw(
+    pub fn resolve_winner_and_prize_draw(
         &mut self,
         spot_market: &SpotMarket,
         vault_balance: u64,
@@ -321,9 +335,10 @@ impl Competition {
 
         let ratio_sum = ratios.iter().sum();
 
-        self.prize_draw = get_random_draw(ratio_sum)?;
+        self.prize_draw = get_random_draw(0, ratio_sum)?;
+        self.winning_draw = get_random_draw(1, self.total_score_settled)?;
 
-        self.update_status(CompetitionRoundStatus::PrizeDrawComplete)?;
+        self.update_status(CompetitionRoundStatus::WinnerAndPrizeDrawComplete)?;
 
         Ok(())
     }
@@ -356,15 +371,6 @@ impl Competition {
         Err(ErrorCode::CompetitionWinnerNotDetermined)
     }
 
-    pub fn resolve_winning_draw(&mut self) -> CompetitionResult {
-        self.validate_round_resolved()?;
-
-        self.winning_draw = get_random_draw(self.total_score_settled)?;
-        self.update_status(CompetitionRoundStatus::WinnerDrawComplete)?;
-
-        Ok(())
-    }
-
     pub fn settle_winner(
         &mut self,
         competitor: &mut Competitor,
@@ -390,12 +396,13 @@ impl Competition {
         Ok(())
     }
 
-    pub fn reset_round(&mut self) -> CompetitionResult {
+    pub fn reset_round(&mut self, now: i64) -> CompetitionResult {
         self.validate_round_settlement_complete()?;
 
         self.total_score_settled = 0;
         self.number_of_competitors_settled = 0;
         self.round_number = self.round_number.safe_add(1)?;
+        self.next_round_expiry_ts = self.calculate_next_round_expiry_ts(now)?;
 
         self.update_status(CompetitionRoundStatus::Active)?;
 

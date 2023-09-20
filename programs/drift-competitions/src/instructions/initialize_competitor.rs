@@ -11,12 +11,15 @@ use drift::validate;
 pub fn initialize_competitor<'info>(
     ctx: Context<'_, '_, '_, 'info, InitializeCompetitor<'info>>,
 ) -> Result<()> {
+    let clock = Clock::get()?;
+    let now = clock.unix_timestamp;
+
     let mut competitor = ctx.accounts.competitor.load_init()?;
     let mut competition = ctx.accounts.competition.load_mut()?;
 
     let competitor_user_stats = ctx.accounts.drift_user_stats.load()?;
 
-    competition.validate_round_is_active()?;
+    competition.validate_round_is_active(now)?;
 
     competitor.competition = ctx.accounts.competition.key();
     competitor.competition_round_number = competition.round_number;
