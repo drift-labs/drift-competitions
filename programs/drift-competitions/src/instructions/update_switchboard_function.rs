@@ -2,6 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{Mint, Token};
 use switchboard_solana::prelude::*;
+use crate::signer_seeds::get_function_authority_seeds;
 use crate::state::Competition;
 
 /// The minimum guess that can be submitted, inclusive.
@@ -16,7 +17,7 @@ pub fn update_switchboard_function<'info>(
     let request_init_ctx = FunctionRequestInit {
         request: ctx.accounts.switchboard_request.clone(),
         function: ctx.accounts.switchboard_function.to_account_info(),
-        authority: ctx.accounts.sponsor.to_account_info(),
+        authority: ctx.accounts.switchboard_function_authority.to_account_info(),
         function_authority: None,
         escrow: ctx.accounts.switchboard_request_escrow.clone(),
         mint: ctx.accounts.switchboard_mint.to_account_info(),
@@ -38,17 +39,24 @@ pub fn update_switchboard_function<'info>(
         ctx.accounts.competition.key(),
     );
 
-    request_init_ctx.invoke(
+    let competition_key = ctx.accounts.competition.key();
+    let bump = ctx.bumps.get("switchboard_function_authority").unwrap();
+    let function_authority_seeds = get_function_authority_seeds(&competition_key, bump);
+
+    request_init_ctx.invoke_signed(
         ctx.accounts.switchboard.clone(),
         Some(1024),
         Some(request_params.into_bytes()),
         None,
+        &[&function_authority_seeds[..]],
     )?;
 
     let mut competition = ctx.accounts.competition.load_mut()?;
     competition.switchboard_function = ctx.accounts.switchboard_function.key();
     competition.switchboard_function_request = ctx.accounts.switchboard_request.key();
     competition.switchboard_function_request_escrow = ctx.accounts.switchboard_request_escrow.key();
+    competition.switchboard_function_authority = ctx.accounts.switchboard_function_authority.key();
+    competition.switchboard_function_authority_bump = *bump;
 
     Ok(())
 }
@@ -63,6 +71,12 @@ pub struct UpdateSwitchboardFunction<'info> {
         has_one = sponsor,
     )]
     pub competition: AccountLoader<'info, Competition>,
+    /// CHECK
+    #[account(
+        seeds = [b"function_authority", competition.key().as_ref()],
+        bump
+    )]
+    pub switchboard_function_authority: AccountInfo<'info>,
 
     // SWITCHBOARD ACCOUNTS
     #[account(executable, address = SWITCHBOARD_ATTESTATION_PROGRAM_ID)]

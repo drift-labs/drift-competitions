@@ -4,6 +4,7 @@ use instructions::*;
 
 mod instructions;
 mod state;
+mod signer_seeds;
 
 declare_id!("9FHbMuNCRRCXsvKEkA3V8xJmysAqkZrGfrppvUhGTq7x");
 

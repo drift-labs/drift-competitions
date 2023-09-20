@@ -14,6 +14,7 @@ pub struct Competition {
     pub switchboard_function: Pubkey,
     pub switchboard_function_request: Pubkey,
     pub switchboard_function_request_escrow: Pubkey,
+    pub switchboard_function_authority: Pubkey,
 
     pub round_number: u64,
 
@@ -31,7 +32,10 @@ pub struct Competition {
     pub winner_randomness: u128,
     pub prize_randomness: u128,
 
-    pub padding: [u128; 14],
+    pub switchboard_function_authority_bump: u8,
+    pub padding1: [u8; 15],
+
+    pub padding: [u128; 11],
 }
 
 impl Size for Competition {

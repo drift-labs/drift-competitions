@@ -13,3 +13,16 @@ export function getCompetitionAddressSync(
 		programId
 	)[0];
 }
+
+export function getSwitchboardFunctionAuthorityAddressSync(
+	programId: PublicKey,
+	competition: PublicKey,
+): PublicKey {
+	return PublicKey.findProgramAddressSync(
+		[
+			Buffer.from(anchor.utils.bytes.utf8.encode('function_authority')),
+			competition.toBuffer(),
+		],
+		programId
+	)[0];
+}
