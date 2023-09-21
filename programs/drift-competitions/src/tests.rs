@@ -1,4 +1,54 @@
 #[cfg(test)]
+
+mod competition_helpers {
+    use crate::state::{Competition, CompetitionRoundStatus, Competitor, SponsorInfo};
+
+    #[test]
+    pub fn test_calculate_next_round_expiry_ts() {
+        let mut now = 1695330779;
+        let sweepstakes = &mut Competition::default();
+        sweepstakes.round_duration = 604800;
+
+        let first_expiry = 1695650400;
+
+        sweepstakes.next_round_expiry_ts = first_expiry;
+
+        let expiry_ts = sweepstakes.calculate_next_round_expiry_ts(now).unwrap();
+        let expected_ts = first_expiry;
+
+        assert_eq!(expiry_ts, expected_ts);
+
+        while now < expiry_ts {
+            assert_eq!(
+                sweepstakes.calculate_next_round_expiry_ts(now).unwrap(),
+                expected_ts
+            );
+            now += 1;
+        }
+
+        assert_eq!(now, expected_ts);
+
+        assert_eq!(
+            sweepstakes.calculate_next_round_expiry_ts(now).unwrap(),
+            expected_ts + sweepstakes.round_duration as i64
+        );
+
+        while now < expiry_ts * 6 + 191 {
+            assert!(
+                sweepstakes.calculate_next_round_expiry_ts(now).unwrap()
+                    >= expected_ts + sweepstakes.round_duration as i64
+            );
+            assert!(sweepstakes.calculate_next_round_expiry_ts(now).unwrap() >= now);
+            assert_eq!(
+                (sweepstakes.calculate_next_round_expiry_ts(now).unwrap() - first_expiry)
+                    % sweepstakes.round_duration as i64,
+                0
+            );
+            now += 456333;
+        }
+    }
+}
+
 mod competition_fcn {
     use crate::state::{Competition, CompetitionRoundStatus, Competitor, SponsorInfo};
     use drift::{
@@ -802,7 +852,7 @@ mod competition_fcn {
             insurance_fund_stake
                 .checked_if_shares(&spot_market)
                 .unwrap(),
-                696208
+            696208
         );
         comp1
             .claim_winnings(&spot_market, &mut insurance_fund_stake)
@@ -814,7 +864,7 @@ mod competition_fcn {
             insurance_fund_stake
                 .checked_if_shares(&spot_market)
                 .unwrap(),
-                1392410
+            1392410
         );
     }
 }

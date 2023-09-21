@@ -267,19 +267,16 @@ impl Competition {
             self.total_score_settled = new_total_score_settled;
         }
 
-        validate!(competitor.competition_round_number == self.round_number,
+        validate!(
+            competitor.competition_round_number == self.round_number,
             ErrorCode::CompetitionRoundNumberIssue,
             "competitor.competition_round_number = {:?} doesn't match competition = {}",
             competitor.competition_round_number,
             self.round_number
         )?;
 
-
-        competitor.competition_round_number =
-                competitor.competition_round_number.safe_add(1)?;
+        competitor.competition_round_number = competitor.competition_round_number.safe_add(1)?;
         self.number_of_competitors_settled = self.number_of_competitors_settled.saturating_add(1);
-
-
 
         Ok(())
     }
