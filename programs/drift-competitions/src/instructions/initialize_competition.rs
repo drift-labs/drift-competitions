@@ -11,11 +11,11 @@ pub fn initialize_competition<'info>(
     competition.name = params.name;
     competition.sponsor = ctx.accounts.sponsor.key();
 
-    // competition.round_number = 0;
-    //
-    // competition.first_round_expiry_ts = params.first_round_expiry_ts;
-    // competition.competition_expiry_ts = params.competition_expiry_ts;
-    // competition.round_duration = params.round_duration;
+    competition.round_number = 0;
+
+    competition.first_round_expiry_ts = params.first_round_expiry_ts;
+    competition.competition_expiry_ts = params.competition_expiry_ts;
+    competition.round_duration = params.round_duration;
 
     Ok(())
 }
