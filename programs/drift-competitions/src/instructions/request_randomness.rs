@@ -15,7 +15,7 @@ pub fn request_randomness<'info>(
         escrow: ctx.accounts.switchboard_request_escrow.clone(),
         state: ctx.accounts.switchboard_state.to_account_info(),
         attestation_queue: ctx.accounts.switchboard_attestation_queue.to_account_info(),
-        payer: ctx.accounts.sponsor.to_account_info(),
+        payer: ctx.accounts.keeper.to_account_info(),
         system_program: ctx.accounts.system_program.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
     };
@@ -44,6 +44,10 @@ pub struct RequestRandomness<'info> {
         mut
     )]
     pub competition: AccountLoader<'info, Competition>,
+    #[account(
+        mut
+    )]
+    pub keeper: Signer<'info>,
     /// CHECK
     #[account(
         constraint = competition.load()?.switchboard_function_authority == switchboard_function_authority.key()
