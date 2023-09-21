@@ -1,6 +1,6 @@
-use anchor_lang::prelude::*;
 use crate::state::Competition;
 use crate::state::Size;
+use anchor_lang::prelude::*;
 
 pub fn initialize_competition<'info>(
     ctx: Context<'_, '_, '_, 'info, InitializeCompetition<'info>>,
@@ -9,11 +9,11 @@ pub fn initialize_competition<'info>(
     let mut competition = ctx.accounts.competition.load_init()?;
 
     competition.name = params.name;
-    competition.sponsor = ctx.accounts.sponsor.key();
+    competition.sponsor_info.sponsor = ctx.accounts.sponsor.key();
 
     competition.round_number = 0;
 
-    competition.first_round_expiry_ts = params.first_round_expiry_ts;
+    competition.next_round_expiry_ts = params.next_round_expiry_ts;
     competition.competition_expiry_ts = params.competition_expiry_ts;
     competition.round_duration = params.round_duration;
 
@@ -25,7 +25,7 @@ pub struct CompetitionParams {
     pub name: [u8; 32],
 
     //scheduling variables
-    pub first_round_expiry_ts: i64,
+    pub next_round_expiry_ts: i64,
     pub competition_expiry_ts: i64, // when competition ends, perpetual when == 0
     pub round_duration: u64,
 }

@@ -9,7 +9,11 @@ url = "https://api.apr.dev"
 
 [provider]
 cluster = "Localnet"
-wallet = "/Users/crisp/.config/solana/id.json"
+wallet = "~/.config/solana/id.json"
+
+[[test.genesis]]
+address = "dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH"
+program = "./deps/drift.so"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

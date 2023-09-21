@@ -68,7 +68,7 @@ pub struct UpdateSwitchboardFunction<'info> {
     pub sponsor: Signer<'info>,
     #[account(
         mut,
-        has_one = sponsor,
+        constraint = competition.load()?.sponsor_info.sponsor == sponsor.key()
     )]
     pub competition: AccountLoader<'info, Competition>,
     /// CHECK
