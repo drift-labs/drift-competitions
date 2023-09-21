@@ -2,11 +2,9 @@ use anchor_lang::prelude::*;
 use switchboard_solana::prelude::*;
 use crate::state::Competition;
 
-pub fn receive_randomness(_ctx: Context<Settle>, winner_randomness: u128, prize_randomness: u128) -> Result<()> {
+pub fn receive_randomness(_ctx: Context<ReceiveRandomness>, winner_randomness: u128, prize_randomness: u128) -> Result<()> {
     msg!("winner_randomness {}", winner_randomness);
     msg!("prize_randomness {}", prize_randomness);
-
-    msg!("switchboard request {}", _ctx.accounts.switchboard_request.key());
 
     let mut competition = _ctx.accounts.competition.load_mut()?;
     competition.winner_randomness = winner_randomness;
@@ -16,8 +14,8 @@ pub fn receive_randomness(_ctx: Context<Settle>, winner_randomness: u128, prize_
 }
 
 #[derive(Accounts)]
-pub struct Settle<'info> {
-    // RANDOMNESS PROGRAM ACCOUNTS
+pub struct ReceiveRandomness<'info> {
+    // COMPETITION ACCOUNTS
     #[account(mut)]
     pub competition: AccountLoader<'info, Competition>,
 
