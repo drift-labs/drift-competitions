@@ -10,7 +10,7 @@ use drift::validate;
 
 pub fn get_random_draw(min: u128, max: u128) -> DriftResult<u128> {
     assert!(min <= max);
-    let random_number = (max - min)/ 2 + min; // todo: replace with VRF
+    let random_number = (max - min) / 2 + min; // todo: replace with VRF
 
     Ok(random_number)
 }
