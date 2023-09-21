@@ -13,3 +13,18 @@ export function getCompetitionAddressSync(
 		programId
 	)[0];
 }
+
+export function getCompetitorAddressSync(
+	programId: PublicKey,
+	competitionPublicKey: PublicKey,
+	authority: PublicKey
+): PublicKey {
+	return PublicKey.findProgramAddressSync(
+		[
+			Buffer.from(anchor.utils.bytes.utf8.encode('competitor')),
+			Buffer.from(competitionPublicKey.toBytes()),
+			Buffer.from(authority.toBytes()),
+		],
+		programId
+	)[0];
+}
