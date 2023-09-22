@@ -35,7 +35,7 @@ export function getSwitchboardFunctionAuthorityAddressSync(
 ): PublicKey {
 	return PublicKey.findProgramAddressSync(
 		[
-			Buffer.from(anchor.utils.bytes.utf8.encode('function_authority')),
+			Buffer.from(anchor.utils.bytes.utf8.encode('competition_authority')),
 			competition.toBuffer(),
 		],
 		programId

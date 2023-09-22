@@ -59,7 +59,7 @@ pub struct Competition {
     pub switchboard_function: Pubkey,
     pub switchboard_function_request: Pubkey,
     pub switchboard_function_request_escrow: Pubkey,
-    pub switchboard_function_authority: Pubkey,
+    pub competition_authority: Pubkey,
 
     // entries
     pub number_of_competitors: u128,
@@ -87,7 +87,7 @@ pub struct Competition {
     pub round_duration: u64,
 
     pub status: CompetitionRoundStatus,
-    pub switchboard_function_authority_bump: u8,
+    pub competition_authority_bump: u8,
 
     pub padding: [u8; 6],
 }

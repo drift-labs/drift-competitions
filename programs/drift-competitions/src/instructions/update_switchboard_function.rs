@@ -17,7 +17,7 @@ pub fn update_switchboard_function<'info>(
     let request_init_ctx = FunctionRequestInit {
         request: ctx.accounts.switchboard_request.clone(),
         function: ctx.accounts.switchboard_function.to_account_info(),
-        authority: ctx.accounts.switchboard_function_authority.to_account_info(),
+        authority: ctx.accounts.competition_authority.to_account_info(),
         function_authority: None,
         escrow: ctx.accounts.switchboard_request_escrow.clone(),
         mint: ctx.accounts.switchboard_mint.to_account_info(),
@@ -55,8 +55,6 @@ pub fn update_switchboard_function<'info>(
     competition.switchboard_function = ctx.accounts.switchboard_function.key();
     competition.switchboard_function_request = ctx.accounts.switchboard_request.key();
     competition.switchboard_function_request_escrow = ctx.accounts.switchboard_request_escrow.key();
-    competition.switchboard_function_authority = ctx.accounts.switchboard_function_authority.key();
-    competition.switchboard_function_authority_bump = *bump;
 
     Ok(())
 }
@@ -73,10 +71,9 @@ pub struct UpdateSwitchboardFunction<'info> {
     pub competition: AccountLoader<'info, Competition>,
     /// CHECK
     #[account(
-        seeds = [b"function_authority", competition.key().as_ref()],
-        bump
+        constraint = competition.load()?.competition_authority == competition_authority.key()
     )]
-    pub switchboard_function_authority: AccountInfo<'info>,
+    pub competition_authority: AccountInfo<'info>,
 
     // SWITCHBOARD ACCOUNTS
     #[account(executable, address = SWITCHBOARD_ATTESTATION_PROGRAM_ID)]

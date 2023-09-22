@@ -11,7 +11,7 @@ pub fn request_randomness<'info>(
     let request_init_and_trigger_ctx = FunctionRequestTrigger {
         request: ctx.accounts.switchboard_request.clone(),
         function: ctx.accounts.switchboard_function.to_account_info(),
-        authority: ctx.accounts.switchboard_function_authority.to_account_info(),
+        authority: ctx.accounts.competition_authority.to_account_info(),
         escrow: ctx.accounts.switchboard_request_escrow.clone(),
         state: ctx.accounts.switchboard_state.to_account_info(),
         attestation_queue: ctx.accounts.switchboard_attestation_queue.to_account_info(),
@@ -21,7 +21,7 @@ pub fn request_randomness<'info>(
     };
 
     let competition_key = ctx.accounts.competition.key();
-    let function_authority_bump = ctx.accounts.competition.load()?.switchboard_function_authority_bump;
+    let function_authority_bump = ctx.accounts.competition.load()?.competition_authority_bump;
     let function_authority_seeds = get_function_authority_seeds(&competition_key, &function_authority_bump);
 
     request_init_and_trigger_ctx.invoke_signed(
@@ -50,9 +50,9 @@ pub struct RequestRandomness<'info> {
     pub keeper: Signer<'info>,
     /// CHECK
     #[account(
-        constraint = competition.load()?.switchboard_function_authority == switchboard_function_authority.key()
+        constraint = competition.load()?.competition_authority == competition_authority.key()
     )]
-    pub switchboard_function_authority: AccountInfo<'info>,
+    pub competition_authority: AccountInfo<'info>,
 
     // SWITCHBOARD ACCOUNTS
     /// CHECK: program ID checked.
