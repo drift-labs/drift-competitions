@@ -2,7 +2,18 @@
 
 mod competition_helpers {
     use crate::state::{Competition, CompetitionRoundStatus, Competitor, SponsorInfo};
-
+    use drift::{
+        math::{
+            constants::{
+                PERCENTAGE_PRECISION, PERCENTAGE_PRECISION_U64, PRICE_PRECISION_U64,
+                QUOTE_PRECISION,
+            },
+            insurance::if_shares_to_vault_amount,
+        },
+        state::{
+            insurance_fund_stake::InsuranceFundStake, spot_market::SpotMarket, user::UserStats,
+        },
+    };
     #[test]
     pub fn test_calculate_next_round_expiry_ts() {
         let mut now = 1695330779;
@@ -47,6 +58,50 @@ mod competition_helpers {
             now += 456333;
         }
     }
+
+    #[test]
+    pub fn test_prize_odds() {
+        let sweepstakes = &mut Competition::default();
+        sweepstakes.sponsor_info.max_sponsor_fraction = PERCENTAGE_PRECISION_U64;
+
+        let mut spot_market = SpotMarket::default();
+        spot_market.decimals = 6;
+        spot_market.insurance_fund.total_shares = 100;
+        spot_market.insurance_fund.user_shares = 0;
+
+
+        // 10k max
+        let vault_balance: u64 = (10000 * QUOTE_PRECISION) as u64;
+        let (prize_buckets, ratios) = sweepstakes
+            .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
+            .unwrap();
+
+        assert_eq!(prize_buckets, [1000000000, 5000000000, 10000000000]);
+        assert_eq!(ratios, [16, 4, 1]);
+        assert!(ratios[0]/10 >= ratios[2]);
+
+        // 10.1k max
+        let vault_balance: u64 = (10100 * QUOTE_PRECISION + 35235) as u64;
+        let (prize_buckets, ratios) = sweepstakes
+            .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
+            .unwrap();
+
+        assert_eq!(prize_buckets, [1000000000, 5000000000, 10100035235]);
+        assert_eq!(ratios, [17, 4, 1]);
+        assert!(ratios[0]/10 >= ratios[2]);
+
+        // 100k max
+        let vault_balance: u64 = (100000 * QUOTE_PRECISION) as u64;
+        let (prize_buckets, ratios) = sweepstakes
+            .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
+            .unwrap();
+
+        assert_eq!(prize_buckets, [1000000000, 5000000000, 100000000000]);
+        assert_eq!(ratios, [106, 22, 1]);
+        assert!(ratios[0]/100 >= ratios[2]);
+    }
+
+
 }
 
 mod competition_fcn {
@@ -276,7 +331,7 @@ mod competition_fcn {
             .unwrap();
 
         assert_eq!(prize_buckets, [1000000000, 5000000000, 71818181818]);
-        assert_eq!(ratios, [78, 16, 2]);
+        assert_eq!(ratios, [78, 16, 1]);
 
         sweepstakes
             .resolve_prize_amount(&spot_market, vault_balance)
@@ -346,8 +401,8 @@ mod competition_fcn {
             round_duration: 60,
             prize_base: 5,
             prize_amount: 69,
-            prize_draw_max: 96,
-            prize_draw: 48,
+            prize_draw: 47,
+            prize_draw_max: 95,
             winning_draw: 2,
             sponsor_info: SponsorInfo {
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
@@ -450,8 +505,8 @@ mod competition_fcn {
             round_duration: 60,
             prize_base: 1,
             prize_amount: 696202,
-            prize_draw: 479,
-            prize_draw_max: 958,
+            prize_draw: 478,
+            prize_draw_max: 957,
             winning_draw: 1,
             sponsor_info: SponsorInfo {
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
@@ -501,8 +556,8 @@ mod competition_fcn {
             round_duration: 60,
             prize_base: 1,
             prize_amount: 549499999,
-            prize_draw: 958,
-            prize_draw_max: 958,
+            prize_draw: 957,
+            prize_draw_max: 957,
             winning_draw: 1,
             sponsor_info: SponsorInfo {
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
@@ -579,7 +634,7 @@ mod competition_fcn {
             .unwrap();
 
         assert_eq!(prize_buckets, [1000000000, 5000000000, 71818181818]);
-        assert_eq!(ratios, [78, 16, 2]);
+        assert_eq!(ratios, [78, 16, 1]);
 
         sweepstakes
             .resolve_prize_amount(&spot_market, vault_balance)
@@ -649,8 +704,8 @@ mod competition_fcn {
             round_duration: 60,
             prize_base: 5,
             prize_amount: 69,
-            prize_draw_max: 96,
-            prize_draw: 48,
+            prize_draw_max: 95,
+            prize_draw: 47,
             winning_draw: 2,
             sponsor_info: SponsorInfo {
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
@@ -711,7 +766,7 @@ mod competition_fcn {
             .unwrap();
 
         assert_eq!(prize_buckets, [1000000000, 5000000000, 71818181818]);
-        assert_eq!(ratios, [78, 16, 2]);
+        assert_eq!(ratios, [78, 16, 1]);
 
         sweepstakes
             .resolve_prize_amount(&spot_market, vault_balance)
@@ -814,7 +869,7 @@ mod competition_fcn {
             .unwrap();
 
         assert_eq!(prize_buckets, [1000000000, 5000000000, 71818181818]);
-        assert_eq!(ratios, [78, 16, 2]);
+        assert_eq!(ratios, [78, 16, 1]);
 
         sweepstakes
             .resolve_prize_amount(&spot_market, vault_balance)
