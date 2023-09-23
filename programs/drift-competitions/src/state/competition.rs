@@ -326,7 +326,11 @@ impl Competition {
 
         for (i, &val) in prize_buckets.iter().enumerate() {
             if val > 0 {
-                ratios[i] = total_prize_bucket.safe_div_ceil(val)?;
+                if i < 2 {
+                    ratios[i] = total_prize_bucket.safe_div_ceil(val)?;
+                } else {
+                    ratios[i] = total_prize_bucket.safe_div(val)?;
+                }
             }
         }
 
