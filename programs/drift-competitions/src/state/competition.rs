@@ -365,10 +365,22 @@ impl Competition {
         let (prize_buckets, ratios) =
             self.calculate_prize_buckets_and_ratios(spot_market, vault_balance)?;
 
+        let ratio_sum: u128 = ratios.iter().sum();
+        msg!("ratio_sum: {} vs {}", ratio_sum, self.prize_draw_max);
+
+        // prize amounts changed since random draw request
+        let draw = if ratio_sum < self.prize_draw_max {
+            let ranged_draw = self.prize_draw % ratio_sum;
+            msg!("prize_draw range updated: {}", ranged_draw);
+            ranged_draw
+        } else {
+            self.prize_draw
+        };
+
         let mut cumulative_ratio = 0;
         for (i, &prize_amount_i) in prize_buckets.iter().enumerate() {
             cumulative_ratio = cumulative_ratio.safe_add(ratios[i])?;
-            if self.prize_draw <= cumulative_ratio {
+            if draw <= cumulative_ratio {
                 let prize_amount = vault_amount_to_if_shares(
                     prize_amount_i.cast()?,
                     spot_market.insurance_fund.total_shares,
