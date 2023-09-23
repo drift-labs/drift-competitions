@@ -1,18 +1,13 @@
 #[cfg(test)]
 
 mod competition_helpers {
-    use crate::state::{Competition, CompetitionRoundStatus, Competitor, SponsorInfo};
+    use crate::state::Competition;
     use drift::{
         math::{
-            constants::{
-                PERCENTAGE_PRECISION, PERCENTAGE_PRECISION_U64, PRICE_PRECISION_U64,
-                QUOTE_PRECISION,
-            },
+            constants::{PERCENTAGE_PRECISION_U64, QUOTE_PRECISION},
             insurance::if_shares_to_vault_amount,
         },
-        state::{
-            insurance_fund_stake::InsuranceFundStake, spot_market::SpotMarket, user::UserStats,
-        },
+        state::spot_market::SpotMarket,
     };
     #[test]
     pub fn test_calculate_next_round_expiry_ts() {
@@ -69,7 +64,6 @@ mod competition_helpers {
         spot_market.insurance_fund.total_shares = 100;
         spot_market.insurance_fund.user_shares = 0;
 
-
         // 10k max
         let vault_balance: u64 = (10000 * QUOTE_PRECISION) as u64;
         let (prize_buckets, ratios) = sweepstakes
@@ -78,7 +72,7 @@ mod competition_helpers {
 
         assert_eq!(prize_buckets, [1000000000, 5000000000, 10000000000]);
         assert_eq!(ratios, [16, 4, 1]);
-        assert!(ratios[0]/10 >= ratios[2]);
+        assert!(ratios[0] / 10 >= ratios[2]);
 
         // 10.1k max
         let vault_balance: u64 = (10100 * QUOTE_PRECISION + 35235) as u64;
@@ -88,7 +82,7 @@ mod competition_helpers {
 
         assert_eq!(prize_buckets, [1000000000, 5000000000, 10100035235]);
         assert_eq!(ratios, [17, 4, 1]);
-        assert!(ratios[0]/10 >= ratios[2]);
+        assert!(ratios[0] / 10 >= ratios[2]);
 
         // 100k max
         let vault_balance: u64 = (100000 * QUOTE_PRECISION) as u64;
@@ -98,10 +92,56 @@ mod competition_helpers {
 
         assert_eq!(prize_buckets, [1000000000, 5000000000, 100000000000]);
         assert_eq!(ratios, [106, 22, 1]);
-        assert!(ratios[0]/100 >= ratios[2]);
+        assert!(ratios[0] / 100 >= ratios[2]);
+
+        let total = ratios.iter().sum();
+        let mut cnt = 0;
+
+        while cnt <= ratios[0] {
+            sweepstakes.prize_draw = cnt;
+            let prize_shares = sweepstakes
+                .calculate_prize_amount(&spot_market, vault_balance)
+                .unwrap();
+            let prize_quote = if_shares_to_vault_amount(
+                prize_shares,
+                spot_market.insurance_fund.total_shares,
+                vault_balance,
+            )
+            .unwrap() as u128;
+            assert_eq!(prize_quote, prize_buckets[0]);
+            cnt+=1;
+        }
+
+        sweepstakes.prize_draw = total - 1;
+        let prize_shares = sweepstakes
+            .calculate_prize_amount(&spot_market, vault_balance)
+            .unwrap();
+        let prize_quote = if_shares_to_vault_amount(
+            prize_shares,
+            spot_market.insurance_fund.total_shares,
+            vault_balance,
+        )
+        .unwrap() as u128;
+        assert_eq!(prize_shares, spot_market.insurance_fund.total_shares / 20);             
+
+        assert_eq!(prize_quote, prize_buckets[1]);        
+
+        sweepstakes.prize_draw = total;
+        let prize_shares = sweepstakes
+            .calculate_prize_amount(&spot_market, vault_balance)
+            .unwrap();
+        assert_eq!(prize_shares, spot_market.insurance_fund.total_shares);             
+        let prize_quote = if_shares_to_vault_amount(
+            prize_shares,
+            spot_market.insurance_fund.total_shares,
+            vault_balance,
+        )
+        .unwrap() as u128;
+        assert_eq!(prize_quote, prize_buckets[2]);     
+
+
+
     }
-
-
 }
 
 mod competition_fcn {

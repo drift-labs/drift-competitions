@@ -357,11 +357,11 @@ impl Competition {
         Ok(())
     }
 
-    pub fn resolve_prize_amount(
+    pub fn calculate_prize_amount(
         &mut self,
         spot_market: &SpotMarket,
         vault_balance: u64,
-    ) -> CompetitionResult {
+    ) -> CompetitionResult<u128> {
         let (prize_buckets, ratios) =
             self.calculate_prize_buckets_and_ratios(spot_market, vault_balance)?;
 
@@ -369,20 +369,29 @@ impl Competition {
         for (i, &prize_amount_i) in prize_buckets.iter().enumerate() {
             cumulative_ratio = cumulative_ratio.safe_add(ratios[i])?;
             if self.prize_draw <= cumulative_ratio {
-                self.prize_amount = vault_amount_to_if_shares(
+                let prize_amount = vault_amount_to_if_shares(
                     prize_amount_i.cast()?,
                     spot_market.insurance_fund.total_shares,
                     vault_balance,
                 )?;
 
-                self.prize_base = spot_market.insurance_fund.shares_base;
-                self.update_status(CompetitionRoundStatus::PrizeAmountComplete)?;
-
-                return Ok(());
+                return Ok(prize_amount);
             }
         }
 
         Err(ErrorCode::CompetitionWinnerNotDetermined)
+    }
+
+    pub fn resolve_prize_amount(
+        &mut self,
+        spot_market: &SpotMarket,
+        vault_balance: u64,
+    ) -> CompetitionResult {
+        self.prize_amount = self.calculate_prize_amount(spot_market, vault_balance)?;
+        self.prize_base = spot_market.insurance_fund.shares_base;
+        self.update_status(CompetitionRoundStatus::PrizeAmountComplete)?;
+
+        Ok(())
     }
 
     pub fn settle_winner(
