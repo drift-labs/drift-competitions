@@ -12,6 +12,7 @@ pub fn settle_competitor<'info>(
 
 #[derive(Accounts)]
 pub struct SettleCompetitor<'info> {
+    #[account(mut)]
     keeper: Signer<'info>,
     #[account(
         mut
