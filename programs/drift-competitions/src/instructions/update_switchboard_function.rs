@@ -5,11 +5,6 @@ use switchboard_solana::prelude::*;
 use crate::signer_seeds::get_function_authority_seeds;
 use crate::state::Competition;
 
-/// The minimum guess that can be submitted, inclusive.
-pub const MIN_RESULT: u32 = 1;
-/// The maximum guess that can be submitted, inclusive.
-pub const MAX_RESULT: u32 = 1_000_000;
-
 pub fn update_switchboard_function<'info>(
     ctx: Context<'_, '_, '_, 'info, UpdateSwitchboardFunction<'info>>,
 ) -> Result<()> {
@@ -29,16 +24,6 @@ pub fn update_switchboard_function<'info>(
         associated_token_program: ctx.accounts.associated_token_program.to_account_info(),
     };
 
-    let request_params = format!(
-        "PID={},WINNER_MIN={},WINNER_MAX={},PRIZE_MIN={},PRIZE_MAX={},COMPETITION={}",
-        crate::id(),
-        MIN_RESULT,
-        MAX_RESULT,
-        MIN_RESULT,
-        MAX_RESULT,
-        ctx.accounts.competition.key(),
-    );
-
     let competition_key = ctx.accounts.competition.key();
     let bump = ctx.bumps.get("switchboard_function_authority").unwrap();
     let function_authority_seeds = get_function_authority_seeds(&competition_key, bump);
@@ -46,7 +31,7 @@ pub fn update_switchboard_function<'info>(
     request_init_ctx.invoke_signed(
         ctx.accounts.switchboard.clone(),
         Some(1024),
-        Some(request_params.into_bytes()),
+        None,
         None,
         &[&function_authority_seeds[..]],
     )?;
