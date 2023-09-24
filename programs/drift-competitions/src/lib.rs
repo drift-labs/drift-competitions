@@ -51,6 +51,12 @@ pub mod drift_competitions {
         instructions::settle_competitor(ctx)
     }
 
+    pub fn settle_competition<'info>(
+        ctx: Context<'_, '_, '_, 'info, SettleCompetition<'info>>,
+    ) -> Result<()> {
+        instructions::settle_competition(ctx)
+    }
+
     pub fn request_randomness<'info>(ctx: Context<'_, '_, '_, 'info, RequestRandomness<'info>>) -> Result<()> {
         instructions::request_randomness(ctx)
     }
