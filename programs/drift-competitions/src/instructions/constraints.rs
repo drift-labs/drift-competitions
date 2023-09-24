@@ -3,6 +3,13 @@ use crate::state::{Competition, Competitor};
 use anchor_lang::prelude::*;
 use drift::state::user::UserStats;
 
+pub fn can_sign_for_competitor<'info>(
+    competitor: &AccountLoader<'info, Competitor>,
+    authority: &Signer<'info>,
+) -> Result<bool> {
+    Ok(competitor.load()?.authority.eq(&authority.key()))
+}
+
 pub fn is_user_stats_for_competitor(
     competitor: &AccountLoader<Competitor>,
     user_stats: &AccountLoader<UserStats>,

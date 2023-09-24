@@ -43,6 +43,12 @@ pub mod drift_competitions {
         instructions::initialize_competitor(ctx)
     }
 
+    pub fn claim_entry<'info>(
+        ctx: Context<'_, '_, '_, 'info, ClaimEntry<'info>>,
+    ) -> Result<()> {
+        instructions::claim_entry(ctx)
+    }
+
     // keeper ix
 
     pub fn settle_competitor<'info>(
