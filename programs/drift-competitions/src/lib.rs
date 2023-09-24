@@ -45,6 +45,12 @@ pub mod drift_competitions {
 
     // keeper ix
 
+    pub fn settle_competitor<'info>(
+        ctx: Context<'_, '_, '_, 'info, SettleCompetitor<'info>>,
+    ) -> Result<()> {
+        instructions::settle_competitor(ctx)
+    }
+
     pub fn request_randomness<'info>(ctx: Context<'_, '_, '_, 'info, RequestRandomness<'info>>) -> Result<()> {
         instructions::request_randomness(ctx)
     }

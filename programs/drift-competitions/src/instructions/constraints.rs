@@ -10,6 +10,13 @@ pub fn is_user_stats_for_competitor(
     Ok(competitor.load()?.user_stats.eq(&user_stats.key()))
 }
 
+pub fn is_competition_for_competitor(
+    competitor: &AccountLoader<Competitor>,
+    competition: &AccountLoader<Competition>,
+) -> Result<bool> {
+    Ok(competitor.load()?.competition.eq(&competition.key()))
+}
+
 pub fn is_sponsor_for_competition<'info>(
     competition: &AccountLoader<'info, Competition>,
     sponsor: &Signer<'info>,
