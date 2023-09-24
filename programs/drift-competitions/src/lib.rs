@@ -64,4 +64,10 @@ pub mod drift_competitions {
     pub fn receive_randomness<'info>(ctx: Context<'_, '_, '_, 'info, ReceiveRandomness<'info>>, winner_randomness: u128, prize_randomness: u128) -> Result<()> {
         instructions::receive_randomness(ctx, winner_randomness, prize_randomness)
     }
+
+    pub fn settle_winner<'info>(
+        ctx: Context<'_, '_, '_, 'info, SettleWinner<'info>>,
+    ) -> Result<()> {
+        instructions::settle_winner(ctx)
+    }
 }
