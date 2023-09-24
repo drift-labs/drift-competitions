@@ -1,12 +1,9 @@
 use anchor_lang::prelude::*;
 
-use crate::error::ErrorCode;
-// use crate::instructions::constraints::is_user_stats_for_competitor;
 use crate::state::Size;
-use crate::state::{Competition, CompetitionRoundStatus, Competitor};
+use crate::state::{Competition, Competitor};
 use drift::math::safe_math::SafeMath;
 use drift::state::user::UserStats;
-use drift::validate;
 
 pub fn initialize_competitor<'info>(
     ctx: Context<'_, '_, '_, 'info, InitializeCompetitor<'info>>,

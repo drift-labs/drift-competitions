@@ -9,7 +9,7 @@ mod competition_helpers {
         },
         state::spot_market::SpotMarket,
     };
-    #[test]
+#[test]
     pub fn test_calculate_next_round_expiry_ts() {
         let mut now = 1695330779;
         let sweepstakes = &mut Competition::default();

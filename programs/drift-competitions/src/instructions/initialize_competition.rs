@@ -6,10 +6,18 @@ pub fn initialize_competition<'info>(
     ctx: Context<'_, '_, '_, 'info, InitializeCompetition<'info>>,
     params: CompetitionParams,
 ) -> Result<()> {
+    let competition_key = ctx.accounts.competition.key();
     let mut competition = ctx.accounts.competition.load_init()?;
 
     competition.name = params.name;
     competition.sponsor_info.sponsor = ctx.accounts.sponsor.key();
+
+    let (competition_authority, competition_authority_bump) = Pubkey::find_program_address(
+        &[b"competition_authority".as_ref(), competition_key.as_ref()],
+        ctx.program_id,
+    );
+    competition.competition_authority = competition_authority;
+    competition.competition_authority_bump = competition_authority_bump;
 
     competition.round_number = 0;
 

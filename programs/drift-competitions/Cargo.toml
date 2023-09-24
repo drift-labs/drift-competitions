@@ -16,9 +16,11 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = { git = "https://github.com/drift-labs/anchor.git", rev = "ed950fe", version = "0.26.0" }
-anchor-spl = { git = "https://github.com/drift-labs/anchor.git", rev = "ed950fe", version = "0.26.0" }
-drift = { git = "https://github.com/drift-labs/protocol-v2.git", rev = "f7a21dd", features = ["cpi", "mainnet-beta"]}
+anchor-lang = "0.27.0"
+anchor-spl = "0.27.0"
+drift = { git = "https://github.com/drift-labs/protocol-v2.git", rev = "e95874", features = ["cpi", "mainnet-beta"]}
 bytemuck = { version = "1.4.0" }
 static_assertions = "1.1.0"
 drift-macros = { git = "https://github.com/drift-labs/drift-macros.git", rev = "c57d87" }
+switchboard-solana = "0.27.26"
+getrandom = { version = "0.2.2", features = ["custom"] }

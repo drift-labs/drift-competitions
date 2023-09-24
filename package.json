@@ -5,6 +5,8 @@
     },
     "dependencies": {
         "@coral-xyz/anchor": "^0.26.0",
+        "@switchboard-xyz/solana.js": "^2.6.3",
+        "@solana/spl-token": "^0.3.7",
         "@drift-labs/sdk": "^2.39.1-beta.1"
     },
     "devDependencies": {
