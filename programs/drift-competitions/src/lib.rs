@@ -1,11 +1,11 @@
 use anchor_lang::prelude::*;
-use switchboard_solana::prelude::*;
 use instructions::*;
+use switchboard_solana::prelude::*;
 
 mod error;
 mod instructions;
-mod state;
 mod signer_seeds;
+mod state;
 mod utils;
 
 #[cfg(test)]
@@ -32,7 +32,9 @@ pub mod drift_competitions {
         instructions::update_competition(ctx, params)
     }
 
-    pub fn update_switchboard_function<'info>(ctx: Context<'_, '_, '_, 'info, UpdateSwitchboardFunction<'info>>) -> Result<()> {
+    pub fn update_switchboard_function<'info>(
+        ctx: Context<'_, '_, '_, 'info, UpdateSwitchboardFunction<'info>>,
+    ) -> Result<()> {
         instructions::update_switchboard_function(ctx)
     }
 
@@ -43,9 +45,7 @@ pub mod drift_competitions {
         instructions::initialize_competitor(ctx)
     }
 
-    pub fn claim_entry<'info>(
-        ctx: Context<'_, '_, '_, 'info, ClaimEntry<'info>>,
-    ) -> Result<()> {
+    pub fn claim_entry<'info>(ctx: Context<'_, '_, '_, 'info, ClaimEntry<'info>>) -> Result<()> {
         instructions::claim_entry(ctx)
     }
 
@@ -69,11 +69,17 @@ pub mod drift_competitions {
         instructions::settle_competition(ctx)
     }
 
-    pub fn request_randomness<'info>(ctx: Context<'_, '_, '_, 'info, RequestRandomness<'info>>) -> Result<()> {
+    pub fn request_randomness<'info>(
+        ctx: Context<'_, '_, '_, 'info, RequestRandomness<'info>>,
+    ) -> Result<()> {
         instructions::request_randomness(ctx)
     }
 
-    pub fn receive_randomness<'info>(ctx: Context<'_, '_, '_, 'info, ReceiveRandomness<'info>>, winner_randomness: u128, prize_randomness: u128) -> Result<()> {
+    pub fn receive_randomness<'info>(
+        ctx: Context<'_, '_, '_, 'info, ReceiveRandomness<'info>>,
+        winner_randomness: u128,
+        prize_randomness: u128,
+    ) -> Result<()> {
         instructions::receive_randomness(ctx, winner_randomness, prize_randomness)
     }
 

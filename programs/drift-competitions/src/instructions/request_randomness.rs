@@ -1,8 +1,8 @@
-use anchor_lang::prelude::*;
-use anchor_spl::token::{Token};
-use switchboard_solana::prelude::*;
 use crate::signer_seeds::get_function_authority_seeds;
 use crate::state::Competition;
+use anchor_lang::prelude::*;
+use anchor_spl::token::Token;
+use switchboard_solana::prelude::*;
 
 /// The minimum guess that can be submitted, inclusive.
 pub const MIN_RESULT: u32 = 1;
@@ -14,7 +14,8 @@ pub fn request_randomness<'info>(
 ) -> Result<()> {
     let competition_key = ctx.accounts.competition.key();
     let function_authority_bump = ctx.accounts.competition.load()?.competition_authority_bump;
-    let function_authority_seeds = get_function_authority_seeds(&competition_key, &function_authority_bump);
+    let function_authority_seeds =
+        get_function_authority_seeds(&competition_key, &function_authority_bump);
 
     let request_params = format!(
         "PID={},WINNER_MIN={},WINNER_MAX={},PRIZE_MIN={},PRIZE_MAX={},COMPETITION={}",
@@ -67,13 +68,9 @@ pub fn request_randomness<'info>(
 #[derive(Accounts)]
 pub struct RequestRandomness<'info> {
     // COMPETITION ACCOUNTS
-    #[account(
-        mut
-    )]
+    #[account(mut)]
     pub competition: AccountLoader<'info, Competition>,
-    #[account(
-        mut
-    )]
+    #[account(mut)]
     pub keeper: Signer<'info>,
     /// CHECK
     #[account(

@@ -1,6 +1,6 @@
+use super::constraints::is_sponsor_for_competition;
 use crate::state::Competition;
 use anchor_lang::prelude::*;
-use super::constraints::is_sponsor_for_competition;
 
 pub fn update_competition<'info>(
     ctx: Context<'_, '_, '_, 'info, UpdateCompetition<'info>>,

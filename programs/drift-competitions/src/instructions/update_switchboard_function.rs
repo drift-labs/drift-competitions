@@ -1,9 +1,9 @@
+use crate::signer_seeds::get_function_authority_seeds;
+use crate::state::Competition;
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{Mint, Token};
 use switchboard_solana::prelude::*;
-use crate::signer_seeds::get_function_authority_seeds;
-use crate::state::Competition;
 
 pub fn update_switchboard_function<'info>(
     ctx: Context<'_, '_, '_, 'info, UpdateSwitchboardFunction<'info>>,

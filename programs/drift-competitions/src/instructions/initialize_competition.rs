@@ -12,8 +12,10 @@ pub fn initialize_competition<'info>(
     competition.name = params.name;
     competition.sponsor_info.sponsor = ctx.accounts.sponsor.key();
 
-    let (competition_authority, competition_authority_bump) =
-        Pubkey::find_program_address(&[b"competition_authority".as_ref(), competition_key.as_ref()], ctx.program_id);
+    let (competition_authority, competition_authority_bump) = Pubkey::find_program_address(
+        &[b"competition_authority".as_ref(), competition_key.as_ref()],
+        ctx.program_id,
+    );
     competition.competition_authority = competition_authority;
     competition.competition_authority_bump = competition_authority_bump;
 

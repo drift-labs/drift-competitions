@@ -1,7 +1,7 @@
 #[cfg(test)]
 
 mod competition_helpers {
-    use crate::state::{Competition};
+    use crate::state::Competition;
 
     #[test]
     pub fn test_calculate_next_round_expiry_ts() {

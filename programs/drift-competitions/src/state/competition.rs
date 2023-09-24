@@ -92,9 +92,8 @@ pub struct Competition {
     pub padding: [u8; 6],
 }
 
-
 impl Size for Competition {
-        const SIZE: usize = 424 + 8;
+    const SIZE: usize = 424 + 8;
 }
 
 const_assert_eq!(Competition::SIZE, std::mem::size_of::<Competition>() + 8);

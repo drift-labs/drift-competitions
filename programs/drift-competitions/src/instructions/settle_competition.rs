@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::state::{Competition};
+use crate::state::Competition;
 
 pub fn settle_competition<'info>(
     _ctx: Context<'_, '_, '_, 'info, SettleCompetition<'info>>,
@@ -12,8 +12,6 @@ pub fn settle_competition<'info>(
 pub struct SettleCompetition<'info> {
     #[account(mut)]
     keeper: Signer<'info>,
-    #[account(
-        mut
-    )]
+    #[account(mut)]
     pub competition: AccountLoader<'info, Competition>,
 }

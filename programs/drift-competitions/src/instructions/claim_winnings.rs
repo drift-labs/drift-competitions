@@ -1,12 +1,10 @@
 use anchor_lang::prelude::*;
 
+use super::constraints::*;
 use crate::state::{Competition, Competitor};
 use drift::state::user::UserStats;
-use super::constraints::*;
 
-pub fn claim_winnings<'info>(
-    _ctx: Context<'_, '_, '_, 'info, ClaimWinnings<'info>>,
-) -> Result<()> {
+pub fn claim_winnings<'info>(_ctx: Context<'_, '_, '_, 'info, ClaimWinnings<'info>>) -> Result<()> {
     Ok(())
 }
 

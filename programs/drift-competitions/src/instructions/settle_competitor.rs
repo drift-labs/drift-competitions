@@ -1,8 +1,8 @@
 use anchor_lang::prelude::*;
 
+use super::constraints::*;
 use crate::state::{Competition, Competitor};
 use drift::state::user::UserStats;
-use super::constraints::*;
 
 pub fn settle_competitor<'info>(
     _ctx: Context<'_, '_, '_, 'info, SettleCompetitor<'info>>,
@@ -14,9 +14,7 @@ pub fn settle_competitor<'info>(
 pub struct SettleCompetitor<'info> {
     #[account(mut)]
     keeper: Signer<'info>,
-    #[account(
-        mut
-    )]
+    #[account(mut)]
     pub competitor: AccountLoader<'info, Competitor>,
     #[account(
         mut,
