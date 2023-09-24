@@ -49,17 +49,24 @@ pub struct SponsorInfo {
 }
 
 #[assert_no_slop]
-#[account(zero_copy)]
+#[account(zero_copy(unsafe))]
 #[derive(Default, Eq, PartialEq, Debug)]
 #[repr(C)]
 pub struct Competition {
     pub name: [u8; 32],
     pub sponsor_info: SponsorInfo,
 
+    pub switchboard_function: Pubkey,
+    pub switchboard_function_request: Pubkey,
+    pub switchboard_function_request_escrow: Pubkey,
+    pub competition_authority: Pubkey,
+
     // entries
     pub number_of_competitors: u128,
-    pub number_of_competitors_settled: u128, //starts at zero and you have to settle everyone to know the winner
-    pub total_score_settled: u128, // sum of all scores (when num users settled == num users)
+    pub number_of_competitors_settled: u128,
+    //starts at zero and you have to settle everyone to know the winner
+    pub total_score_settled: u128,
+    // sum of all scores (when num users settled == num users)
     pub max_entries_per_competitor: u128, // set a max entry per competitior
 
     // giveaway details
@@ -69,18 +76,25 @@ pub struct Competition {
     pub prize_base: u128,
     pub winning_draw: u128,
 
+    pub winner_randomness: u128,
+    pub prize_randomness: u128,
+
     // scheduling variables
     pub round_number: u64,
     pub next_round_expiry_ts: i64,
-    pub competition_expiry_ts: i64, // when competition ends, perpetual when == 0
+    pub competition_expiry_ts: i64,
+    // when competition ends, perpetual when == 0
     pub round_duration: u64,
 
     pub status: CompetitionRoundStatus,
-    pub padding: [u8; 7],
+    pub competition_authority_bump: u8,
+
+    pub padding: [u8; 6],
 }
 
+
 impl Size for Competition {
-    const SIZE: usize = 264 + 8;
+        const SIZE: usize = 424 + 8;
 }
 
 const_assert_eq!(Competition::SIZE, std::mem::size_of::<Competition>() + 8);

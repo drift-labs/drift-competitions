@@ -1,15 +1,17 @@
 use anchor_lang::prelude::*;
+use switchboard_solana::prelude::*;
 use instructions::*;
 
 mod error;
 mod instructions;
 mod state;
+mod signer_seeds;
 mod utils;
 
 #[cfg(test)]
 mod tests;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("9FHbMuNCRRCXsvKEkA3V8xJmysAqkZrGfrppvUhGTq7x");
 
 #[program]
 pub mod drift_competitions {
@@ -22,9 +24,21 @@ pub mod drift_competitions {
         instructions::initialize_competition(ctx, params)
     }
 
+    pub fn update_switchboard_function<'info>(ctx: Context<'_, '_, '_, 'info, UpdateSwitchboardFunction<'info>>) -> Result<()> {
+        instructions::update_switchboard_function(ctx)
+    }
+
     pub fn initialize_competitor<'info>(
         ctx: Context<'_, '_, '_, 'info, InitializeCompetitor<'info>>,
     ) -> Result<()> {
         instructions::initialize_competitor(ctx)
+    }
+
+    pub fn request_randomness<'info>(ctx: Context<'_, '_, '_, 'info, RequestRandomness<'info>>) -> Result<()> {
+        instructions::request_randomness(ctx)
+    }
+
+    pub fn receive_randomness<'info>(ctx: Context<'_, '_, '_, 'info, ReceiveRandomness<'info>>, winner_randomness: u128, prize_randomness: u128) -> Result<()> {
+        instructions::receive_randomness(ctx, winner_randomness, prize_randomness)
     }
 }
