@@ -1,8 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::state::{Competition, Competitor};
-use drift::state::user::UserStats;
-use super::constraints::*;
+use crate::state::{Competition};
 
 pub fn settle_competition<'info>(
     _ctx: Context<'_, '_, '_, 'info, SettleCompetition<'info>>,
