@@ -2,6 +2,8 @@ use crate::signer_seeds::get_function_authority_seeds;
 use crate::state::Competition;
 use anchor_lang::prelude::*;
 use anchor_spl::token::Token;
+use drift::state::spot_market::{SpotMarket};
+use drift::math::constants::QUOTE_SPOT_MARKET_INDEX;
 use switchboard_solana::prelude::*;
 
 /// The minimum guess that can be submitted, inclusive.
@@ -84,6 +86,17 @@ pub struct RequestRandomness<'info> {
         constraint = competition.load()?.competition_authority == competition_authority.key()
     )]
     pub competition_authority: AccountInfo<'info>,
+
+    // DRIFT ACCOUNTS
+    #[account(
+        constraint = spot_market.load()?.market_index == QUOTE_SPOT_MARKET_INDEX,
+    )]
+    pub spot_market: AccountLoader<'info, SpotMarket>,
+    #[account(
+        constraint = spot_market.load()?.insurance_fund.vault == insurance_fund_vault.key(),
+    )]
+    pub insurance_fund_vault: Account<'info, TokenAccount>,
+
 
     // SWITCHBOARD ACCOUNTS
     /// CHECK: program ID checked.
