@@ -339,7 +339,12 @@ impl Competition {
 
         for (i, &val) in prize_buckets.iter().enumerate() {
             if val > 0 {
-                ratios[i] = total_prize_bucket.safe_div_ceil(val)?;
+                // round up for smaller prize buckets and down for largest
+                if i < 2 {
+                    ratios[i] = total_prize_bucket.safe_div_ceil(val)?;
+                } else {
+                    ratios[i] = total_prize_bucket.safe_div(val)?;
+                }
             }
         }
 
@@ -365,32 +370,53 @@ impl Competition {
         Ok(())
     }
 
-    pub fn resolve_prize_amount(
+    pub fn calculate_prize_amount(
         &mut self,
         spot_market: &SpotMarket,
         vault_balance: u64,
-    ) -> CompetitionResult {
+    ) -> CompetitionResult<u128> {
         let (prize_buckets, ratios) =
             self.calculate_prize_buckets_and_ratios(spot_market, vault_balance)?;
+
+        let ratio_sum: u128 = ratios.iter().sum();
+        msg!("ratio_sum: {} vs {}", ratio_sum, self.prize_draw_max);
+
+        // prize amounts changed since random draw request
+        let draw = if ratio_sum < self.prize_draw_max {
+            let ranged_draw = self.prize_draw % ratio_sum;
+            msg!("prize_draw range updated: {}", ranged_draw);
+            ranged_draw
+        } else {
+            self.prize_draw
+        };
 
         let mut cumulative_ratio = 0;
         for (i, &prize_amount_i) in prize_buckets.iter().enumerate() {
             cumulative_ratio = cumulative_ratio.safe_add(ratios[i])?;
-            if self.prize_draw <= cumulative_ratio {
-                self.prize_amount = vault_amount_to_if_shares(
+            if draw <= cumulative_ratio {
+                let prize_amount = vault_amount_to_if_shares(
                     prize_amount_i.cast()?,
                     spot_market.insurance_fund.total_shares,
                     vault_balance,
                 )?;
 
-                self.prize_base = spot_market.insurance_fund.shares_base;
-                self.update_status(CompetitionRoundStatus::PrizeAmountComplete)?;
-
-                return Ok(());
+                return Ok(prize_amount);
             }
         }
 
         Err(ErrorCode::CompetitionWinnerNotDetermined)
+    }
+
+    pub fn resolve_prize_amount(
+        &mut self,
+        spot_market: &SpotMarket,
+        vault_balance: u64,
+    ) -> CompetitionResult {
+        self.prize_amount = self.calculate_prize_amount(spot_market, vault_balance)?;
+        self.prize_base = spot_market.insurance_fund.shares_base;
+        self.update_status(CompetitionRoundStatus::PrizeAmountComplete)?;
+
+        Ok(())
     }
 
     pub fn settle_winner(
