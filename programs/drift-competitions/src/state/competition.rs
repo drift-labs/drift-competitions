@@ -29,8 +29,8 @@ use drift::math::insurance::{if_shares_to_vault_amount, vault_amount_to_if_share
 #[derive(Clone, Copy, BorshSerialize, BorshDeserialize, PartialOrd, Ord, PartialEq, Eq, Debug)]
 pub enum CompetitionRoundStatus {
     Active = 1,
-    WinnerAndPrizeDrawComplete = 2,
-    PrizeAmountComplete = 3,
+    WinnerAndPrizeDrawRequested = 2,
+    WinnerAndPrizeDrawComplete = 3,
     WinnerSettlementComplete = 4,
     Expired = 5,
 }
@@ -224,7 +224,8 @@ impl Competition {
 
     pub fn validate_competitor_is_winner(&self, competitor: &Competitor) -> CompetitionResult {
         validate!(
-            self.status == CompetitionRoundStatus::PrizeAmountComplete && self.winning_draw != 0,
+            self.status == CompetitionRoundStatus::WinnerAndPrizeDrawComplete
+                && self.winning_draw != 0,
             ErrorCode::CompetitionWinnerNotDetermined
         )?;
 
@@ -351,7 +352,7 @@ impl Competition {
         Ok((prize_buckets, ratios))
     }
 
-    pub fn resolve_winner_and_prize_draw(
+    pub fn request_winner_and_prize_draw(
         &mut self,
         spot_market: &SpotMarket,
         vault_balance: u64,
@@ -362,9 +363,22 @@ impl Competition {
         let ratio_sum = ratios.iter().sum();
         self.prize_draw_max = ratio_sum;
 
+        self.update_status(CompetitionRoundStatus::WinnerAndPrizeDrawRequested)?;
+
+        // todo: remove, only for testing
         self.prize_draw = get_random_draw(0, ratio_sum)?;
         self.winning_draw = get_random_draw(1, self.total_score_settled)?;
 
+        Ok(())
+    }
+
+    pub fn resolve_winner_and_prize_draw(
+        &mut self,
+        spot_market: &SpotMarket,
+        vault_balance: u64,
+    ) -> CompetitionResult {
+        self.validate_round_resolved()?;
+        self.resolve_prize_amount(spot_market, vault_balance)?;
         self.update_status(CompetitionRoundStatus::WinnerAndPrizeDrawComplete)?;
 
         Ok(())
@@ -414,7 +428,6 @@ impl Competition {
     ) -> CompetitionResult {
         self.prize_amount = self.calculate_prize_amount(spot_market, vault_balance)?;
         self.prize_base = spot_market.insurance_fund.shares_base;
-        self.update_status(CompetitionRoundStatus::PrizeAmountComplete)?;
 
         Ok(())
     }
