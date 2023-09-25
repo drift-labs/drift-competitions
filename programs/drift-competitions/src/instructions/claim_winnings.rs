@@ -1,8 +1,8 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::TokenAccount;
+use drift::math::constants::QUOTE_SPOT_MARKET_INDEX;
 use drift::state::insurance_fund_stake::InsuranceFundStake;
 use drift::state::spot_market::SpotMarket;
-use drift::math::constants::QUOTE_SPOT_MARKET_INDEX;
 
 use super::constraints::*;
 use crate::state::{Competition, Competitor};

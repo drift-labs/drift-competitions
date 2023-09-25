@@ -8,7 +8,9 @@ use drift::math::casting::Cast;
 use drift::math::safe_math::SafeMath;
 use drift::validate;
 
-pub fn get_random_draw(min: u128, max: u128) -> DriftResult<u128> {
+pub fn get_test_sample_draw(min: u128, max: u128) -> DriftResult<u128> {
+    // do a fake random draw
+
     assert!(min <= max);
     let random_number = (max - min) / 2 + min; // todo: replace with VRF
 

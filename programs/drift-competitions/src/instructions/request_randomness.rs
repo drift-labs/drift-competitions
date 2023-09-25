@@ -2,8 +2,8 @@ use crate::signer_seeds::get_function_authority_seeds;
 use crate::state::Competition;
 use anchor_lang::prelude::*;
 use anchor_spl::token::Token;
-use drift::state::spot_market::{SpotMarket};
 use drift::math::constants::QUOTE_SPOT_MARKET_INDEX;
+use drift::state::spot_market::SpotMarket;
 use switchboard_solana::prelude::*;
 
 /// The minimum guess that can be submitted, inclusive.
@@ -19,14 +19,26 @@ pub fn request_randomness<'info>(
     let function_authority_seeds =
         get_function_authority_seeds(&competition_key, &function_authority_bump);
 
+    let mut competition = ctx.accounts.competition.load_mut()?;
+    let spot_market = ctx.accounts.spot_market.load()?;
+    let vault_balance = ctx.accounts.insurance_fund_vault.amount;
+
+    competition.request_winner_and_prize_randomness(&spot_market, vault_balance)?;
+
+    let min_random_number_winner = 1;
+    let max_random_number_winner = competition.total_score_settled;
+
+    let min_random_number_prize = 0;
+    let max_random_number_prize = competition.prize_randomness_max;
+
     let request_params = format!(
         "PID={},WINNER_MIN={},WINNER_MAX={},PRIZE_MIN={},PRIZE_MAX={},COMPETITION={}",
         crate::id(),
-        MIN_RESULT,
-        MAX_RESULT,
-        MIN_RESULT,
-        MAX_RESULT,
-        ctx.accounts.competition.key(),
+        min_random_number_winner,
+        max_random_number_winner,
+        min_random_number_prize,
+        max_random_number_prize,
+        competition_key,
     );
 
     let update_request_params = FunctionRequestSetConfig {
@@ -64,13 +76,6 @@ pub fn request_randomness<'info>(
         &[&function_authority_seeds[..]],
     )?;
 
-    let mut competition = ctx.accounts.competition.load_mut()?;
-
-    // todo: need spot market / insurance fund vault balance
-    // competition.request_winner_and_prize_draw(&spot_market, vault_balance)?;
-
-    // todo: pass self.total_score_settled / self.prize_randomness_max as params for random request
-
     Ok(())
 }
 
@@ -96,7 +101,6 @@ pub struct RequestRandomness<'info> {
         constraint = spot_market.load()?.insurance_fund.vault == insurance_fund_vault.key(),
     )]
     pub insurance_fund_vault: Account<'info, TokenAccount>,
-
 
     // SWITCHBOARD ACCOUNTS
     /// CHECK: program ID checked.

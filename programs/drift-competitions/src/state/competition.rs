@@ -1,7 +1,7 @@
 use crate::state::Size;
 use crate::utils::{
     apply_rebase_to_competition_prize, apply_rebase_to_competitor_unclaimed_winnings,
-    get_random_draw,
+    get_test_sample_draw,
 };
 use drift::{
     error::DriftResult,
@@ -29,8 +29,8 @@ use drift::math::insurance::{if_shares_to_vault_amount, vault_amount_to_if_share
 #[derive(Clone, Copy, BorshSerialize, BorshDeserialize, PartialOrd, Ord, PartialEq, Eq, Debug)]
 pub enum CompetitionRoundStatus {
     Active = 1,
-    WinnerAndPrizeDrawRequested = 2,
-    WinnerAndPrizeDrawComplete = 3,
+    WinnerAndPrizeRandomnessRequested = 2,
+    WinnerAndPrizeRandomnessComplete = 3,
     WinnerSettlementComplete = 4,
     Expired = 5,
 }
@@ -223,7 +223,7 @@ impl Competition {
 
     pub fn validate_competitor_is_winner(&self, competitor: &Competitor) -> CompetitionResult {
         validate!(
-            self.status == CompetitionRoundStatus::WinnerAndPrizeDrawComplete
+            self.status == CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
                 && self.winner_randomness != 0,
             ErrorCode::CompetitionWinnerNotDetermined
         )?;
@@ -352,7 +352,7 @@ impl Competition {
         Ok((prize_buckets, ratios))
     }
 
-    pub fn request_winner_and_prize_draw(
+    pub fn request_winner_and_prize_randomness(
         &mut self,
         spot_market: &SpotMarket,
         vault_balance: u64,
@@ -363,23 +363,23 @@ impl Competition {
         let ratio_sum = ratios.iter().sum();
         self.prize_randomness_max = ratio_sum;
 
-        self.update_status(CompetitionRoundStatus::WinnerAndPrizeDrawRequested)?;
+        self.update_status(CompetitionRoundStatus::WinnerAndPrizeRandomnessRequested)?;
 
         // todo: remove, only for testing
-        self.prize_randomness = get_random_draw(0, ratio_sum)?;
-        self.winner_randomness = get_random_draw(1, self.total_score_settled)?;
+        self.prize_randomness = get_test_sample_draw(0, ratio_sum)?;
+        self.winner_randomness = get_test_sample_draw(1, self.total_score_settled)?;
 
         Ok(())
     }
 
-    pub fn resolve_winner_and_prize_draw(
+    pub fn resolve_winner_and_prize_randomness(
         &mut self,
         spot_market: &SpotMarket,
         vault_balance: u64,
     ) -> CompetitionResult {
         self.validate_round_resolved()?;
         self.resolve_prize_amount(spot_market, vault_balance)?;
-        self.update_status(CompetitionRoundStatus::WinnerAndPrizeDrawComplete)?;
+        self.update_status(CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete)?;
 
         Ok(())
     }

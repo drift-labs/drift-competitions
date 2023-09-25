@@ -2,20 +2,26 @@ use crate::state::Competition;
 use anchor_lang::prelude::*;
 use switchboard_solana::prelude::*;
 
+use drift::math::constants::QUOTE_SPOT_MARKET_INDEX;
+use drift::state::spot_market::SpotMarket;
+
 pub fn receive_randomness(
-    _ctx: Context<ReceiveRandomness>,
+    ctx: Context<ReceiveRandomness>,
     winner_randomness: u128,
     prize_randomness: u128,
 ) -> Result<()> {
     msg!("winner_randomness {}", winner_randomness);
     msg!("prize_randomness {}", prize_randomness);
 
-    let mut competition = _ctx.accounts.competition.load_mut()?;
+    let mut competition = ctx.accounts.competition.load_mut()?;
+
+    let spot_market = ctx.accounts.spot_market.load()?;
+    let vault_balance = ctx.accounts.insurance_fund_vault.amount;
+
     competition.winner_randomness = winner_randomness;
     competition.prize_randomness = prize_randomness;
 
-    // todo: need spot market / insurance fund vault balance
-    // competition.resolve_winner_and_prize_draw(spot_market, vault_balance)?;
+    competition.resolve_winner_and_prize_randomness(&spot_market, vault_balance)?;
 
     Ok(())
 }
@@ -25,6 +31,16 @@ pub struct ReceiveRandomness<'info> {
     // COMPETITION ACCOUNTS
     #[account(mut)]
     pub competition: AccountLoader<'info, Competition>,
+
+    // DRIFT ACCOUNTS
+    #[account(
+        constraint = spot_market.load()?.market_index == QUOTE_SPOT_MARKET_INDEX,
+    )]
+    pub spot_market: AccountLoader<'info, SpotMarket>,
+    #[account(
+        constraint = spot_market.load()?.insurance_fund.vault == insurance_fund_vault.key(),
+    )]
+    pub insurance_fund_vault: Account<'info, TokenAccount>,
 
     // SWITCHBOARD ACCOUNTS
     #[account(

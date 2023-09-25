@@ -2,9 +2,9 @@ use anchor_lang::prelude::*;
 
 use super::constraints::*;
 use crate::state::{Competition, Competitor};
-use drift::state::user::UserStats;
-use drift::state::spot_market::SpotMarket;
 use drift::math::constants::QUOTE_SPOT_MARKET_INDEX;
+use drift::state::spot_market::SpotMarket;
+use drift::state::user::UserStats;
 
 pub fn settle_winner<'info>(ctx: Context<'_, '_, '_, 'info, SettleWinner<'info>>) -> Result<()> {
     let mut competitor = ctx.accounts.competitor.load_mut()?;
