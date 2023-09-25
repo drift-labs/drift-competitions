@@ -25,7 +25,8 @@ pub fn initialize_competitor<'info>(
 
     competition.number_of_competitors = competition.number_of_competitors.safe_add(1)?;
 
-    // todo: add competition.bonus_score = 1; ?
+    // todo: add below?
+    // competitor.bonus_score = 1;
 
     Ok(())
 }
