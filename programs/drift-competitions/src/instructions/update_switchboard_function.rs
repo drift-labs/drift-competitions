@@ -5,6 +5,8 @@ use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{Mint, Token};
 use switchboard_solana::prelude::*;
 
+pub const MAX_REQUEST_PARAM_SIZE : u32 = 512;
+
 pub fn update_switchboard_function<'info>(
     ctx: Context<'_, '_, '_, 'info, UpdateSwitchboardFunction<'info>>,
 ) -> Result<()> {
@@ -30,7 +32,7 @@ pub fn update_switchboard_function<'info>(
 
     request_init_ctx.invoke_signed(
         ctx.accounts.switchboard.clone(),
-        Some(1024),
+        Some(MAX_REQUEST_PARAM_SIZE),
         None,
         None,
         &[&function_authority_seeds[..]],

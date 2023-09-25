@@ -6,15 +6,13 @@ use drift::math::constants::QUOTE_SPOT_MARKET_INDEX;
 use drift::state::spot_market::SpotMarket;
 use switchboard_solana::prelude::*;
 
-/// The minimum guess that can be submitted, inclusive.
-pub const MIN_RESULT: u32 = 1;
-/// The maximum guess that can be submitted, inclusive.
-pub const MAX_RESULT: u32 = 1_000_000;
-
 pub fn request_randomness<'info>(
     ctx: Context<'_, '_, '_, 'info, RequestRandomness<'info>>,
 ) -> Result<()> {
     let competition_key = ctx.accounts.competition.key();
+    let spot_market_key = ctx.accounts.spot_market.key();
+    let insurance_fund_vault_key = ctx.accounts.insurance_fund_vault.key();
+
     let function_authority_bump = ctx.accounts.competition.load()?.competition_authority_bump;
     let function_authority_seeds =
         get_function_authority_seeds(&competition_key, &function_authority_bump);
@@ -25,20 +23,20 @@ pub fn request_randomness<'info>(
 
     competition.request_winner_and_prize_randomness(&spot_market, vault_balance)?;
 
-    let min_random_number_winner = 1;
-    let max_random_number_winner = competition.total_score_settled;
+    let winner_min = 1;
+    let winner_max = competition.total_score_settled;
 
-    let min_random_number_prize = 0;
-    let max_random_number_prize = competition.prize_randomness_max;
+    let prize_min = 0;
+    let prize_max = competition.prize_randomness_max;
 
-    let request_params = format!(
-        "PID={},WINNER_MIN={},WINNER_MAX={},PRIZE_MIN={},PRIZE_MAX={},COMPETITION={}",
-        crate::id(),
-        min_random_number_winner,
-        max_random_number_winner,
-        min_random_number_prize,
-        max_random_number_prize,
+    let request_params = get_request_params(
+        winner_min,
+        winner_max,
+        prize_min,
+        prize_max,
         competition_key,
+        spot_market_key,
+        insurance_fund_vault_key,
     );
 
     let update_request_params = FunctionRequestSetConfig {
@@ -77,6 +75,28 @@ pub fn request_randomness<'info>(
     )?;
 
     Ok(())
+}
+
+fn get_request_params(
+    prize_min: u128,
+    prize_max: u128,
+    winner_min: u128,
+    winner_max: u128,
+    competition: Pubkey,
+    spot_market: Pubkey,
+    if_vault: Pubkey,
+) -> String {
+    format!(
+        "PID={},WINNER_MIN={},WINNER_MAX={},PRIZE_MIN={},PRIZE_MAX={},COMPETITION={},SPOT_MARKET={},IF_VAULT={}",
+        crate::id(),
+        prize_min,
+        prize_max,
+        winner_min,
+        winner_max,
+        competition,
+        spot_market,
+        if_vault,
+    )
 }
 
 #[derive(Accounts)]
@@ -137,4 +157,25 @@ pub struct RequestRandomness<'info> {
 
     // SYSTEM ACCOUNTS
     pub system_program: Program<'info, System>,
+}
+
+#[cfg(test)]
+mod test {
+    use anchor_spl::token_interface::spl_token_2022::solana_program::pubkey::Pubkey;
+    use crate::MAX_REQUEST_PARAM_SIZE;
+
+    #[test]
+    fn max_result_params_size() {
+        let params = super::get_request_params(
+            0,
+            u128::MAX,
+            1,
+            u128::MAX,
+            Pubkey::new_unique(),
+            Pubkey::new_unique(),
+            Pubkey::new_unique(),
+        );
+
+        assert!(params.len() as u32 <= MAX_REQUEST_PARAM_SIZE);
+    }
 }
