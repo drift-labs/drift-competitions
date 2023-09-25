@@ -96,10 +96,10 @@ mod competition_helpers {
 
         let total = ratios.iter().sum();
         let mut cnt = 0;
-        sweepstakes.prize_draw_max = total;
+        sweepstakes.prize_randomness_max= total;
 
         while cnt <= ratios[0] {
-            sweepstakes.prize_draw = cnt;
+            sweepstakes.prize_randomness = cnt;
             let prize_shares = sweepstakes
                 .calculate_prize_amount(&spot_market, vault_balance)
                 .unwrap();
@@ -113,7 +113,7 @@ mod competition_helpers {
             cnt += 1;
         }
 
-        sweepstakes.prize_draw = total - 1;
+        sweepstakes.prize_randomness = total - 1;
         let prize_shares = sweepstakes
             .calculate_prize_amount(&spot_market, vault_balance)
             .unwrap();
@@ -127,7 +127,7 @@ mod competition_helpers {
 
         assert_eq!(prize_quote, prize_buckets[1]);
 
-        sweepstakes.prize_draw = total;
+        sweepstakes.prize_randomness = total;
         let prize_shares = sweepstakes
             .calculate_prize_amount(&spot_market, vault_balance)
             .unwrap();
@@ -176,7 +176,7 @@ mod competition_helpers {
 
         let total = ratios.iter().sum();
         let mut cnt = 0;
-        sweepstakes.prize_draw_max = total;
+        sweepstakes.prize_randomness_max= total;
 
         let prize_shares = sweepstakes
             .calculate_prize_amount(&spot_market, vault_balance)
@@ -205,7 +205,7 @@ mod competition_helpers {
         assert_eq!(prize_quote, 999999943);
 
         while cnt <= ratios[0] {
-            sweepstakes.prize_draw = cnt;
+            sweepstakes.prize_randomness = cnt;
             let prize_shares = sweepstakes
                 .calculate_prize_amount(&spot_market, vault_balance)
                 .unwrap();
@@ -221,7 +221,7 @@ mod competition_helpers {
             cnt += 1;
         }
 
-        sweepstakes.prize_draw = total - 1;
+        sweepstakes.prize_randomness = total - 1;
         let prize_shares = sweepstakes
             .calculate_prize_amount(&spot_market, vault_balance)
             .unwrap();
@@ -235,7 +235,7 @@ mod competition_helpers {
 
         assert_eq!(prize_quote, prize_buckets[1] - 80); // slightly below (rounding in favor)
 
-        sweepstakes.prize_draw = total;
+        sweepstakes.prize_randomness = total;
         let prize_shares = sweepstakes
             .calculate_prize_amount(&spot_market, vault_balance)
             .unwrap();
@@ -272,7 +272,7 @@ mod competition_helpers {
         assert!(ratios[0] / 10 >= ratios[2]);
 
         let total: u128 = ratios.iter().sum();
-        sweepstakes.prize_draw_max = total; // would win max prize (if unchanged)
+        sweepstakes.prize_randomness_max= total; // would win max prize (if unchanged)
 
         let if_deltas = [
             0,
@@ -293,7 +293,7 @@ mod competition_helpers {
 
         let mut min_prize_times = [0, 0, 0];
         while cnt <= total {
-            sweepstakes.prize_draw = cnt;
+            sweepstakes.prize_randomness = cnt;
             for (i, &if_delta) in if_deltas.iter().enumerate() {
                 println!("{} {}", i, if_delta);
                 let vv = (vault_balance as i64 + if_delta) as u64;
@@ -412,7 +412,7 @@ mod competition_fcn {
 
         assert!(sweepstakes.reset_round(now).is_err());
 
-        assert_eq!(sweepstakes.winning_draw, 2);
+        assert_eq!(sweepstakes.winner_randomness, 2);
 
         assert!(sweepstakes.settle_winner(comp1, &spot_market).is_err());
         sweepstakes.settle_winner(comp2, &spot_market).unwrap();
@@ -433,7 +433,7 @@ mod competition_fcn {
             number_of_competitors: 2,
             total_score_settled: 0,
             round_duration: 60,
-            winning_draw: 2,
+            winner_randomness: 2,
             sponsor_info: SponsorInfo {
                 max_sponsor_fraction: 0,
                 ..SponsorInfo::default()
@@ -582,7 +582,7 @@ mod competition_fcn {
 
         assert!(sweepstakes.reset_round(now).is_err());
         spot_market.insurance_fund.shares_base = 5;
-        assert_eq!(sweepstakes.winning_draw, 2);
+        assert_eq!(sweepstakes.winner_randomness, 2);
 
         assert!(sweepstakes.settle_winner(comp1, &spot_market).is_err());
 
@@ -624,9 +624,9 @@ mod competition_fcn {
             round_duration: 60,
             prize_base: 5,
             prize_amount: 69,
-            prize_draw: 47,
-            prize_draw_max: 95,
-            winning_draw: 2,
+            prize_randomness: 47,
+            prize_randomness_max: 95,
+            winner_randomness: 2,
             sponsor_info: SponsorInfo {
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
                 ..SponsorInfo::default()
@@ -727,9 +727,9 @@ mod competition_fcn {
             round_duration: 60,
             prize_base: 1,
             prize_amount: 696202,
-            prize_draw: 478,
-            prize_draw_max: 957,
-            winning_draw: 1,
+            prize_randomness: 478,
+            prize_randomness_max: 957,
+            winner_randomness: 1,
             sponsor_info: SponsorInfo {
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
                 ..SponsorInfo::default()
@@ -751,11 +751,11 @@ mod competition_fcn {
             .resolve_winner_and_prize_draw(&spot_market, vault_balance)
             .unwrap();
 
-        sweepstakes.prize_draw = 19999999999999; // inflate it crazy
+        sweepstakes.prize_randomness = 19999999999999; // inflate it crazy
         assert!(sweepstakes
             .resolve_prize_amount(&spot_market, vault_balance)
             .is_err()); // todo: handle if balances changes between steps better
-        sweepstakes.prize_draw = sweepstakes.prize_draw_max;
+        sweepstakes.prize_randomness = sweepstakes.prize_randomness_max;
 
         sweepstakes
             .resolve_prize_amount(&spot_market, vault_balance)
@@ -780,9 +780,9 @@ mod competition_fcn {
             round_duration: 60,
             prize_base: 1,
             prize_amount: 549499999,
-            prize_draw: 957,
-            prize_draw_max: 957,
-            winning_draw: 1,
+            prize_randomness: 957,
+            prize_randomness_max: 957,
+            winner_randomness: 1,
             sponsor_info: SponsorInfo {
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
                 ..SponsorInfo::default()
@@ -889,7 +889,7 @@ mod competition_fcn {
 
         assert!(sweepstakes.reset_round(now).is_err());
         spot_market.insurance_fund.shares_base = 5;
-        assert_eq!(sweepstakes.winning_draw, 2);
+        assert_eq!(sweepstakes.winner_randomness, 2);
 
         assert!(sweepstakes.settle_winner(comp1, &spot_market).is_err());
 
@@ -931,9 +931,9 @@ mod competition_fcn {
             round_duration: 60,
             prize_base: 5,
             prize_amount: 69,
-            prize_draw_max: 95,
-            prize_draw: 47,
-            winning_draw: 2,
+            prize_randomness_max: 95,
+            prize_randomness: 47,
+            winner_randomness: 2,
             sponsor_info: SponsorInfo {
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
                 ..SponsorInfo::default()
@@ -1022,7 +1022,7 @@ mod competition_fcn {
         assert_eq!(sweepstakes.prize_amount, 696202);
 
         assert!(sweepstakes.reset_round(now).is_err());
-        assert_eq!(sweepstakes.winning_draw, 1);
+        assert_eq!(sweepstakes.winner_randomness, 1);
 
         assert_eq!(sweepstakes.prize_base, 6);
 
@@ -1128,8 +1128,8 @@ mod competition_fcn {
         assert_eq!(sweepstakes.prize_amount, 696202);
 
         assert!(sweepstakes.reset_round(now).is_err());
-        assert_eq!(sweepstakes.winning_draw, 6);
-        sweepstakes.winning_draw = 1; // override so comp1 wins
+        assert_eq!(sweepstakes.winner_randomness, 6);
+        sweepstakes.winner_randomness = 1; // override so comp1 wins
 
         assert_eq!(sweepstakes.prize_base, 6);
 
