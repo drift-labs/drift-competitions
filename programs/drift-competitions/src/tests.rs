@@ -96,7 +96,7 @@ mod competition_helpers {
 
         let total = ratios.iter().sum();
         let mut cnt = 0;
-        sweepstakes.prize_randomness_max= total;
+        sweepstakes.prize_randomness_max = total;
 
         while cnt <= ratios[0] {
             sweepstakes.prize_randomness = cnt;
@@ -176,7 +176,7 @@ mod competition_helpers {
 
         let total = ratios.iter().sum();
         let mut cnt = 0;
-        sweepstakes.prize_randomness_max= total;
+        sweepstakes.prize_randomness_max = total;
 
         let prize_shares = sweepstakes
             .calculate_prize_amount(&spot_market, vault_balance)
@@ -272,7 +272,7 @@ mod competition_helpers {
         assert!(ratios[0] / 10 >= ratios[2]);
 
         let total: u128 = ratios.iter().sum();
-        sweepstakes.prize_randomness_max= total; // would win max prize (if unchanged)
+        sweepstakes.prize_randomness_max = total; // would win max prize (if unchanged)
 
         let if_deltas = [
             0,

@@ -62,6 +62,13 @@ pub fn request_randomness<'info>(
         &[&function_authority_seeds[..]],
     )?;
 
+    let mut competition = ctx.accounts.competition.load_mut()?;
+
+    // todo: need spot market / insurance fund vault balance
+    // competition.request_winner_and_prize_draw(&spot_market, vault_balance)?;
+
+    // todo: pass self.total_score_settled / self.prize_randomness_max as params for random request
+
     Ok(())
 }
 

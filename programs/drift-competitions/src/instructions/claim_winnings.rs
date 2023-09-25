@@ -4,7 +4,12 @@ use super::constraints::*;
 use crate::state::{Competition, Competitor};
 use drift::state::user::UserStats;
 
-pub fn claim_winnings<'info>(_ctx: Context<'_, '_, '_, 'info, ClaimWinnings<'info>>) -> Result<()> {
+pub fn claim_winnings<'info>(ctx: Context<'_, '_, '_, 'info, ClaimWinnings<'info>>) -> Result<()> {
+    let mut competitor = ctx.accounts.competitor.load_mut()?;
+    let mut competition = ctx.accounts.competition.load_mut()?;
+
+    // competitor.claim_winnings(&spot_market, insurance_fund_stake)?;
+
     Ok(())
 }
 

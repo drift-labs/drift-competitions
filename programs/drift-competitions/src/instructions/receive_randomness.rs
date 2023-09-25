@@ -14,6 +14,9 @@ pub fn receive_randomness(
     competition.winner_randomness = winner_randomness;
     competition.prize_randomness = prize_randomness;
 
+    // todo: need spot market / insurance fund vault balance
+    // competition.resolve_winner_and_prize_draw(spot_market, vault_balance)?;
+
     Ok(())
 }
 

@@ -78,7 +78,6 @@ pub struct Competition {
     // the max number in the prize_randomness request
     pub prize_randomness_max: u128,
 
-
     // scheduling variables
     pub round_number: u64,
     pub next_round_expiry_ts: i64,
@@ -238,7 +237,8 @@ impl Competition {
         // winning compeitor range is specified from (min_draw, max_draw]
         // this means winner_randomness must be > 0
         validate!(
-            self.winner_randomness > competitor.min_draw && self.winner_randomness <= competitor.max_draw,
+            self.winner_randomness > competitor.min_draw
+                && self.winner_randomness <= competitor.max_draw,
             ErrorCode::CompetitorNotWinner
         )?;
 
@@ -361,7 +361,7 @@ impl Competition {
         let (_, ratios) = self.calculate_prize_buckets_and_ratios(spot_market, vault_balance)?;
 
         let ratio_sum = ratios.iter().sum();
-        self.prize_randomness_max= ratio_sum;
+        self.prize_randomness_max = ratio_sum;
 
         self.update_status(CompetitionRoundStatus::WinnerAndPrizeDrawRequested)?;
 
@@ -396,7 +396,7 @@ impl Competition {
         msg!("ratio_sum: {} vs {}", ratio_sum, self.prize_randomness_max);
 
         // prize amounts changed since random draw request
-        let draw = if ratio_sum < self.prize_randomness_max{
+        let draw = if ratio_sum < self.prize_randomness_max {
             let ranged_draw = self.prize_randomness % ratio_sum;
             msg!("prize_randomness range updated: {}", ranged_draw);
             ranged_draw
