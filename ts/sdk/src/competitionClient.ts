@@ -195,7 +195,8 @@ export class CompetitionsClient {
 
 	public async claimWinnings(
 		competition: PublicKey,
-		userStats: PublicKey
+		userStats: PublicKey,
+		shares?: BN,
 	): Promise<TransactionSignature> {
 		const competitor = getCompetitorAddressSync(
 			this.program.programId,
@@ -208,7 +209,7 @@ export class CompetitionsClient {
 		const insuranceFundStake = await getInsuranceFundStakeAccountPublicKey(this.driftClient.program.programId, this.program.provider.publicKey, QUOTE_SPOT_MARKET_INDEX);
 
 		return await this.program.methods
-			.claimWinnings()
+			.claimWinnings(shares ?? null)
 			.accounts({
 				competitor,
 				competition: competition,
@@ -275,6 +276,10 @@ export class CompetitionsClient {
 			competition
 		);
 
+
+		const spotMarket = await getSpotMarketPublicKey(this.program.provider.publicKey, QUOTE_SPOT_MARKET_INDEX);
+		const insuranceFundVault = await getInsuranceFundVaultPublicKey(this.program.provider.publicKey, QUOTE_SPOT_MARKET_INDEX);
+
 		return await this.program.methods
 			.requestRandomness()
 			.accounts({
@@ -287,6 +292,8 @@ export class CompetitionsClient {
 				switchboardRequest: competitionAccount.switchboardFunctionRequest,
 				switchboardRequestEscrow:
 					competitionAccount.switchboardFunctionRequestEscrow,
+				insuranceFundVault,
+				spotMarket,
 			})
 			.rpc();
 	}

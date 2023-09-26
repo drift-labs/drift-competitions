@@ -246,7 +246,14 @@ export type DriftCompetitions = {
 					isSigner: false;
 				}
 			];
-			args: [];
+			args: [
+				{
+					name: 'nShares';
+					type: {
+						option: 'u64';
+					};
+				}
+			];
 		},
 		{
 			name: 'settleCompetitor';
@@ -371,6 +378,16 @@ export type DriftCompetitions = {
 					isSigner: false;
 				},
 				{
+					name: 'spotMarket';
+					isMut: false;
+					isSigner: false;
+				},
+				{
+					name: 'insuranceFundVault';
+					isMut: false;
+					isSigner: false;
+				},
+				{
 					name: 'switchboardFunction';
 					isMut: false;
 					isSigner: false;
@@ -418,6 +435,11 @@ export type DriftCompetitions = {
 				{
 					name: 'driftUserStats';
 					isMut: false;
+					isSigner: false;
+				},
+				{
+					name: 'spotMarket';
+					isMut: true;
 					isSigner: false;
 				}
 			];
@@ -475,14 +497,6 @@ export type DriftCompetitions = {
 						type: 'u128';
 					},
 					{
-						name: 'prizeDrawMax';
-						type: 'u128';
-					},
-					{
-						name: 'prizeDraw';
-						type: 'u128';
-					},
-					{
 						name: 'prizeAmount';
 						type: 'u128';
 					},
@@ -491,15 +505,15 @@ export type DriftCompetitions = {
 						type: 'u128';
 					},
 					{
-						name: 'winningDraw';
-						type: 'u128';
-					},
-					{
 						name: 'winnerRandomness';
 						type: 'u128';
 					},
 					{
 						name: 'prizeRandomness';
+						type: 'u128';
+					},
+					{
+						name: 'prizeRandomnessMax';
 						type: 'u128';
 					},
 					{
@@ -672,10 +686,10 @@ export type DriftCompetitions = {
 						name: 'Active';
 					},
 					{
-						name: 'WinnerAndPrizeDrawComplete';
+						name: 'WinnerAndPrizeRandomnessRequested';
 					},
 					{
-						name: 'PrizeAmountComplete';
+						name: 'WinnerAndPrizeRandomnessComplete';
 					},
 					{
 						name: 'WinnerSettlementComplete';
@@ -685,6 +699,73 @@ export type DriftCompetitions = {
 					}
 				];
 			};
+		}
+	];
+	events: [
+		{
+			name: 'CompetitionRoundWinnerRecord';
+			fields: [
+				{
+					name: 'roundNumber';
+					type: 'u64';
+					index: false;
+				},
+				{
+					name: 'competitor';
+					type: 'publicKey';
+					index: false;
+				},
+				{
+					name: 'minDraw';
+					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'maxDraw';
+					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'numberOfCompetitorsSettled';
+					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'winnerRandomness';
+					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'totalScoreSettled';
+					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'prizeRandomness';
+					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'prizeRandomnessMax';
+					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'prizeAmount';
+					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'prizeBase';
+					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'ts';
+					type: 'i64';
+					index: false;
+				}
+			];
 		}
 	];
 	errors: [
@@ -767,6 +848,11 @@ export type DriftCompetitions = {
 			code: 6015;
 			name: 'CompetitionRoundNumberIssue';
 			msg: 'CompetitionRoundNumberIssue';
+		},
+		{
+			code: 6016;
+			name: 'CompetitorSnapshotIssue';
+			msg: 'CompetitorSnapshotIssue';
 		}
 	];
 };
@@ -1019,7 +1105,14 @@ export const IDL: DriftCompetitions = {
 					isSigner: false,
 				},
 			],
-			args: [],
+			args: [
+				{
+					name: 'nShares',
+					type: {
+						option: 'u64',
+					},
+				},
+			],
 		},
 		{
 			name: 'settleCompetitor',
@@ -1144,6 +1237,16 @@ export const IDL: DriftCompetitions = {
 					isSigner: false,
 				},
 				{
+					name: 'spotMarket',
+					isMut: false,
+					isSigner: false,
+				},
+				{
+					name: 'insuranceFundVault',
+					isMut: false,
+					isSigner: false,
+				},
+				{
 					name: 'switchboardFunction',
 					isMut: false,
 					isSigner: false,
@@ -1191,6 +1294,11 @@ export const IDL: DriftCompetitions = {
 				{
 					name: 'driftUserStats',
 					isMut: false,
+					isSigner: false,
+				},
+				{
+					name: 'spotMarket',
+					isMut: true,
 					isSigner: false,
 				},
 			],
@@ -1248,14 +1356,6 @@ export const IDL: DriftCompetitions = {
 						type: 'u128',
 					},
 					{
-						name: 'prizeDrawMax',
-						type: 'u128',
-					},
-					{
-						name: 'prizeDraw',
-						type: 'u128',
-					},
-					{
 						name: 'prizeAmount',
 						type: 'u128',
 					},
@@ -1264,15 +1364,15 @@ export const IDL: DriftCompetitions = {
 						type: 'u128',
 					},
 					{
-						name: 'winningDraw',
-						type: 'u128',
-					},
-					{
 						name: 'winnerRandomness',
 						type: 'u128',
 					},
 					{
 						name: 'prizeRandomness',
+						type: 'u128',
+					},
+					{
+						name: 'prizeRandomnessMax',
 						type: 'u128',
 					},
 					{
@@ -1445,10 +1545,10 @@ export const IDL: DriftCompetitions = {
 						name: 'Active',
 					},
 					{
-						name: 'WinnerAndPrizeDrawComplete',
+						name: 'WinnerAndPrizeRandomnessRequested',
 					},
 					{
-						name: 'PrizeAmountComplete',
+						name: 'WinnerAndPrizeRandomnessComplete',
 					},
 					{
 						name: 'WinnerSettlementComplete',
@@ -1458,6 +1558,73 @@ export const IDL: DriftCompetitions = {
 					},
 				],
 			},
+		},
+	],
+	events: [
+		{
+			name: 'CompetitionRoundWinnerRecord',
+			fields: [
+				{
+					name: 'roundNumber',
+					type: 'u64',
+					index: false,
+				},
+				{
+					name: 'competitor',
+					type: 'publicKey',
+					index: false,
+				},
+				{
+					name: 'minDraw',
+					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'maxDraw',
+					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'numberOfCompetitorsSettled',
+					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'winnerRandomness',
+					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'totalScoreSettled',
+					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'prizeRandomness',
+					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'prizeRandomnessMax',
+					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'prizeAmount',
+					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'prizeBase',
+					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'ts',
+					type: 'i64',
+					index: false,
+				},
+			],
 		},
 	],
 	errors: [
@@ -1540,6 +1707,11 @@ export const IDL: DriftCompetitions = {
 			code: 6015,
 			name: 'CompetitionRoundNumberIssue',
 			msg: 'CompetitionRoundNumberIssue',
+		},
+		{
+			code: 6016,
+			name: 'CompetitorSnapshotIssue',
+			msg: 'CompetitorSnapshotIssue',
 		},
 	],
 };
