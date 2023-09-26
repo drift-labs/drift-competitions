@@ -254,6 +254,7 @@ impl Competition {
         user_stats: &UserStats,
         now: i64,
     ) -> CompetitionResult {
+        let previous_snapshot_score_before = competitor.previous_snapshot_score;
         self.validate_round_ready_for_settlement(now)?;
 
         if !self.competitor_can_be_settled(competitor) {
@@ -291,8 +292,15 @@ impl Competition {
             self.round_number
         )?;
 
+        competitor.previous_snapshot_score =
+            competitor.calculate_snapshot_score(&user_stats)?;
         competitor.competition_round_number = competitor.competition_round_number.safe_add(1)?;
         self.number_of_competitors_settled = self.number_of_competitors_settled.saturating_add(1);
+
+        validate!(
+            previous_snapshot_score_before <= competitor.previous_snapshot_score,
+            ErrorCode::CompetitorSnapshotIssue
+        )?;
 
         Ok(())
     }
