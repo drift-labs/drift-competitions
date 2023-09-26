@@ -5,9 +5,8 @@ use borsh::{BorshDeserialize, BorshSerialize};
 #[derive(Default)]
 pub struct CompetitionRoundWinnerRecord {
     pub round_number: u64,
-    pub competitor: Pubkey, 
+    pub competitor: Pubkey,
 
-    pub competitor_round_score: u128, 
     pub min_draw: u128,
     pub max_draw: u128,
 

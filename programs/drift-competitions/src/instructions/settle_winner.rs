@@ -9,7 +9,7 @@ use drift::state::user::UserStats;
 pub fn settle_winner<'info>(ctx: Context<'_, '_, '_, 'info, SettleWinner<'info>>) -> Result<()> {
     let clock = Clock::get()?;
     let now = clock.unix_timestamp;
-    
+
     let mut competitor = ctx.accounts.competitor.load_mut()?;
     let mut competition = ctx.accounts.competition.load_mut()?;
     let spot_market = ctx.accounts.spot_market.load()?;

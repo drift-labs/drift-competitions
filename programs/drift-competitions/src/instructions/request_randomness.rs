@@ -161,8 +161,8 @@ pub struct RequestRandomness<'info> {
 
 #[cfg(test)]
 mod test {
-    use anchor_spl::token_interface::spl_token_2022::solana_program::pubkey::Pubkey;
     use crate::MAX_REQUEST_PARAM_SIZE;
+    use anchor_spl::token_interface::spl_token_2022::solana_program::pubkey::Pubkey;
 
     #[test]
     fn max_result_params_size() {

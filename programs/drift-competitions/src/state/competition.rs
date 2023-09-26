@@ -1,9 +1,9 @@
+use crate::state::events::CompetitionRoundWinnerRecord;
 use crate::state::Size;
 use crate::utils::{
     apply_rebase_to_competition_prize, apply_rebase_to_competitor_unclaimed_winnings,
     get_test_sample_draw,
 };
-use crate::state::events::CompetitionRoundWinnerRecord;
 use drift::{
     error::DriftResult,
     math::constants::{PERCENTAGE_PRECISION_U64, QUOTE_PRECISION},
@@ -272,7 +272,7 @@ impl Competition {
             } else {
                 round_score
             };
-            
+
             // carry over half of capped round score as bonus
             competitor.bonus_score = round_score_capped.safe_div(2)?;
 
@@ -294,8 +294,7 @@ impl Competition {
             self.round_number
         )?;
 
-        competitor.previous_snapshot_score =
-            competitor.calculate_snapshot_score(&user_stats)?;
+        competitor.previous_snapshot_score = competitor.calculate_snapshot_score(&user_stats)?;
         competitor.competition_round_number = competitor.competition_round_number.safe_add(1)?;
         self.number_of_competitors_settled = self.number_of_competitors_settled.saturating_add(1);
 
@@ -448,7 +447,7 @@ impl Competition {
         &mut self,
         competitor: &mut Competitor,
         spot_market: &SpotMarket,
-        _now: i64 // todo: add event (new branch)
+        now: i64,
     ) -> CompetitionResult {
         self.validate_competitor_is_winner(competitor)?;
 
@@ -460,7 +459,7 @@ impl Competition {
             apply_rebase_to_competition_prize(self, spot_market)?;
         }
 
-        emit!(CompetitionRoundWinnerRecord{
+        emit!(CompetitionRoundWinnerRecord {
             round_number: self.round_number,
             competitor: competitor.authority,
             min_draw: competitor.min_draw,
@@ -476,9 +475,7 @@ impl Competition {
             prize_randomness_max: self.prize_randomness_max,
 
             ts: now,
-
         });
-
 
         competitor.unclaimed_winnings = competitor
             .unclaimed_winnings

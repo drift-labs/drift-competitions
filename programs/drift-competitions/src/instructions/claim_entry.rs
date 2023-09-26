@@ -2,9 +2,9 @@ use anchor_lang::prelude::*;
 use anchor_lang::solana_program::sysvar::instructions;
 
 use super::constraints::*;
+use crate::error::ErrorCode;
 use crate::state::{Competition, Competitor};
 use drift::state::user::UserStats;
-use crate::error::ErrorCode;
 
 pub fn claim_entry<'info>(ctx: Context<'_, '_, '_, 'info, ClaimEntry<'info>>) -> Result<()> {
     let ixs = ctx.accounts.instructions.as_ref();

@@ -1,8 +1,8 @@
 pub use competition::*;
 pub use competitor::*;
 
-pub use traits::*;
 pub use events::*;
+pub use traits::*;
 
 mod competition;
 mod competitor;
