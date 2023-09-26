@@ -6,7 +6,7 @@ pub fn update_competition<'info>(
     ctx: Context<'_, '_, '_, 'info, UpdateCompetition<'info>>,
     params: UpdateCompetitionParams,
 ) -> Result<()> {
-    let mut competition = ctx.accounts.competition.load_init()?;
+    let mut competition = ctx.accounts.competition.load_mut()?;
 
     if let Some(next_round_expiry_ts) = params.next_round_expiry_ts {
         competition.next_round_expiry_ts = next_round_expiry_ts;
@@ -25,8 +25,6 @@ pub fn update_competition<'info>(
 
 #[derive(Debug, Clone, Copy, AnchorSerialize, AnchorDeserialize, PartialEq, Eq)]
 pub struct UpdateCompetitionParams {
-    pub name: [u8; 32],
-
     // scheduling variables
     pub next_round_expiry_ts: Option<i64>,
     pub competition_expiry_ts: Option<i64>,

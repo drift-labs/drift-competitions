@@ -1,7 +1,8 @@
 {
     "scripts": {
-        "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
-        "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
+        "prettify:fix": "prettier */*.js \"*/**/*{.ts}\" -w",
+        "prettify": "prettier */*.js \"*/**/*{.ts}\" --check",
+        "update-types": "cp target/types/drift_competitions.ts ts/sdk/src/types/drift_competitions.ts && prettier --write ts/sdk/src/types/drift_competitions.ts"
     },
     "dependencies": {
         "@coral-xyz/anchor": "^0.26.0",

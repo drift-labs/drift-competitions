@@ -29,9 +29,9 @@ export function getCompetitorAddressSync(
 	)[0];
 }
 
-export function getSwitchboardFunctionAuthorityAddressSync(
+export function getCompetitionAuthorityAddressSync(
 	programId: PublicKey,
-	competition: PublicKey,
+	competition: PublicKey
 ): PublicKey {
 	return PublicKey.findProgramAddressSync(
 		[
