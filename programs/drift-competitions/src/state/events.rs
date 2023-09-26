@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use borsh::{BorshDeserialize, BorshSerialize};
+use borsh::BorshSerialize;
 
 #[event]
 #[derive(Default)]
