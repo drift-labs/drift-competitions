@@ -640,20 +640,40 @@ mod competition_fcn {
 
         let mut insurance_fund_stake = InsuranceFundStake::default();
         assert!(comp2
-            .claim_winnings(&spot_market, &mut insurance_fund_stake)
+            .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
             .is_err()); // insurance_fund_stake base mismatch w/ spot_market
         assert!(comp2.unclaimed_winnings > 0);
 
         insurance_fund_stake.if_base = 5; // match unclaimed_winnings_base
         assert!(comp2
-            .claim_winnings(&spot_market, &mut insurance_fund_stake)
+            .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
             .is_err()); // still insurance_fund_stake base mismatch w/ spot_market
         assert_eq!(comp2.unclaimed_winnings, sweepstakes.prize_amount as u64);
         assert!(comp2.unclaimed_winnings > 0);
 
         insurance_fund_stake.if_base = 6; // match spot_market
+
+        assert_eq!(comp2.unclaimed_winnings, 69);
+        assert_eq!(comp2.unclaimed_winnings_base, 5);
+        assert!(comp2
+            .claim_winnings(
+                &spot_market,
+                &mut insurance_fund_stake,
+                Some(comp2.unclaimed_winnings)
+            )
+            .is_err());
+
+        // rebased (depsite failure). deployed contract wouldnt do this
+        assert_eq!(comp2.unclaimed_winnings, 6);
+        assert_eq!(comp2.unclaimed_winnings_base, 6);
+
         comp2
-            .claim_winnings(&spot_market, &mut insurance_fund_stake)
+            .claim_winnings(&spot_market, &mut insurance_fund_stake, Some(1))
+            .unwrap();
+        assert_eq!(comp2.unclaimed_winnings, 5);
+        assert_eq!(comp2.unclaimed_winnings_base, 6);
+        comp2
+            .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
             .unwrap();
 
         assert_eq!(comp2.unclaimed_winnings, 0);
@@ -947,13 +967,13 @@ mod competition_fcn {
 
         let mut insurance_fund_stake = InsuranceFundStake::default();
         assert!(comp2
-            .claim_winnings(&spot_market, &mut insurance_fund_stake)
+            .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
             .is_err()); // insurance_fund_stake base mismatch w/ spot_market
         assert!(comp2.unclaimed_winnings > 0);
 
         insurance_fund_stake.if_base = 5; // match unclaimed_winnings_base
         assert!(comp2
-            .claim_winnings(&spot_market, &mut insurance_fund_stake)
+            .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
             .is_err()); // still insurance_fund_stake base mismatch w/ spot_market
         assert_eq!(comp2.unclaimed_winnings, sweepstakes.prize_amount as u64);
         assert!(comp2.unclaimed_winnings > 0);
@@ -1036,7 +1056,7 @@ mod competition_fcn {
             0
         );
         comp1
-            .claim_winnings(&spot_market, &mut insurance_fund_stake)
+            .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
             .unwrap();
         assert_eq!(
             insurance_fund_stake
@@ -1046,7 +1066,7 @@ mod competition_fcn {
         );
 
         comp2
-            .claim_winnings(&spot_market, &mut insurance_fund_stake)
+            .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
             .unwrap();
         assert_eq!(
             insurance_fund_stake
@@ -1143,10 +1163,10 @@ mod competition_fcn {
             696208
         );
         comp1
-            .claim_winnings(&spot_market, &mut insurance_fund_stake)
+            .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
             .unwrap();
         assert!(comp2
-            .claim_winnings(&spot_market, &mut insurance_fund_stake)
+            .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
             .is_err());
         assert_eq!(
             insurance_fund_stake

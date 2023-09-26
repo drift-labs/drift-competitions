@@ -8,13 +8,16 @@ use super::constraints::*;
 use crate::state::{Competition, Competitor};
 use drift::state::user::UserStats;
 
-pub fn claim_winnings<'info>(ctx: Context<'_, '_, '_, 'info, ClaimWinnings<'info>>) -> Result<()> {
+pub fn claim_winnings<'info>(
+    ctx: Context<'_, '_, '_, 'info, ClaimWinnings<'info>>,
+    n_shares: Option<u64>,
+) -> Result<()> {
     let mut competitor = ctx.accounts.competitor.load_mut()?;
 
     let spot_market = ctx.accounts.spot_market.load()?;
     let mut insurance_fund_stake = ctx.accounts.insurance_fund_stake.load_mut()?;
 
-    competitor.claim_winnings(&spot_market, &mut insurance_fund_stake)?;
+    competitor.claim_winnings(&spot_market, &mut insurance_fund_stake, n_shares)?;
 
     Ok(())
 }

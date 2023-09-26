@@ -51,8 +51,9 @@ pub mod drift_competitions {
 
     pub fn claim_winnings<'info>(
         ctx: Context<'_, '_, '_, 'info, ClaimWinnings<'info>>,
+        n_shares: Option<u64>,
     ) -> Result<()> {
-        instructions::claim_winnings(ctx)
+        instructions::claim_winnings(ctx, n_shares)
     }
 
     // keeper ix

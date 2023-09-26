@@ -83,6 +83,7 @@ impl Competitor {
         &mut self,
         spot_market: &SpotMarket,
         insurance_fund_stake: &mut InsuranceFundStake,
+        n_shares: Option<u64>,
     ) -> CompetitionResult {
         validate!(
             spot_market.insurance_fund.shares_base == insurance_fund_stake.if_base,
@@ -94,25 +95,42 @@ impl Competitor {
         }
 
         apply_rebase_to_competitor_unclaimed_winnings(self, spot_market)?;
+
+        // after rebase attempt (so n_shares needs to be rebase conscious)
+        let shares_to_claim = match n_shares {
+            Some(n_shares) => n_shares,
+            None => self.unclaimed_winnings,
+        };
+        validate!(
+            shares_to_claim <= self.unclaimed_winnings,
+            ErrorCode::InvalidRoundSettlementDetected,
+            "competitor trying to complain too many shares: {} > {}",
+            shares_to_claim,
+            self.unclaimed_winnings
+        )?;
+
         let old_shares = insurance_fund_stake.checked_if_shares(spot_market)?;
 
         // settle to competitor's if stake
         // drift::cpi::transfer_admin_if_shares(cpi_context, to_insurance_fund_stake, amount)?;
 
         // todo: replace with cpi call
-        insurance_fund_stake.update_if_shares(
-            old_shares.safe_add(self.unclaimed_winnings.cast()?)?,
-            spot_market,
-        )?;
+        insurance_fund_stake
+            .update_if_shares(old_shares.safe_add(shares_to_claim.cast()?)?, spot_market)?;
 
         let new_shares = insurance_fund_stake.checked_if_shares(spot_market)?;
 
         validate!(
-            old_shares.safe_add(self.unclaimed_winnings.cast()?)? == new_shares,
+            old_shares.safe_add(shares_to_claim.cast()?)? == new_shares,
             ErrorCode::InvalidRoundSettlementDetected
         )?;
 
-        self.unclaimed_winnings = 0;
+        self.unclaimed_winnings = self.unclaimed_winnings.safe_sub(shares_to_claim)?;
+
+        validate!(
+            old_shares.safe_add(shares_to_claim.cast()?)? == new_shares,
+            ErrorCode::InvalidRoundSettlementDetected
+        )?;
 
         Ok(())
     }
