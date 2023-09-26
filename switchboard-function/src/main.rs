@@ -46,6 +46,8 @@ async fn main() {
         data: ixn_data,
         accounts: vec![
             AccountMeta::new(params.competition_key, false),
+            AccountMeta::new_readonly(params.spot_market_key, false),
+            AccountMeta::new_readonly(params.if_vault_key, false),
             AccountMeta::new_readonly(runner.function, false),
             AccountMeta::new_readonly(runner.function_request_key.unwrap(), false),
             AccountMeta::new_readonly(runner.signer, true),

@@ -1,7 +1,8 @@
+use crate::state::events::CompetitionRoundWinnerRecord;
 use crate::state::Size;
 use crate::utils::{
     apply_rebase_to_competition_prize, apply_rebase_to_competitor_unclaimed_winnings,
-    get_random_draw,
+    get_test_sample_draw,
 };
 use drift::{
     error::DriftResult,
@@ -29,8 +30,8 @@ use drift::math::insurance::{if_shares_to_vault_amount, vault_amount_to_if_share
 #[derive(Clone, Copy, BorshSerialize, BorshDeserialize, PartialOrd, Ord, PartialEq, Eq, Debug)]
 pub enum CompetitionRoundStatus {
     Active = 1,
-    WinnerAndPrizeDrawComplete = 2,
-    PrizeAmountComplete = 3,
+    WinnerAndPrizeRandomnessRequested = 2,
+    WinnerAndPrizeRandomnessComplete = 3,
     WinnerSettlementComplete = 4,
     Expired = 5,
 }
@@ -64,20 +65,19 @@ pub struct Competition {
     // entries
     pub number_of_competitors: u128,
     pub number_of_competitors_settled: u128,
-    //starts at zero and you have to settle everyone to know the winner
+    // starts at zero and you have to settle everyone to know the winner
     pub total_score_settled: u128,
     // sum of all scores (when num users settled == num users)
     pub max_entries_per_competitor: u128, // set a max entry per competitior
 
     // giveaway details
-    pub prize_draw_max: u128,
-    pub prize_draw: u128,
     pub prize_amount: u128,
     pub prize_base: u128,
-    pub winning_draw: u128,
 
     pub winner_randomness: u128,
     pub prize_randomness: u128,
+    // the max number in the prize_randomness request
+    pub prize_randomness_max: u128,
 
     // scheduling variables
     pub round_number: u64,
@@ -93,7 +93,7 @@ pub struct Competition {
 }
 
 impl Size for Competition {
-    const SIZE: usize = 424 + 8;
+    const SIZE: usize = 392 + 8;
 }
 
 const_assert_eq!(Competition::SIZE, std::mem::size_of::<Competition>() + 8);
@@ -224,7 +224,8 @@ impl Competition {
 
     pub fn validate_competitor_is_winner(&self, competitor: &Competitor) -> CompetitionResult {
         validate!(
-            self.status == CompetitionRoundStatus::PrizeAmountComplete && self.winning_draw != 0,
+            self.status == CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
+                && self.winner_randomness != 0,
             ErrorCode::CompetitionWinnerNotDetermined
         )?;
 
@@ -235,9 +236,10 @@ impl Competition {
         )?;
 
         // winning compeitor range is specified from (min_draw, max_draw]
-        // this means winning_draw must be > 0
+        // this means winner_randomness must be > 0
         validate!(
-            self.winning_draw > competitor.min_draw && self.winning_draw <= competitor.max_draw,
+            self.winner_randomness > competitor.min_draw
+                && self.winner_randomness <= competitor.max_draw,
             ErrorCode::CompetitorNotWinner
         )?;
 
@@ -270,7 +272,7 @@ impl Competition {
             } else {
                 round_score
             };
-            
+
             // carry over half of capped round score as bonus
             competitor.bonus_score = round_score_capped.safe_div(2)?;
 
@@ -292,8 +294,7 @@ impl Competition {
             self.round_number
         )?;
 
-        competitor.previous_snapshot_score =
-            competitor.calculate_snapshot_score(&user_stats)?;
+        competitor.previous_snapshot_score = competitor.calculate_snapshot_score(&user_stats)?;
         competitor.competition_round_number = competitor.competition_round_number.safe_add(1)?;
         self.number_of_competitors_settled = self.number_of_competitors_settled.saturating_add(1);
 
@@ -362,7 +363,7 @@ impl Competition {
         Ok((prize_buckets, ratios))
     }
 
-    pub fn resolve_winner_and_prize_draw(
+    pub fn request_winner_and_prize_randomness(
         &mut self,
         spot_market: &SpotMarket,
         vault_balance: u64,
@@ -371,12 +372,25 @@ impl Competition {
         let (_, ratios) = self.calculate_prize_buckets_and_ratios(spot_market, vault_balance)?;
 
         let ratio_sum = ratios.iter().sum();
-        self.prize_draw_max = ratio_sum;
+        self.prize_randomness_max = ratio_sum;
 
-        self.prize_draw = get_random_draw(0, ratio_sum)?;
-        self.winning_draw = get_random_draw(1, self.total_score_settled)?;
+        self.update_status(CompetitionRoundStatus::WinnerAndPrizeRandomnessRequested)?;
 
-        self.update_status(CompetitionRoundStatus::WinnerAndPrizeDrawComplete)?;
+        // todo: remove, only for testing
+        self.prize_randomness = get_test_sample_draw(0, ratio_sum)?;
+        self.winner_randomness = get_test_sample_draw(1, self.total_score_settled)?;
+
+        Ok(())
+    }
+
+    pub fn resolve_winner_and_prize_randomness(
+        &mut self,
+        spot_market: &SpotMarket,
+        vault_balance: u64,
+    ) -> CompetitionResult {
+        self.validate_round_resolved()?;
+        self.resolve_prize_amount(spot_market, vault_balance)?;
+        self.update_status(CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete)?;
 
         Ok(())
     }
@@ -390,15 +404,15 @@ impl Competition {
             self.calculate_prize_buckets_and_ratios(spot_market, vault_balance)?;
 
         let ratio_sum: u128 = ratios.iter().sum();
-        msg!("ratio_sum: {} vs {}", ratio_sum, self.prize_draw_max);
+        msg!("ratio_sum: {} vs {}", ratio_sum, self.prize_randomness_max);
 
         // prize amounts changed since random draw request
-        let draw = if ratio_sum < self.prize_draw_max {
-            let ranged_draw = self.prize_draw % ratio_sum;
-            msg!("prize_draw range updated: {}", ranged_draw);
+        let draw = if ratio_sum < self.prize_randomness_max {
+            let ranged_draw = self.prize_randomness % ratio_sum;
+            msg!("prize_randomness range updated: {}", ranged_draw);
             ranged_draw
         } else {
-            self.prize_draw
+            self.prize_randomness
         };
 
         let mut cumulative_ratio = 0;
@@ -425,7 +439,6 @@ impl Competition {
     ) -> CompetitionResult {
         self.prize_amount = self.calculate_prize_amount(spot_market, vault_balance)?;
         self.prize_base = spot_market.insurance_fund.shares_base;
-        self.update_status(CompetitionRoundStatus::PrizeAmountComplete)?;
 
         Ok(())
     }
@@ -434,6 +447,7 @@ impl Competition {
         &mut self,
         competitor: &mut Competitor,
         spot_market: &SpotMarket,
+        now: i64,
     ) -> CompetitionResult {
         self.validate_competitor_is_winner(competitor)?;
 
@@ -444,6 +458,24 @@ impl Competition {
         if spot_market.insurance_fund.shares_base != self.prize_base {
             apply_rebase_to_competition_prize(self, spot_market)?;
         }
+
+        emit!(CompetitionRoundWinnerRecord {
+            round_number: self.round_number,
+            competitor: competitor.authority,
+            min_draw: competitor.min_draw,
+            max_draw: competitor.max_draw,
+            total_score_settled: self.total_score_settled,
+            number_of_competitors_settled: self.number_of_competitors_settled,
+
+            prize_amount: self.prize_amount,
+            prize_base: self.prize_base,
+
+            winner_randomness: self.winner_randomness,
+            prize_randomness: self.prize_randomness,
+            prize_randomness_max: self.prize_randomness_max,
+
+            ts: now,
+        });
 
         competitor.unclaimed_winnings = competitor
             .unclaimed_winnings

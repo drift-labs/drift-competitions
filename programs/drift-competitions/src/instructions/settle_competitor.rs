@@ -5,8 +5,17 @@ use crate::state::{Competition, Competitor};
 use drift::state::user::UserStats;
 
 pub fn settle_competitor<'info>(
-    _ctx: Context<'_, '_, '_, 'info, SettleCompetitor<'info>>,
+    ctx: Context<'_, '_, '_, 'info, SettleCompetitor<'info>>,
 ) -> Result<()> {
+    let clock = Clock::get()?;
+    let now = clock.unix_timestamp;
+
+    let mut competitor = ctx.accounts.competitor.load_mut()?;
+    let mut competition = ctx.accounts.competition.load_mut()?;
+    let user_stats = ctx.accounts.drift_user_stats.load()?;
+
+    competition.settle_competitor(&mut competitor, &user_stats, now)?;
+
     Ok(())
 }
 

@@ -1,14 +1,21 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::TokenAccount;
+use drift::math::constants::QUOTE_SPOT_MARKET_INDEX;
 use drift::state::insurance_fund_stake::InsuranceFundStake;
 use drift::state::spot_market::SpotMarket;
-use drift::math::constants::QUOTE_SPOT_MARKET_INDEX;
 
 use super::constraints::*;
 use crate::state::{Competition, Competitor};
 use drift::state::user::UserStats;
 
-pub fn claim_winnings<'info>(_ctx: Context<'_, '_, '_, 'info, ClaimWinnings<'info>>) -> Result<()> {
+pub fn claim_winnings<'info>(ctx: Context<'_, '_, '_, 'info, ClaimWinnings<'info>>) -> Result<()> {
+    let mut competitor = ctx.accounts.competitor.load_mut()?;
+
+    let spot_market = ctx.accounts.spot_market.load()?;
+    let mut insurance_fund_stake = ctx.accounts.insurance_fund_stake.load_mut()?;
+
+    competitor.claim_winnings(&spot_market, &mut insurance_fund_stake)?;
+
     Ok(())
 }
 
