@@ -1,11 +1,17 @@
-import { BN, DriftClient } from '@drift-labs/sdk';
+import {
+	BN,
+	DriftClient,
+	getInsuranceFundStakeAccountPublicKey, getInsuranceFundVaultPublicKey,
+	getSpotMarketPublicKey,
+	QUOTE_SPOT_MARKET_INDEX
+} from '@drift-labs/sdk';
 import { AnchorProvider, Program } from '@coral-xyz/anchor';
 import { DriftCompetitions, IDL } from './types/drift_competitions';
 import { PublicKey, TransactionSignature } from '@solana/web3.js';
 import { encodeName } from './name';
 import {
 	getCompetitionAddressSync,
-	getCompetitionAuthorityAddressSync,
+	getCompetitionAuthorityAddressSync, getCompetitorAddressSync,
 } from './addresses';
 import {
 	AttestationQueueAccount,
@@ -150,11 +156,66 @@ export class CompetitionsClient {
 		competition: PublicKey,
 		userStats: PublicKey
 	): Promise<TransactionSignature> {
+		const competitor = getCompetitorAddressSync(
+			this.program.programId,
+			competition,
+			this.program.provider.publicKey,
+		);
+
 		return await this.program.methods
 			.initializeCompetitor()
 			.accounts({
+				competitor,
 				competition: competition,
 				driftUserStats: userStats,
+			})
+			.rpc();
+	}
+
+	public async claimEntry(
+		competition: PublicKey,
+		userStats: PublicKey
+	): Promise<TransactionSignature> {
+		const competitor = getCompetitorAddressSync(
+			this.program.programId,
+			competition,
+			this.program.provider.publicKey,
+		);
+
+		return await this.program.methods
+			.claimEntry()
+			.accounts({
+				competitor,
+				competition: competition,
+				driftUserStats: userStats,
+				instructions: anchor.web3.SYSVAR_INSTRUCTIONS_PUBKEY
+			})
+			.rpc();
+	}
+
+	public async claimWinnings(
+		competition: PublicKey,
+		userStats: PublicKey
+	): Promise<TransactionSignature> {
+		const competitor = getCompetitorAddressSync(
+			this.program.programId,
+			competition,
+			this.program.provider.publicKey,
+		);
+
+		const spotMarket = await getSpotMarketPublicKey(this.program.provider.publicKey, QUOTE_SPOT_MARKET_INDEX);
+		const insuranceFundVault = await getInsuranceFundVaultPublicKey(this.program.provider.publicKey, QUOTE_SPOT_MARKET_INDEX);
+		const insuranceFundStake = await getInsuranceFundStakeAccountPublicKey(this.driftClient.program.programId, this.program.provider.publicKey, QUOTE_SPOT_MARKET_INDEX);
+
+		return await this.program.methods
+			.claimWinnings()
+			.accounts({
+				competitor,
+				competition: competition,
+				driftUserStats: userStats,
+				spotMarket,
+				insuranceFundStake,
+				insuranceFundVault
 			})
 			.rpc();
 	}
@@ -226,6 +287,21 @@ export class CompetitionsClient {
 				switchboardRequest: competitionAccount.switchboardFunctionRequest,
 				switchboardRequestEscrow:
 					competitionAccount.switchboardFunctionRequestEscrow,
+			})
+			.rpc();
+	}
+
+	public async settleWinner(
+		competition: PublicKey,
+		competitor: PublicKey,
+		userStats: PublicKey
+	): Promise<TransactionSignature> {
+		return await this.program.methods
+			.settleWinner()
+			.accounts({
+				competitor,
+				competition: competition,
+				driftUserStats: userStats,
 			})
 			.rpc();
 	}
