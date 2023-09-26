@@ -3,6 +3,7 @@ use crate::utils::{
     apply_rebase_to_competition_prize, apply_rebase_to_competitor_unclaimed_winnings,
     get_random_draw,
 };
+use crate::state::events::CompetitionRoundWinnerRecord;
 use drift::{
     error::DriftResult,
     math::constants::{PERCENTAGE_PRECISION_U64, QUOTE_PRECISION},
@@ -444,6 +445,26 @@ impl Competition {
         if spot_market.insurance_fund.shares_base != self.prize_base {
             apply_rebase_to_competition_prize(self, spot_market)?;
         }
+
+        emit!(CompetitionRoundWinnerRecord{
+            round_number: self.round_number,
+            competitor: competitor.authority,
+            min_draw: competitor.min_draw,
+            max_draw: competitor.max_draw,
+            total_score_settled: self.total_score_settled,
+            number_of_competitors_settled: self.number_of_competitors_settled,
+
+            prize_amount: self.prize_amount,
+            prize_base: self.prize_base,
+
+            winner_randomness: self.winner_randomness,
+            prize_randomness: self.prize_randomness,
+            prize_randomness_max: self.prize_randomness_max,
+
+            ts: now,
+
+        });
+
 
         competitor.unclaimed_winnings = competitor
             .unclaimed_winnings
