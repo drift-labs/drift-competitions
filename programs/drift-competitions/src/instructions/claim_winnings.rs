@@ -10,7 +10,6 @@ use drift::state::user::UserStats;
 
 pub fn claim_winnings<'info>(ctx: Context<'_, '_, '_, 'info, ClaimWinnings<'info>>) -> Result<()> {
     let mut competitor = ctx.accounts.competitor.load_mut()?;
-    // let mut competition = ctx.accounts.competition.load_mut()?;
 
     let spot_market = ctx.accounts.spot_market.load()?;
     let mut insurance_fund_stake = ctx.accounts.insurance_fund_stake.load_mut()?;

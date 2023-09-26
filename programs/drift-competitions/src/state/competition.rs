@@ -436,6 +436,7 @@ impl Competition {
         &mut self,
         competitor: &mut Competitor,
         spot_market: &SpotMarket,
+        _now: i64 // todo: add event (new branch)
     ) -> CompetitionResult {
         self.validate_competitor_is_winner(competitor)?;
 

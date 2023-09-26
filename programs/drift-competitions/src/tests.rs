@@ -259,7 +259,7 @@ mod competition_helpers {
         spot_market.insurance_fund.total_shares = 100000000000000;
         spot_market.insurance_fund.user_shares = 0;
 
-        let mut vault_balance: u64 =
+        let vault_balance: u64 =
             (10000 * QUOTE_PRECISION) as u64 * 543532 / 2983052 + 3952730528355;
         assert_eq!(vault_balance, 3954552595151);
 
@@ -414,9 +414,9 @@ mod competition_fcn {
 
         assert_eq!(sweepstakes.winner_randomness, 2);
 
-        assert!(sweepstakes.settle_winner(comp1, &spot_market).is_err());
-        sweepstakes.settle_winner(comp2, &spot_market).unwrap();
-        assert!(sweepstakes.settle_winner(comp2, &spot_market).is_err()); // cannot settle twice
+        assert!(sweepstakes.settle_winner(comp1, &spot_market, now).is_err());
+        sweepstakes.settle_winner(comp2, &spot_market, now).unwrap();
+        assert!(sweepstakes.settle_winner(comp2, &spot_market, now).is_err()); // cannot settle twice
         assert_eq!(
             sweepstakes.status,
             CompetitionRoundStatus::WinnerSettlementComplete
@@ -584,12 +584,12 @@ mod competition_fcn {
         spot_market.insurance_fund.shares_base = 5;
         assert_eq!(sweepstakes.winner_randomness, 2);
 
-        assert!(sweepstakes.settle_winner(comp1, &spot_market).is_err());
+        assert!(sweepstakes.settle_winner(comp1, &spot_market, now).is_err());
 
         assert_eq!(sweepstakes.prize_amount, 696202);
         assert_eq!(sweepstakes.prize_base, 1);
 
-        sweepstakes.settle_winner(comp2, &spot_market).unwrap();
+        sweepstakes.settle_winner(comp2, &spot_market, now).unwrap();
         assert_eq!(
             sweepstakes.status,
             CompetitionRoundStatus::WinnerSettlementComplete
@@ -599,7 +599,7 @@ mod competition_fcn {
         assert_eq!(comp2.unclaimed_winnings, 69);
         assert_eq!(sweepstakes.prize_amount, 69); //rebased by 4 zeros
 
-        assert!(sweepstakes.settle_winner(comp2, &spot_market).is_err()); // cannot settle twice
+        assert!(sweepstakes.settle_winner(comp2, &spot_market, now).is_err()); // cannot settle twice
         assert_eq!(
             sweepstakes.status,
             CompetitionRoundStatus::WinnerSettlementComplete
@@ -712,7 +712,7 @@ mod competition_fcn {
             sweepstakes.status,
             CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
         );
-        sweepstakes.settle_winner(comp1, &spot_market).unwrap();
+        sweepstakes.settle_winner(comp1, &spot_market, now).unwrap();
         assert_eq!(sweepstakes.round_number, 0);
         assert_eq!(comp1.competition_round_number, 1);
 
@@ -765,7 +765,7 @@ mod competition_fcn {
             sweepstakes.status,
             CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
         );
-        sweepstakes.settle_winner(comp1, &spot_market).unwrap();
+        sweepstakes.settle_winner(comp1, &spot_market, now).unwrap();
         assert_eq!(sweepstakes.round_number, 1);
         assert_eq!(comp1.competition_round_number, 2);
 
@@ -891,12 +891,12 @@ mod competition_fcn {
         spot_market.insurance_fund.shares_base = 5;
         assert_eq!(sweepstakes.winner_randomness, 2);
 
-        assert!(sweepstakes.settle_winner(comp1, &spot_market).is_err());
+        assert!(sweepstakes.settle_winner(comp1, &spot_market, now).is_err());
 
         assert_eq!(sweepstakes.prize_amount, 696202);
         assert_eq!(sweepstakes.prize_base, 1);
 
-        sweepstakes.settle_winner(comp2, &spot_market).unwrap();
+        sweepstakes.settle_winner(comp2, &spot_market, now).unwrap();
         assert_eq!(
             sweepstakes.status,
             CompetitionRoundStatus::WinnerSettlementComplete
@@ -906,7 +906,7 @@ mod competition_fcn {
         assert_eq!(comp2.unclaimed_winnings, 69);
         assert_eq!(sweepstakes.prize_amount, 69); //rebased by 4 zeros
 
-        assert!(sweepstakes.settle_winner(comp2, &spot_market).is_err()); // cannot settle twice
+        assert!(sweepstakes.settle_winner(comp2, &spot_market, now).is_err()); // cannot settle twice
         assert_eq!(
             sweepstakes.status,
             CompetitionRoundStatus::WinnerSettlementComplete
@@ -1026,8 +1026,8 @@ mod competition_fcn {
 
         assert_eq!(sweepstakes.prize_base, 6);
 
-        assert!(sweepstakes.settle_winner(comp2, &spot_market).is_err());
-        sweepstakes.settle_winner(comp1, &spot_market).unwrap();
+        assert!(sweepstakes.settle_winner(comp2, &spot_market, now).is_err());
+        sweepstakes.settle_winner(comp1, &spot_market, now).unwrap();
 
         assert_eq!(
             insurance_fund_stake
@@ -1133,8 +1133,8 @@ mod competition_fcn {
 
         assert_eq!(sweepstakes.prize_base, 6);
 
-        assert!(sweepstakes.settle_winner(comp2, &spot_market).is_err());
-        sweepstakes.settle_winner(comp1, &spot_market).unwrap();
+        assert!(sweepstakes.settle_winner(comp2, &spot_market, now).is_err());
+        sweepstakes.settle_winner(comp1, &spot_market, now).unwrap();
 
         assert_eq!(
             insurance_fund_stake
