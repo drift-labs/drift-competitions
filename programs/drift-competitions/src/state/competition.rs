@@ -269,6 +269,9 @@ impl Competition {
             } else {
                 round_score
             };
+            
+            // carry over half of capped round score as bonus
+            competitor.bonus_score = round_score_capped.safe_div(2)?;
 
             let new_total_score_settled = self
                 .total_score_settled
@@ -438,6 +441,7 @@ impl Competition {
             .unclaimed_winnings
             .saturating_add(self.prize_amount.cast()?);
         competitor.unclaimed_winnings_base = self.prize_base;
+        competitor.bonus_score = 0; // reset bonus score to 0
 
         self.update_status(CompetitionRoundStatus::WinnerSettlementComplete)?;
 
