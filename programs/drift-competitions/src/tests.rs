@@ -328,7 +328,7 @@ mod competition_fcn {
         math::{
             constants::{
                 PERCENTAGE_PRECISION, PERCENTAGE_PRECISION_U64, PRICE_PRECISION_U64,
-                QUOTE_PRECISION,
+                QUOTE_PRECISION, QUOTE_PRECISION_U64,
             },
             insurance::if_shares_to_vault_amount,
         },
@@ -1155,4 +1155,40 @@ mod competition_fcn {
             1392410
         );
     }
+
+
+    #[test]
+    fn test_bonus_carry_over_logic() {
+
+        let mut now = 168000000;
+        let sweepstakes = &mut Competition::default();
+
+        sweepstakes.next_round_expiry_ts = now + 60;
+        sweepstakes.round_duration = 60;
+        
+        assert_eq!(sweepstakes.status, CompetitionRoundStatus::Active);
+
+        sweepstakes.number_of_competitors = 2;
+        let comp1 = &mut Competitor::default();
+        comp1.claim_entry().unwrap();
+
+        let mut us: UserStats = UserStats::default();
+        us.fees.total_fee_paid = QUOTE_PRECISION_U64 + 1;
+
+        let last_round_score = comp1.calculate_round_score(&us).unwrap();
+        assert_eq!(last_round_score, us.fees.total_fee_paid / 100 + comp1.bonus_score);
+
+
+        sweepstakes.max_entries_per_competitor = 50;
+        let last_round_score_2 = comp1.calculate_round_score(&us).unwrap();
+        assert_eq!(last_round_score, last_round_score_2);
+
+        now+=60;
+        sweepstakes.settle_competitor(comp1, &us, now).unwrap();
+        assert_eq!(comp1.bonus_score, (sweepstakes.max_entries_per_competitor / 2) as u64);
+        let last_round_score_after = comp1.calculate_round_score(&us).unwrap();
+        assert_eq!(last_round_score_after, comp1.bonus_score);
+
+    }
+
 }

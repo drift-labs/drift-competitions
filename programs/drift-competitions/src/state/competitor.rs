@@ -9,6 +9,7 @@ use drift::state::insurance_fund_stake::InsuranceFundStake;
 use drift::state::spot_market::SpotMarket;
 use drift::state::user::UserStats;
 use drift::validate;
+use drift::math::constants::QUOTE_PRECISION_U64;
 
 use crate::error::{CompetitionResult, ErrorCode};
 
@@ -46,9 +47,9 @@ const_assert_eq!(Competitor::SIZE, std::mem::size_of::<Competitor>() + 8);
 
 impl Competitor {
     pub fn calculate_snapshot_score(&self, user_stats: &UserStats) -> DriftResult<u64> {
-        // todo: make this a function of the competition
-        // then each competition defines how the snapshot score is calculated
-        Ok(user_stats.fees.total_fee_paid)
+        // 10 cents of taker volume (entry tier of 10 bps) => 1 ticket 
+        let taker_fee = user_stats.fees.total_fee_paid.safe_div(QUOTE_PRECISION_U64 / 10000)?;
+        Ok(taker_fee)
     }
 
     pub fn calculate_round_score(&self, user_stats: &UserStats) -> DriftResult<u64> {

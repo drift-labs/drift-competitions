@@ -39,6 +39,8 @@ pub enum ErrorCode {
     CompetitorHasNoUnclaimedWinnings,
     #[msg("CompetitionRoundNumberIssue")]
     CompetitionRoundNumberIssue,
+    #[msg("CompetitorSnapshotIssue")]
+    CompetitorSnapshotIssue,
 }
 
 impl From<DriftErrorCode> for ErrorCode {

@@ -3,6 +3,7 @@ use crate::utils::{
     apply_rebase_to_competition_prize, apply_rebase_to_competitor_unclaimed_winnings,
     get_test_sample_draw,
 };
+use crate::state::events::CompetitionRoundWinnerRecord;
 use drift::{
     error::DriftResult,
     math::constants::{PERCENTAGE_PRECISION_U64, QUOTE_PRECISION},
@@ -255,6 +256,7 @@ impl Competition {
         user_stats: &UserStats,
         now: i64,
     ) -> CompetitionResult {
+        let previous_snapshot_score_before = competitor.previous_snapshot_score;
         self.validate_round_ready_for_settlement(now)?;
 
         if !self.competitor_can_be_settled(competitor) {
@@ -270,6 +272,9 @@ impl Competition {
             } else {
                 round_score
             };
+            
+            // carry over half of capped round score as bonus
+            competitor.bonus_score = round_score_capped.safe_div(2)?;
 
             let new_total_score_settled = self
                 .total_score_settled
@@ -289,8 +294,15 @@ impl Competition {
             self.round_number
         )?;
 
+        competitor.previous_snapshot_score =
+            competitor.calculate_snapshot_score(&user_stats)?;
         competitor.competition_round_number = competitor.competition_round_number.safe_add(1)?;
         self.number_of_competitors_settled = self.number_of_competitors_settled.saturating_add(1);
+
+        validate!(
+            previous_snapshot_score_before <= competitor.previous_snapshot_score,
+            ErrorCode::CompetitorSnapshotIssue
+        )?;
 
         Ok(())
     }
@@ -448,10 +460,31 @@ impl Competition {
             apply_rebase_to_competition_prize(self, spot_market)?;
         }
 
+        emit!(CompetitionRoundWinnerRecord{
+            round_number: self.round_number,
+            competitor: competitor.authority,
+            min_draw: competitor.min_draw,
+            max_draw: competitor.max_draw,
+            total_score_settled: self.total_score_settled,
+            number_of_competitors_settled: self.number_of_competitors_settled,
+
+            prize_amount: self.prize_amount,
+            prize_base: self.prize_base,
+
+            winner_randomness: self.winner_randomness,
+            prize_randomness: self.prize_randomness,
+            prize_randomness_max: self.prize_randomness_max,
+
+            ts: now,
+
+        });
+
+
         competitor.unclaimed_winnings = competitor
             .unclaimed_winnings
             .saturating_add(self.prize_amount.cast()?);
         competitor.unclaimed_winnings_base = self.prize_base;
+        competitor.bonus_score = 0; // reset bonus score to 0
 
         self.update_status(CompetitionRoundStatus::WinnerSettlementComplete)?;
 
