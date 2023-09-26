@@ -1,4 +1,4 @@
-use crate::signer_seeds::get_function_authority_seeds;
+use crate::signer_seeds::get_competition_authority_seeds;
 use crate::state::Competition;
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
@@ -27,15 +27,15 @@ pub fn update_switchboard_function<'info>(
     };
 
     let competition_key = ctx.accounts.competition.key();
-    let bump = ctx.bumps.get("switchboard_function_authority").unwrap();
-    let function_authority_seeds = get_function_authority_seeds(&competition_key, bump);
+    let bump = ctx.accounts.competition.load()?.competition_authority_bump;
+    let competition_authority_seeds = get_competition_authority_seeds(&competition_key, &bump);
 
     request_init_ctx.invoke_signed(
         ctx.accounts.switchboard.clone(),
         Some(MAX_REQUEST_PARAM_SIZE),
         None,
         None,
-        &[&function_authority_seeds[..]],
+        &[&competition_authority_seeds[..]],
     )?;
 
     let mut competition = ctx.accounts.competition.load_mut()?;

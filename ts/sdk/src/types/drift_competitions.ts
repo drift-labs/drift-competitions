@@ -244,6 +244,29 @@ export type DriftCompetitions = {
 					name: 'insuranceFundStake';
 					isMut: true;
 					isSigner: false;
+				},
+				{
+					name: 'driftProgram';
+					isMut: false;
+					isSigner: false;
+				},
+				{
+					name: 'competitionAuthority';
+					isMut: false;
+					isSigner: false;
+					docs: ['CHECK'];
+				},
+				{
+					name: 'driftTransferConfig';
+					isMut: false;
+					isSigner: false;
+					docs: ['CHECK in cpi'];
+				},
+				{
+					name: 'driftState';
+					isMut: false;
+					isSigner: false;
+					docs: ['CHECK in cpi'];
 				}
 			];
 			args: [
@@ -276,22 +299,6 @@ export type DriftCompetitions = {
 				{
 					name: 'driftUserStats';
 					isMut: false;
-					isSigner: false;
-				}
-			];
-			args: [];
-		},
-		{
-			name: 'settleCompetition';
-			accounts: [
-				{
-					name: 'keeper';
-					isMut: true;
-					isSigner: true;
-				},
-				{
-					name: 'competition';
-					isMut: true;
 					isSigner: false;
 				}
 			];
@@ -1104,6 +1111,29 @@ export const IDL: DriftCompetitions = {
 					isMut: true,
 					isSigner: false,
 				},
+				{
+					name: 'driftProgram',
+					isMut: false,
+					isSigner: false,
+				},
+				{
+					name: 'competitionAuthority',
+					isMut: false,
+					isSigner: false,
+					docs: ['CHECK'],
+				},
+				{
+					name: 'driftTransferConfig',
+					isMut: false,
+					isSigner: false,
+					docs: ['CHECK in cpi'],
+				},
+				{
+					name: 'driftState',
+					isMut: false,
+					isSigner: false,
+					docs: ['CHECK in cpi'],
+				},
 			],
 			args: [
 				{
@@ -1135,22 +1165,6 @@ export const IDL: DriftCompetitions = {
 				{
 					name: 'driftUserStats',
 					isMut: false,
-					isSigner: false,
-				},
-			],
-			args: [],
-		},
-		{
-			name: 'settleCompetition',
-			accounts: [
-				{
-					name: 'keeper',
-					isMut: true,
-					isSigner: true,
-				},
-				{
-					name: 'competition',
-					isMut: true,
 					isSigner: false,
 				},
 			],

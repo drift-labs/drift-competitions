@@ -203,10 +203,23 @@ export class CompetitionsClient {
 			competition,
 			this.program.provider.publicKey,
 		);
+		const competitionAuthority = getCompetitionAuthorityAddressSync(
+			this.program.programId,
+			competition
+		);
 
 		const spotMarket = await getSpotMarketPublicKey(this.program.provider.publicKey, QUOTE_SPOT_MARKET_INDEX);
 		const insuranceFundVault = await getInsuranceFundVaultPublicKey(this.program.provider.publicKey, QUOTE_SPOT_MARKET_INDEX);
 		const insuranceFundStake = await getInsuranceFundStakeAccountPublicKey(this.driftClient.program.programId, this.program.provider.publicKey, QUOTE_SPOT_MARKET_INDEX);
+		const driftState = await this.driftClient.getStatePublicKey();
+		const driftTransferConfig = PublicKey.findProgramAddressSync(
+			[
+				Buffer.from(
+					anchor.utils.bytes.utf8.encode('protocol_if_shares_transfer_config')
+				),
+			],
+			this.driftClient.program.programId
+		)[0];
 
 		return await this.program.methods
 			.claimWinnings(shares ?? null)
@@ -216,7 +229,11 @@ export class CompetitionsClient {
 				driftUserStats: userStats,
 				spotMarket,
 				insuranceFundStake,
-				insuranceFundVault
+				insuranceFundVault,
+				driftProgram: this.driftClient.program.programId,
+				competitionAuthority,
+				driftState,
+				driftTransferConfig,
 			})
 			.rpc();
 	}

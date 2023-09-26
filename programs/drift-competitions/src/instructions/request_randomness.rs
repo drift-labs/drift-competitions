@@ -1,4 +1,4 @@
-use crate::signer_seeds::get_function_authority_seeds;
+use crate::signer_seeds::get_competition_authority_seeds;
 use crate::state::Competition;
 use anchor_lang::prelude::*;
 use anchor_spl::token::Token;
@@ -15,7 +15,7 @@ pub fn request_randomness<'info>(
 
     let function_authority_bump = ctx.accounts.competition.load()?.competition_authority_bump;
     let function_authority_seeds =
-        get_function_authority_seeds(&competition_key, &function_authority_bump);
+        get_competition_authority_seeds(&competition_key, &function_authority_bump);
 
     let mut competition = ctx.accounts.competition.load_mut()?;
     let spot_market = ctx.accounts.spot_market.load()?;

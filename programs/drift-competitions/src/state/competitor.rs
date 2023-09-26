@@ -2,7 +2,6 @@ use crate::state::Size;
 use crate::utils::apply_rebase_to_competitor_unclaimed_winnings;
 use anchor_lang::prelude::*;
 use drift::error::DriftResult;
-use drift::math::casting::Cast;
 use drift::math::safe_math::SafeMath;
 
 use drift::math::constants::QUOTE_PRECISION_U64;
@@ -82,9 +81,9 @@ impl Competitor {
     pub fn claim_winnings(
         &mut self,
         spot_market: &SpotMarket,
-        insurance_fund_stake: &mut InsuranceFundStake,
+        insurance_fund_stake: &InsuranceFundStake,
         n_shares: Option<u64>,
-    ) -> CompetitionResult {
+    ) -> CompetitionResult<u64> {
         validate!(
             spot_market.insurance_fund.shares_base == insurance_fund_stake.if_base,
             ErrorCode::CompetitorNeedsToRebaseInsuranceFundStake
@@ -109,29 +108,8 @@ impl Competitor {
             self.unclaimed_winnings
         )?;
 
-        let old_shares = insurance_fund_stake.checked_if_shares(spot_market)?;
-
-        // settle to competitor's if stake
-        // drift::cpi::transfer_admin_if_shares(cpi_context, to_insurance_fund_stake, amount)?;
-
-        // todo: replace with cpi call
-        insurance_fund_stake
-            .update_if_shares(old_shares.safe_add(shares_to_claim.cast()?)?, spot_market)?;
-
-        let new_shares = insurance_fund_stake.checked_if_shares(spot_market)?;
-
-        validate!(
-            old_shares.safe_add(shares_to_claim.cast()?)? == new_shares,
-            ErrorCode::InvalidRoundSettlementDetected
-        )?;
-
         self.unclaimed_winnings = self.unclaimed_winnings.safe_sub(shares_to_claim)?;
 
-        validate!(
-            old_shares.safe_add(shares_to_claim.cast()?)? == new_shares,
-            ErrorCode::InvalidRoundSettlementDetected
-        )?;
-
-        Ok(())
+        Ok(shares_to_claim)
     }
 }
