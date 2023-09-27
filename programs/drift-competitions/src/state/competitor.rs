@@ -100,10 +100,19 @@ impl Competitor {
             Some(n_shares) => n_shares,
             None => self.unclaimed_winnings,
         };
+
+        validate!(
+            shares_to_claim > 0,
+            ErrorCode::CompetitorHasInvalidClaim,
+            "competitor trying to claim 0 shares: {} vs {}",
+            shares_to_claim,
+            self.unclaimed_winnings
+        )?;
+
         validate!(
             shares_to_claim <= self.unclaimed_winnings,
-            ErrorCode::InvalidRoundSettlementDetected,
-            "competitor trying to complain too many shares: {} > {}",
+            ErrorCode::CompetitorHasInvalidClaim,
+            "competitor trying to claim too many shares: {} > {}",
             shares_to_claim,
             self.unclaimed_winnings
         )?;

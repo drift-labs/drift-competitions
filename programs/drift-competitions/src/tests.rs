@@ -667,23 +667,23 @@ mod competition_fcn {
         assert_eq!(comp2.unclaimed_winnings, 6);
         assert_eq!(comp2.unclaimed_winnings_base, 6);
 
-        comp2
+        let share_to_claim_1 = comp2
             .claim_winnings(&spot_market, &mut insurance_fund_stake, Some(1))
             .unwrap();
+        assert_eq!(share_to_claim_1, 1);
         assert_eq!(comp2.unclaimed_winnings, 5);
         assert_eq!(comp2.unclaimed_winnings_base, 6);
-        comp2
+        let share_to_claim_2 = comp2
             .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
             .unwrap();
+        assert_eq!(share_to_claim_2, 5);
 
         assert_eq!(comp2.unclaimed_winnings, 0);
         assert_eq!(comp2.unclaimed_winnings_base, 6);
 
         // rebased by 1 zero
         assert_eq!(
-            insurance_fund_stake
-                .checked_if_shares(&spot_market)
-                .unwrap(),
+            share_to_claim_1 + share_to_claim_2,
             6
         );
     }
@@ -1055,24 +1055,20 @@ mod competition_fcn {
                 .unwrap(),
             0
         );
-        comp1
+        let share_to_claim = comp1
             .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
             .unwrap();
         assert_eq!(
-            insurance_fund_stake
-                .checked_if_shares(&spot_market)
-                .unwrap(),
+            share_to_claim,
             696202
         );
 
-        comp2
+        let share_to_claim_2 = comp2
             .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
             .unwrap();
         assert_eq!(
-            insurance_fund_stake
-                .checked_if_shares(&spot_market)
-                .unwrap(),
-            696208
+            share_to_claim_2,
+            6
         );
 
         assert_eq!(comp1.competition_round_number, 2);
@@ -1156,23 +1152,15 @@ mod competition_fcn {
         assert!(sweepstakes.settle_winner(comp2, &spot_market, now).is_err());
         sweepstakes.settle_winner(comp1, &spot_market, now).unwrap();
 
-        assert_eq!(
-            insurance_fund_stake
-                .checked_if_shares(&spot_market)
-                .unwrap(),
-            696208
-        );
-        comp1
+        let share_to_claim_3 = comp1
             .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
             .unwrap();
         assert!(comp2
             .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
             .is_err());
         assert_eq!(
-            insurance_fund_stake
-                .checked_if_shares(&spot_market)
-                .unwrap(),
-            1392410
+            share_to_claim_3,
+            1392410 - 696208 // delta of would-be insurance fund stake
         );
     }
 

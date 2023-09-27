@@ -20,6 +20,18 @@ pub fn update_competition<'info>(
         competition.round_duration = round_duration;
     }
 
+    if let Some(max_entries_per_competitor) = params.max_entries_per_competitor {
+        competition.max_entries_per_competitor = max_entries_per_competitor;
+    }
+
+    if let Some(min_sponsor_amount) = params.min_sponsor_amount {
+        competition.sponsor_info.min_sponsor_amount = min_sponsor_amount;
+    }
+
+    if let Some(max_sponsor_fraction) = params.max_sponsor_fraction {
+        competition.sponsor_info.max_sponsor_fraction = max_sponsor_fraction;
+    }
+
     Ok(())
 }
 
@@ -29,6 +41,11 @@ pub struct UpdateCompetitionParams {
     pub next_round_expiry_ts: Option<i64>,
     pub competition_expiry_ts: Option<i64>,
     pub round_duration: Option<u64>,
+
+    // sponsor details
+    pub max_entries_per_competitor: Option<u128>,
+    pub min_sponsor_amount: Option<u64>,
+    pub max_sponsor_fraction: Option<u64>,
 }
 
 #[derive(Accounts)]

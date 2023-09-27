@@ -41,6 +41,8 @@ pub enum ErrorCode {
     CompetitionRoundNumberIssue,
     #[msg("CompetitorSnapshotIssue")]
     CompetitorSnapshotIssue,
+    #[msg("CompetitorHasInvalidClaim")]
+    CompetitorHasInvalidClaim
 }
 
 impl From<DriftErrorCode> for ErrorCode {
