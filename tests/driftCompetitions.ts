@@ -1,12 +1,12 @@
 import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
-import { DriftCompetitions } from '../target/types/drift_competitions';
 import {
 	decodeName,
 	encodeName,
 	getCompetitionAddressSync,
 	getCompetitorAddressSync,
 } from '../ts/sdk/src';
+import { DriftCompetitions } from '../target/types/drift_competitions';
 
 import { ComputeBudgetProgram, Transaction } from '@solana/web3.js';
 
@@ -217,13 +217,85 @@ describe('drift competitions', () => {
 				assert(false);
 			})
 			.catch((e) => {
-				assert(String(e).includes("custom program error: 0x1770"))
+				assert(String(e).includes('custom program error: 0x1770'));
 				console.log(e);
 			});
 
 		competitorAccount = await program.account.competitor.fetch(
 			competitorAddress
 		);
-		assert(competitorAccount.bonusScore.eq(TWO));			
+		assert(competitorAccount.bonusScore.eq(TWO));
+		assert(competitorAccount.competitionRoundNumber.eq(ZERO));
+
+		const competitionAccount = await program.account.competition.fetch(
+			competitionAddress
+		);
+		assert(competitionAccount.totalScoreSettled.eq(ZERO));
+		assert(competitionAccount.numberOfCompetitorsSettled.eq(ZERO));
+		assert(competitionAccount.numberOfCompetitors.eq(ONE));
+	});
+
+	it('resolve round 0 (partially)', async () => {
+		const competitionClient = new CompetitionsClient({
+			driftClient: adminClient,
+			program: program,
+		});
+
+		const name = 'test';
+		const encodedName = encodeName(name);
+
+		const competitionAddress = getCompetitionAddressSync(
+			program.programId,
+			encodedName
+		);
+
+		const userStatsKey = adminClient.getUserStatsAccountPublicKey();
+
+		await competitionClient.claimEntry(competitionAddress, userStatsKey);
+		const authority = provider.wallet.publicKey;
+
+		const competitorAddress = getCompetitorAddressSync(
+			program.programId,
+			competitionAddress,
+			authority
+		);
+
+		await competitionClient.settleCompetitor(
+			competitionAddress,
+			competitorAddress,
+			userStatsKey
+		);
+
+		competitionClient
+			.settleCompetitor(competitionAddress, competitorAddress, userStatsKey)
+			.then((txSig) => {
+				assert(false);
+			})
+			.catch((e) => {
+				assert(String(e).includes('custom program error'));
+				console.log(e);
+			});
+
+		const competitorAccountAfter = await program.account.competitor.fetch(
+			competitorAddress
+		);
+		assert(competitorAccountAfter.competitionRoundNumber.eq(ONE));
+		assert(competitorAccountAfter.bonusScore.eq(ONE)); // halfed
+		assert(competitorAccountAfter.previousSnapshotScore.eq(ZERO));
+
+		const competitionAccount = await program.account.competition.fetch(
+			competitionAddress
+		);
+		console.log(competitionAccount);
+
+		assert(competitionAccount.maxEntriesPerCompetitor, ZERO); // not set
+		assert(competitionAccount.sponsorInfo.maxSponsorFraction, ZERO); // not set
+		assert(competitionAccount.sponsorInfo.minSponsorAmount, ZERO); // not set
+
+		assert(competitionAccount.numberOfCompetitorsSettled.eq(ONE));
+		assert(competitionAccount.roundNumber.eq(ZERO));
+		assert(competitionAccount.totalScoreSettled.eq(new BN(3)));
+
+		// await competitionClient.requestRandomness(competitionAddress);
 	});
 });
