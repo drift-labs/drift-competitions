@@ -634,6 +634,18 @@ export type DriftCompetitions = {
 					{
 						name: 'roundDuration';
 						type: 'u64';
+					},
+					{
+						name: 'maxEntriesPerCompetitor';
+						type: 'u128';
+					},
+					{
+						name: 'minSponsorAmount';
+						type: 'u64';
+					},
+					{
+						name: 'maxSponsorFraction';
+						type: 'u64';
 					}
 				];
 			};
@@ -657,6 +669,24 @@ export type DriftCompetitions = {
 					},
 					{
 						name: 'roundDuration';
+						type: {
+							option: 'u64';
+						};
+					},
+					{
+						name: 'maxEntriesPerCompetitor';
+						type: {
+							option: 'u128';
+						};
+					},
+					{
+						name: 'minSponsorAmount';
+						type: {
+							option: 'u64';
+						};
+					},
+					{
+						name: 'maxSponsorFraction';
 						type: {
 							option: 'u64';
 						};
@@ -860,6 +890,11 @@ export type DriftCompetitions = {
 			code: 6016;
 			name: 'CompetitorSnapshotIssue';
 			msg: 'CompetitorSnapshotIssue';
+		},
+		{
+			code: 6017;
+			name: 'CompetitorHasInvalidClaim';
+			msg: 'CompetitorHasInvalidClaim';
 		}
 	];
 };
@@ -1501,6 +1536,18 @@ export const IDL: DriftCompetitions = {
 						name: 'roundDuration',
 						type: 'u64',
 					},
+					{
+						name: 'maxEntriesPerCompetitor',
+						type: 'u128',
+					},
+					{
+						name: 'minSponsorAmount',
+						type: 'u64',
+					},
+					{
+						name: 'maxSponsorFraction',
+						type: 'u64',
+					},
 				],
 			},
 		},
@@ -1523,6 +1570,24 @@ export const IDL: DriftCompetitions = {
 					},
 					{
 						name: 'roundDuration',
+						type: {
+							option: 'u64',
+						},
+					},
+					{
+						name: 'maxEntriesPerCompetitor',
+						type: {
+							option: 'u128',
+						},
+					},
+					{
+						name: 'minSponsorAmount',
+						type: {
+							option: 'u64',
+						},
+					},
+					{
+						name: 'maxSponsorFraction',
 						type: {
 							option: 'u64',
 						},
@@ -1726,6 +1791,11 @@ export const IDL: DriftCompetitions = {
 			code: 6016,
 			name: 'CompetitorSnapshotIssue',
 			msg: 'CompetitorSnapshotIssue',
+		},
+		{
+			code: 6017,
+			name: 'CompetitorHasInvalidClaim',
+			msg: 'CompetitorHasInvalidClaim',
 		},
 	],
 };

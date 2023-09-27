@@ -11,6 +11,8 @@ pub fn initialize_competition<'info>(
 
     competition.name = params.name;
     competition.sponsor_info.sponsor = ctx.accounts.sponsor.key();
+    competition.sponsor_info.min_sponsor_amount = params.min_sponsor_amount;
+    competition.sponsor_info.max_sponsor_fraction = params.max_sponsor_fraction;
 
     let (competition_authority, competition_authority_bump) = Pubkey::find_program_address(
         &[b"competition_authority".as_ref(), competition_key.as_ref()],
@@ -27,6 +29,8 @@ pub fn initialize_competition<'info>(
     competition.competition_expiry_ts = params.competition_expiry_ts;
     competition.round_duration = params.round_duration;
 
+    competition.max_entries_per_competitor = params.max_entries_per_competitor;
+
     Ok(())
 }
 
@@ -38,6 +42,11 @@ pub struct CompetitionParams {
     pub next_round_expiry_ts: i64,
     pub competition_expiry_ts: i64, // when competition ends, perpetual when == 0
     pub round_duration: u64,
+
+    // sponsor details
+    pub max_entries_per_competitor: u128,
+    pub min_sponsor_amount: u64,
+    pub max_sponsor_fraction: u64,
 }
 
 #[derive(Accounts)]

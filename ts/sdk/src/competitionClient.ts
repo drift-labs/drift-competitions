@@ -50,11 +50,17 @@ export class CompetitionsClient {
 		nextRoundExpiryTs,
 		competitionExpiryTs,
 		roundDuration,
+		maxEntriesPerCompetitor,
+		minSponsorAmount,
+		maxSponsorFraction,
 	}: {
 		name: string;
 		nextRoundExpiryTs: BN;
 		competitionExpiryTs: BN;
 		roundDuration: BN;
+		maxEntriesPerCompetitor: BN;
+		minSponsorAmount: BN;
+		maxSponsorFraction: BN;
 	}): Promise<TransactionSignature> {
 		const encodedName = encodeName(name);
 		const competitionAddress = getCompetitionAddressSync(
@@ -68,6 +74,9 @@ export class CompetitionsClient {
 				nextRoundExpiryTs,
 				competitionExpiryTs,
 				roundDuration,
+				maxEntriesPerCompetitor,
+				minSponsorAmount,
+				maxSponsorFraction,
 			})
 			.accounts({
 				competition: competitionAddress,
@@ -81,10 +90,16 @@ export class CompetitionsClient {
 			nextRoundExpiryTs = null,
 			competitionExpiryTs = null,
 			roundDuration = null,
+			maxEntriesPerCompetitor = null,
+			minSponsorAmount = null,
+			maxSponsorFraction = null,
 		}: {
 			nextRoundExpiryTs?: BN | null;
 			competitionExpiryTs?: BN | null;
 			roundDuration?: BN | null;
+			maxEntriesPerCompetitor?: BN | null;
+			minSponsorAmount?: BN | null;
+			maxSponsorFraction?: BN | null;
 		}
 	): Promise<TransactionSignature> {
 		return await this.program.methods
@@ -92,6 +107,9 @@ export class CompetitionsClient {
 				nextRoundExpiryTs,
 				competitionExpiryTs,
 				roundDuration,
+				maxEntriesPerCompetitor,
+				minSponsorAmount,
+				maxSponsorFraction,
 			})
 			.accounts({
 				competition: competition,
