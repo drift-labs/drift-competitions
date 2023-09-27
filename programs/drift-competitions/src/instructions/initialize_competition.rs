@@ -1,4 +1,4 @@
-use crate::state::Competition;
+use crate::state::{Competition, CompetitionRoundStatus};
 use crate::state::Size;
 use anchor_lang::prelude::*;
 
@@ -20,6 +20,8 @@ pub fn initialize_competition<'info>(
     competition.competition_authority_bump = competition_authority_bump;
 
     competition.round_number = 0;
+
+    competition.status = CompetitionRoundStatus::Active;
 
     competition.next_round_expiry_ts = params.next_round_expiry_ts;
     competition.competition_expiry_ts = params.competition_expiry_ts;

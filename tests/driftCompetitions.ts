@@ -11,6 +11,7 @@ import { Keypair } from '@solana/web3.js';
 import { assert } from 'chai';
 import { AdminClient, BN, ONE, ZERO } from '@drift-labs/sdk';
 import {
+	createUserWithUSDCAccount,
 	initializeQuoteSpotMarket,
 	mockUSDCMint,
 	mockUserUSDCAccount,
@@ -44,6 +45,7 @@ describe('drift competitions', () => {
 		userUSDCAccount = await mockUserUSDCAccount(usdcMint, usdcAmount, provider);
 		await adminClient.initialize(usdcMint.publicKey, false);
 		await adminClient.subscribe();
+		await adminClient.initializeUserAccount();
 		await initializeQuoteSpotMarket(adminClient, usdcMint.publicKey);
 	});
 
@@ -104,28 +106,18 @@ describe('drift competitions', () => {
 		console.log('userStatsKey:', userStatsKey.toString());
 		console.log('authority:', adminClient.wallet.publicKey.toString());
 
-		await adminClient.program.instruction.initializeUserStats({
-			accounts: {
-				userStats: userStatsKey,
-				authority: adminClient.wallet.publicKey,
-				payer: adminClient.wallet.publicKey,
-				rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-				systemProgram: adminClient.program.programId,
-				state: await adminClient.getStatePublicKey(),
-			},
-		});
-
-		console.log('userStatsKey:', userStatsKey.toString());
-		console.log('authority:', adminClient.wallet.publicKey.toString());
-
-		const tx = await program.methods
-			.initializeCompetitor()
-			.accounts({
-				competitor: competitorAddress,
-				competition: competitionAddress,
-				driftUserStats: userStatsKey,
-			})
-			.rpc();
+		try {
+			const tx = await program.methods
+				.initializeCompetitor()
+				.accounts({
+					competitor: competitorAddress,
+					competition: competitionAddress,
+					driftUserStats: userStatsKey,
+				})
+				.rpc();
+		} catch (e) {
+			console.error(e);
+		}
 
 		const competitorAccount = await program.account.competitor.fetch(
 			competitorAddress
