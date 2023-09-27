@@ -65,14 +65,6 @@ impl Competitor {
     }
 
     pub fn claim_entry(&mut self) -> CompetitionResult {
-        // todo: currently enforces only one claim.
-        // for more, add economic protection to inspection inspection stack to avoid
-        // more than one per transaction
-        validate!(
-            self.bonus_score == 0,
-            ErrorCode::CompetitorHasAlreadyClaimedEntry
-        )?;
-
         self.bonus_score = self.bonus_score.saturating_add(1);
 
         Ok(())
@@ -84,6 +76,8 @@ impl Competitor {
         insurance_fund_stake: &InsuranceFundStake,
         n_shares: Option<u64>,
     ) -> CompetitionResult<u64> {
+        // cpi update to insurance fund stake occurs outside this (in claim instruction)
+
         validate!(
             spot_market.insurance_fund.shares_base == insurance_fund_stake.if_base,
             ErrorCode::CompetitorNeedsToRebaseInsuranceFundStake

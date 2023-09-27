@@ -20,6 +20,10 @@ pub fn claim_entry<'info>(ctx: Context<'_, '_, '_, 'info, ClaimEntry<'info>>) ->
         return Err(ErrorCode::Default.into());
     }
 
+    let mut competitor = ctx.accounts.competitor.load_mut()?;
+
+    competitor.claim_entry()?;
+
     Ok(())
 }
 

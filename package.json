@@ -1,6 +1,6 @@
 {
     "scripts": {
-        "prettify:fix": "prettier */*.js \"*/**/*{.ts}\" -w",
+        "prettify:fix": "prettier */*.js \"*/**/*.ts\" \"tests/*.ts\" -w",
         "prettify": "prettier */*.js \"*/**/*{.ts}\" --check",
         "update-types": "cp target/types/drift_competitions.ts ts/sdk/src/types/drift_competitions.ts && prettier --write ts/sdk/src/types/drift_competitions.ts"
     },

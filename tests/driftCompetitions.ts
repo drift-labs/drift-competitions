@@ -7,9 +7,24 @@ import {
 	getCompetitionAddressSync,
 	getCompetitorAddressSync,
 } from '../ts/sdk/src';
+
+import { ComputeBudgetProgram, Transaction } from '@solana/web3.js';
+
+import { CompetitionsClient } from '../ts/sdk/src/competitionClient';
+import {
+	BN,
+	AdminClient,
+	ONE,
+	ZERO,
+	DriftClient,
+	getInsuranceFundStakeAccountPublicKey,
+	getInsuranceFundVaultPublicKey,
+	getSpotMarketPublicKey,
+	QUOTE_SPOT_MARKET_INDEX,
+	TWO,
+} from '@drift-labs/sdk';
 import { Keypair } from '@solana/web3.js';
 import { assert } from 'chai';
-import { AdminClient, BN, ONE, ZERO } from '@drift-labs/sdk';
 import {
 	createUserWithUSDCAccount,
 	initializeQuoteSpotMarket,
@@ -132,5 +147,83 @@ describe('drift competitions', () => {
 
 		assert(competitorAccount.authority.equals(authority));
 		assert(competitorAccount.competition.equals(competitionAddress));
+		assert(competitorAccount.bonusScore.eq(ONE));
+	});
+
+	it('competitor claimEntry', async () => {
+		const competitionClient = new CompetitionsClient({
+			driftClient: adminClient,
+			program: program,
+		});
+
+		const name = 'test';
+		const encodedName = encodeName(name);
+
+		const competitionAddress = getCompetitionAddressSync(
+			program.programId,
+			encodedName
+		);
+
+		const userStatsKey = adminClient.getUserStatsAccountPublicKey();
+
+		await competitionClient.claimEntry(competitionAddress, userStatsKey);
+
+		const authority = provider.wallet.publicKey;
+
+		const competitorAddress = getCompetitorAddressSync(
+			program.programId,
+			competitionAddress,
+			authority
+		);
+		let competitorAccount = await program.account.competitor.fetch(
+			competitorAddress
+		);
+		assert(competitorAccount.bonusScore.eq(TWO));
+
+		// cannot batch them
+		const tx = new Transaction();
+		// tx.add(
+		// 	ComputeBudgetProgram.requestUnits({
+		// 		units: 1_400_000,
+		// 		additionalFee: 0,
+		// 	})
+		// );
+		tx.add(
+			program.instruction.claimEntry({
+				accounts: {
+					authority: authority,
+					competitor: competitorAddress,
+					competition: competitionAddress,
+					driftUserStats: userStatsKey,
+					instructions: anchor.web3.SYSVAR_INSTRUCTIONS_PUBKEY,
+				},
+			})
+		);
+		tx.add(
+			program.instruction.claimEntry({
+				accounts: {
+					authority: authority,
+					competitor: competitorAddress,
+					competition: competitionAddress,
+					driftUserStats: userStatsKey,
+					instructions: anchor.web3.SYSVAR_INSTRUCTIONS_PUBKEY,
+				},
+			})
+		);
+
+		await adminClient.txSender
+			.send(tx, [], adminClient.opts)
+			.then((txSig) => {
+				assert(false);
+			})
+			.catch((e) => {
+				assert(String(e).includes("custom program error: 0x1770"))
+				console.log(e);
+			});
+
+		competitorAccount = await program.account.competitor.fetch(
+			competitorAddress
+		);
+		assert(competitorAccount.bonusScore.eq(TWO));			
 	});
 });
