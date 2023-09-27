@@ -21,7 +21,7 @@ import {
 	getInsuranceFundVaultPublicKey,
 	getSpotMarketPublicKey,
 	QUOTE_SPOT_MARKET_INDEX,
-	TWO,
+	TWO, TEN,
 } from '@drift-labs/sdk';
 import { Keypair } from '@solana/web3.js';
 import { assert } from 'chai';
@@ -81,6 +81,12 @@ describe('drift competitions', () => {
 		const tx = await program.methods
 			.initializeCompetition({
 				name: encodeName(name),
+				nextRoundExpiryTs: ZERO,
+				competitionExpiryTs: ZERO,
+				roundDuration: ZERO,
+				maxEntriesPerCompetitor: ZERO,
+				minSponsorAmount: ZERO,
+				maxSponsorFraction: ZERO,
 			})
 			.accounts({
 				competition: competitionAddress,
@@ -91,6 +97,10 @@ describe('drift competitions', () => {
 			competitionAddress
 		);
 		assert(decodeName(competitionAccount.name) === name);
+		console.log(competitionAccount.sponsorInfo.sponsor.toString());
+		assert(competitionAccount.sponsorInfo.sponsor.equals(provider.wallet.publicKey));
+		assert(competitionAccount.sponsorInfo.maxSponsorFraction.eq(ZERO));
+		assert(competitionAccount.sponsorInfo.minSponsorAmount.eq(ZERO));
 		// assert(competitionAccount.sponsor.equals(provider.wallet.publicKey));
 	});
 
