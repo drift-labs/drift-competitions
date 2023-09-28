@@ -4,7 +4,6 @@ use anchor_lang::solana_program::sysvar::instructions;
 use super::constraints::*;
 use crate::error::ErrorCode;
 use crate::state::{Competition, Competitor, CompetitorStatus};
-use drift::math::safe_math::SafeMath;
 use drift::state::user::UserStats;
 use drift::validate;
 
@@ -18,20 +17,13 @@ pub fn update_competitor_status<'info>(
     let mut competitor = ctx.accounts.competitor.load_mut()?;
     let mut competition = ctx.accounts.competition.load_mut()?;
 
-    competition.validate_round_settlement_hasnt_started(now)?;
-
     validate!(
         competitor.status != new_status,
         ErrorCode::CompetitorUpdateInvalid
     )?;
+    let user_stats = ctx.accounts.drift_user_stats.load()?;
 
-    competitor.status = new_status;
-
-    if new_status == CompetitorStatus::Disqualified {
-        competition.number_of_competitors = competition.number_of_competitors.safe_sub(1)?;
-    } else if new_status == CompetitorStatus::Active {
-        competition.number_of_competitors = competition.number_of_competitors.safe_add(1)?;
-    }
+    competitor.update_status(&mut competition, &user_stats, new_status, now)?;
 
     Ok(())
 }

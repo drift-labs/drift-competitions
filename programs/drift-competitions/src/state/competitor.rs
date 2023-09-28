@@ -16,6 +16,8 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use drift_macros::assert_no_slop;
 use static_assertions::const_assert_eq;
 
+use super::Competition;
+
 #[derive(Clone, Copy, BorshSerialize, BorshDeserialize, PartialOrd, Ord, PartialEq, Eq, Debug)]
 pub enum CompetitorStatus {
     Active,
@@ -60,6 +62,31 @@ impl Size for Competitor {
 const_assert_eq!(Competitor::SIZE, std::mem::size_of::<Competitor>() + 8);
 
 impl Competitor {
+    pub fn update_status(
+        &mut self,
+        competition: &mut Competition,
+        user_stats: &UserStats,
+        new_status: CompetitorStatus,
+        now: i64,
+    ) -> CompetitionResult {
+        competition.validate_round_settlement_hasnt_started(now)?;
+
+        if self.status == CompetitorStatus::Active && new_status == CompetitorStatus::Disqualified {
+            competition.number_of_competitors = competition.number_of_competitors.safe_sub(1)?;
+        } else if self.status == CompetitorStatus::Disqualified
+            && new_status == CompetitorStatus::Active
+        {
+            competition.number_of_competitors = competition.number_of_competitors.safe_add(1)?;
+            self.competition_round_number = competition.round_number;
+            self.previous_snapshot_score = self.calculate_snapshot_score(&user_stats)?;
+            self.bonus_score = 0;
+        }
+
+        self.status = new_status;
+
+        Ok(())
+    }
+
     pub fn is_in_good_standing(&self) -> CompetitionResult<bool> {
         Ok(self.status == CompetitorStatus::Active)
     }

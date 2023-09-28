@@ -15,6 +15,7 @@ declare_id!("9FHbMuNCRRCXsvKEkA3V8xJmysAqkZrGfrppvUhGTq7x");
 
 #[program]
 pub mod drift_competitions {
+
     use super::*;
 
     // sponsor ix
@@ -36,6 +37,13 @@ pub mod drift_competitions {
         ctx: Context<'_, '_, '_, 'info, UpdateSwitchboardFunction<'info>>,
     ) -> Result<()> {
         instructions::update_switchboard_function(ctx)
+    }
+
+    pub fn update_competitor_status<'info>(
+        ctx: Context<'_, '_, '_, 'info, UpdateCompetitorStatus<'info>>,
+        new_status: crate::state::CompetitorStatus,
+    ) -> Result<()> {
+        instructions::update_competitor_status(ctx, new_status)
     }
 
     // competitor ix
