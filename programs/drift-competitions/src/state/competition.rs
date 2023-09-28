@@ -150,6 +150,19 @@ impl Competition {
         Ok(())
     }
 
+    pub fn validate_round_settlement_hasnt_started(&self, now: i64) -> CompetitionResult {
+        self.validate_round_is_active(now)?;
+
+        validate!(
+            self.number_of_competitors_settled == 0,
+            ErrorCode::CompetitionInvariantIssue,
+            "self.number_of_competitors_settled {} != 0",
+            self.number_of_competitors_settled,
+        )?;
+
+        Ok(())
+    }
+
     pub fn validate_round_is_active(&self, now: i64) -> CompetitionResult {
         validate!(
             self.status == CompetitionRoundStatus::Active,
@@ -166,14 +179,6 @@ impl Competition {
             now - self.competition_expiry_ts
         )?;
 
-        validate!(
-            now >= self.next_round_expiry_ts,
-            ErrorCode::CompetitionRoundOngoing,
-            "round ends at unix_timestamp={} (seconds remaining {})",
-            self.next_round_expiry_ts,
-            self.next_round_expiry_ts - now
-        )?;
-
         Ok(())
     }
 
@@ -186,6 +191,22 @@ impl Competition {
 
     pub fn validate_round_ready_for_settlement(&self, now: i64) -> CompetitionResult {
         self.validate_round_is_active(now)?;
+
+        validate!(
+            now >= self.next_round_expiry_ts,
+            ErrorCode::CompetitionRoundOngoing,
+            "round ends at unix_timestamp={} (seconds remaining {})",
+            self.next_round_expiry_ts,
+            self.next_round_expiry_ts - now
+        )?;
+
+        validate!(
+            self.number_of_competitors_settled <= self.number_of_competitors,
+            ErrorCode::CompetitionInvariantIssue,
+            "self.number_of_competitors_settled={} > self.number_of_competitors={}",
+            self.number_of_competitors_settled,
+            self.number_of_competitors
+        )?;
 
         Ok(())
     }
@@ -246,8 +267,10 @@ impl Competition {
         Ok(())
     }
 
-    pub fn competitor_can_be_settled(&self, competitor: &Competitor) -> bool {
-        return self.round_number == competitor.competition_round_number;
+    pub fn competitor_can_be_settled(&self, competitor: &Competitor) -> CompetitionResult<bool> {
+        let round_match = self.round_number == competitor.competition_round_number;
+
+        Ok(round_match && competitor.is_in_good_standing()?)
     }
 
     pub fn settle_competitor(
@@ -259,7 +282,7 @@ impl Competition {
         let previous_snapshot_score_before = competitor.previous_snapshot_score;
         self.validate_round_ready_for_settlement(now)?;
 
-        if !self.competitor_can_be_settled(competitor) {
+        if !self.competitor_can_be_settled(competitor)? {
             return Ok(()); // gracefully skip/fail
         }
 
