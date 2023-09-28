@@ -5,32 +5,42 @@ use drift::state::insurance_fund_stake::InsuranceFundStake;
 use drift::state::spot_market::SpotMarket;
 
 use super::constraints::*;
-use crate::state::{Competition, Competitor};
-use drift::state::user::UserStats;
 use crate::error::ErrorCode;
-use drift::validate;
 use crate::signer_seeds::get_competition_authority_seeds;
-use drift::program::Drift;
+use crate::state::{Competition, Competitor};
 use drift::cpi::accounts::TransferProtocolIfShares;
-use drift::math::safe_math::SafeMath;
 use drift::math::casting::Cast;
+use drift::math::safe_math::SafeMath;
+use drift::program::Drift;
+use drift::state::user::UserStats;
+use drift::validate;
 
 pub fn claim_winnings<'info>(
     ctx: Context<'_, '_, '_, 'info, ClaimWinnings<'info>>,
     n_shares: Option<u64>,
 ) -> Result<()> {
+    let clock = Clock::get()?;
+    let now = clock.unix_timestamp;
+
     let competition_key = ctx.accounts.competition.key();
     let bump = ctx.accounts.competition.load()?.competition_authority_bump;
     let competition_authority_seeds = get_competition_authority_seeds(&competition_key, &bump);
     let siger_seeds = &[&competition_authority_seeds[..]];
 
+    let mut competition = ctx.accounts.competition.load_mut()?;
     let mut competitor = ctx.accounts.competitor.load_mut()?;
 
     let spot_market = ctx.accounts.spot_market.load()?;
     let insurance_fund_stake = ctx.accounts.insurance_fund_stake.load()?;
 
     let shares_before = insurance_fund_stake.checked_if_shares(&spot_market)?;
-    let shares_to_claim = competitor.claim_winnings(&spot_market, &insurance_fund_stake, n_shares)?;
+    let shares_to_claim = competitor.claim_winnings(
+        &mut competition,
+        &spot_market,
+        &insurance_fund_stake,
+        n_shares,
+        now,
+    )?;
 
     drop(spot_market);
     drop(insurance_fund_stake);
@@ -47,7 +57,11 @@ pub fn claim_winnings<'info>(
         transfer_config: ctx.accounts.drift_transfer_config.clone(),
     };
     let cpi_context = CpiContext::new_with_signer(cpi_program, cpi_accounts, siger_seeds);
-    drift::cpi::transfer_protocol_if_shares(cpi_context, QUOTE_SPOT_MARKET_INDEX, shares_to_claim.cast::<u128>()?)?;
+    drift::cpi::transfer_protocol_if_shares(
+        cpi_context,
+        QUOTE_SPOT_MARKET_INDEX,
+        shares_to_claim.cast::<u128>()?,
+    )?;
 
     let spot_market = ctx.accounts.spot_market.load()?;
     let insurance_fund_stake = ctx.accounts.insurance_fund_stake.load()?;
@@ -55,8 +69,8 @@ pub fn claim_winnings<'info>(
     let shares_after = insurance_fund_stake.checked_if_shares(&spot_market)?;
 
     validate!(
-            shares_before.safe_add(shares_to_claim.cast()?)? == shares_after,
-            ErrorCode::InvalidRoundSettlementDetected
+        shares_before.safe_add(shares_to_claim.cast()?)? == shares_after,
+        ErrorCode::InvalidRoundSettlementDetected
     )?;
 
     Ok(())

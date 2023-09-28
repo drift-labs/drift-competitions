@@ -13,7 +13,7 @@ pub fn initialize_competitor<'info>(
 
     let mut competitor = ctx.accounts.competitor.load_init()?;
     let mut competition = ctx.accounts.competition.load_mut()?;
-    
+
     let competitor_user_stats = ctx.accounts.drift_user_stats.load()?;
 
     competition.validate_round_is_active(now)?;

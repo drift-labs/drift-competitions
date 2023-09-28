@@ -1,5 +1,5 @@
-use crate::state::{Competition, CompetitionRoundStatus};
 use crate::state::Size;
+use crate::state::{Competition, CompetitionRoundStatus};
 use anchor_lang::prelude::*;
 
 pub fn initialize_competition<'info>(
