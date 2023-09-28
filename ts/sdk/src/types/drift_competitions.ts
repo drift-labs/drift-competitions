@@ -227,7 +227,7 @@ export type DriftCompetitions = {
 				},
 				{
 					name: 'driftUserStats';
-					isMut: false;
+					isMut: true;
 					isSigner: false;
 				},
 				{
@@ -258,7 +258,7 @@ export type DriftCompetitions = {
 				},
 				{
 					name: 'driftTransferConfig';
-					isMut: false;
+					isMut: true;
 					isSigner: false;
 					docs: ['CHECK in cpi'];
 				},
@@ -1128,7 +1128,7 @@ export const IDL: DriftCompetitions = {
 				},
 				{
 					name: 'driftUserStats',
-					isMut: false,
+					isMut: true,
 					isSigner: false,
 				},
 				{
@@ -1159,7 +1159,7 @@ export const IDL: DriftCompetitions = {
 				},
 				{
 					name: 'driftTransferConfig',
-					isMut: false,
+					isMut: true,
 					isSigner: false,
 					docs: ['CHECK in cpi'],
 				},

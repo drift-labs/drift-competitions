@@ -229,7 +229,7 @@
         },
         {
           "name": "driftUserStats",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -262,7 +262,7 @@
         },
         {
           "name": "driftTransferConfig",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false,
           "docs": [
             "CHECK in cpi"
@@ -915,5 +915,8 @@
       "name": "CompetitorHasInvalidClaim",
       "msg": "CompetitorHasInvalidClaim"
     }
-  ]
+  ],
+  "metadata": {
+    "address": "3WUp9Zchwp9CBeK7j8dwq8Dpfb3JLZGB8V9QwJ3j5xxy"
+  }
 }
