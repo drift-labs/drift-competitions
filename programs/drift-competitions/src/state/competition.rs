@@ -110,6 +110,8 @@ impl Competition {
                 new_status,
                 self.status
             )?;
+
+            msg!("updating Competition status: {:?} -> {:?}", self.status, new_status);
             self.status = new_status;
         }
 

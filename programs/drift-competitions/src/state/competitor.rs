@@ -85,6 +85,7 @@ impl Competitor {
             self.bonus_score = 0;
         }
 
+        msg!("updating status: {:?} -> {:?}", self.status, new_status);
         self.status = new_status;
 
         Ok(())
