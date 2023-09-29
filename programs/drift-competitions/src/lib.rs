@@ -66,8 +66,9 @@ pub mod drift_competitions {
 
     pub fn request_randomness<'info>(
         ctx: Context<'_, '_, '_, 'info, RequestRandomness<'info>>,
+        bounty: Option<u64>,
     ) -> Result<()> {
-        instructions::request_randomness(ctx)
+        instructions::request_randomness(ctx, bounty)
     }
 
     pub fn receive_randomness<'info>(

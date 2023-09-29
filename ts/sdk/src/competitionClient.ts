@@ -303,7 +303,8 @@ export class CompetitionsClient {
 	}
 
 	public async requestRandomness(
-		competition: PublicKey
+		competition: PublicKey,
+		bounty?: BN
 	): Promise<TransactionSignature> {
 		const switchboardProgram = await SwitchboardProgram.fromProvider(
 			// @ts-ignore
@@ -333,7 +334,7 @@ export class CompetitionsClient {
 		);
 
 		return await this.program.methods
-			.requestRandomness()
+			.requestRandomness(bounty ?? null)
 			.accounts({
 				competition,
 				switchboard: switchboardProgram.attestationProgramId,
