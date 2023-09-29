@@ -91,6 +91,7 @@ pub struct ClaimWinnings<'info> {
     )]
     pub competition: AccountLoader<'info, Competition>,
     #[account(
+        mut,
         constraint = is_user_stats_for_competitor(&competitor, &drift_user_stats)?
     )]
     pub drift_user_stats: AccountLoader<'info, UserStats>,
@@ -115,6 +116,7 @@ pub struct ClaimWinnings<'info> {
     )]
     pub competition_authority: AccountInfo<'info>,
     /// CHECK in cpi
+    #[account(mut)]
     pub drift_transfer_config: AccountInfo<'info>,
     /// CHECK in cpi
     pub drift_state: AccountInfo<'info>,

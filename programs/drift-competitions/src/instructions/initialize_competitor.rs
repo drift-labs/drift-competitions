@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
-use crate::state::Size;
 use crate::state::{Competition, Competitor};
+use crate::state::{CompetitorStatus, Size};
 use drift::math::safe_math::SafeMath;
 use drift::state::user::UserStats;
 
@@ -24,10 +24,10 @@ pub fn initialize_competitor<'info>(
     competitor.competition_round_number = competition.round_number;
     competitor.previous_snapshot_score =
         competitor.calculate_snapshot_score(&competitor_user_stats)?;
+    competitor.bonus_score = 1;
+    competitor.status = CompetitorStatus::Active;
 
     competition.number_of_competitors = competition.number_of_competitors.safe_add(1)?;
-
-    competitor.bonus_score = 1;
 
     Ok(())
 }
