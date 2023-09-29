@@ -138,39 +138,6 @@
       "args": []
     },
     {
-      "name": "updateCompetitorStatus",
-      "accounts": [
-        {
-          "name": "competition",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "sponsor",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "competitor",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "driftUserStats",
-          "isMut": true,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "newStatus",
-          "type": {
-            "defined": "CompetitorStatus"
-          }
-        }
-      ]
-    },
-    {
       "name": "initializeCompetitor",
       "accounts": [
         {
@@ -262,7 +229,7 @@
         },
         {
           "name": "driftUserStats",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -295,7 +262,7 @@
         },
         {
           "name": "driftTransferConfig",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false,
           "docs": [
             "CHECK in cpi"
@@ -577,10 +544,6 @@
             "type": "u128"
           },
           {
-            "name": "outstandingUnclaimedWinnings",
-            "type": "u128"
-          },
-          {
             "name": "roundNumber",
             "type": "u64"
           },
@@ -611,7 +574,7 @@
             "type": {
               "array": [
                 "u8",
-                30
+                6
               ]
             }
           }
@@ -666,21 +629,6 @@
           {
             "name": "bonusScore",
             "type": "u64"
-          },
-          {
-            "name": "status",
-            "type": {
-              "defined": "CompetitorStatus"
-            }
-          },
-          {
-            "name": "padding",
-            "type": {
-              "array": [
-                "u8",
-                31
-              ]
-            }
           }
         ]
       }
@@ -811,20 +759,6 @@
           },
           {
             "name": "Expired"
-          }
-        ]
-      }
-    },
-    {
-      "name": "CompetitorStatus",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Active"
-          },
-          {
-            "name": "Disqualified"
           }
         ]
       }
@@ -987,19 +921,9 @@
       "code": 6017,
       "name": "CompetitorHasInvalidClaim",
       "msg": "CompetitorHasInvalidClaim"
-    },
-    {
-      "code": 6018,
-      "name": "CompetitorUpdateInvalid",
-      "msg": "CompetitorUpdateInvalid"
-    },
-    {
-      "code": 6019,
-      "name": "CompetitionInvariantIssue",
-      "msg": "CompetitionInvariantIssue"
     }
   ],
   "metadata": {
-    "address": "HjMa8sytpmBvf1Qr6UAJxYMtTfc3Qw8Z2cHD3nY1w2Nq"
+    "address": "3WUp9Zchwp9CBeK7j8dwq8Dpfb3JLZGB8V9QwJ3j5xxy"
   }
 }
