@@ -31,10 +31,7 @@ pub fn claim_entry<'info>(ctx: Context<'_, '_, '_, 'info, ClaimEntry<'info>>) ->
 pub struct ClaimEntry<'info> {
     #[account(mut)]
     authority: Signer<'info>,
-    #[account(
-        mut,
-        constraint = can_sign_for_competitor(&competitor, &authority)?,
-    )]
+    #[account(mut)]
     pub competitor: AccountLoader<'info, Competitor>,
     #[account(
         mut,
