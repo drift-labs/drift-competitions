@@ -11,7 +11,7 @@ mod utils;
 #[cfg(test)]
 mod tests;
 
-declare_id!("3WUp9Zchwp9CBeK7j8dwq8Dpfb3JLZGB8V9QwJ3j5xxy");
+declare_id!("EH9BNnpXfHR7kq3UW1WZeQEQZrDjPTRgQmKcbc1x9pDf");
 
 #[program]
 pub mod drift_competitions {

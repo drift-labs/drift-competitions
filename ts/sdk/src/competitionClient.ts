@@ -25,7 +25,7 @@ import {
 import * as anchor from '@coral-xyz/anchor';
 
 const defaultProgramId = new PublicKey(
-	'3WUp9Zchwp9CBeK7j8dwq8Dpfb3JLZGB8V9QwJ3j5xxy'
+	'EH9BNnpXfHR7kq3UW1WZeQEQZrDjPTRgQmKcbc1x9pDf'
 );
 
 export class CompetitionsClient {

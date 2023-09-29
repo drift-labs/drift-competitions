@@ -136,6 +136,39 @@ export type DriftCompetitions = {
 			args: [];
 		},
 		{
+			name: 'updateCompetitorStatus';
+			accounts: [
+				{
+					name: 'competition';
+					isMut: true;
+					isSigner: false;
+				},
+				{
+					name: 'sponsor';
+					isMut: false;
+					isSigner: true;
+				},
+				{
+					name: 'competitor';
+					isMut: true;
+					isSigner: false;
+				},
+				{
+					name: 'driftUserStats';
+					isMut: true;
+					isSigner: false;
+				}
+			];
+			args: [
+				{
+					name: 'newStatus';
+					type: {
+						defined: 'crate::state::CompetitorStatus';
+					};
+				}
+			];
+		},
+		{
 			name: 'initializeCompetitor';
 			accounts: [
 				{
@@ -374,7 +407,14 @@ export type DriftCompetitions = {
 					isSigner: false;
 				}
 			];
-			args: [];
+			args: [
+				{
+					name: 'bounty';
+					type: {
+						option: 'u64';
+					};
+				}
+			];
 		},
 		{
 			name: 'receiveRandomness';
@@ -524,6 +564,10 @@ export type DriftCompetitions = {
 						type: 'u128';
 					},
 					{
+						name: 'outstandingUnclaimedWinnings';
+						type: 'u128';
+					},
+					{
 						name: 'roundNumber';
 						type: 'u64';
 					},
@@ -552,7 +596,7 @@ export type DriftCompetitions = {
 					{
 						name: 'padding';
 						type: {
-							array: ['u8', 6];
+							array: ['u8', 30];
 						};
 					}
 				];
@@ -606,6 +650,18 @@ export type DriftCompetitions = {
 					{
 						name: 'bonusScore';
 						type: 'u64';
+					},
+					{
+						name: 'status';
+						type: {
+							defined: 'CompetitorStatus';
+						};
+					},
+					{
+						name: 'padding';
+						type: {
+							array: ['u8', 31];
+						};
 					}
 				];
 			};
@@ -733,6 +789,20 @@ export type DriftCompetitions = {
 					},
 					{
 						name: 'Expired';
+					}
+				];
+			};
+		},
+		{
+			name: 'CompetitorStatus';
+			type: {
+				kind: 'enum';
+				variants: [
+					{
+						name: 'Active';
+					},
+					{
+						name: 'Disqualified';
 					}
 				];
 			};
@@ -895,6 +965,16 @@ export type DriftCompetitions = {
 			code: 6017;
 			name: 'CompetitorHasInvalidClaim';
 			msg: 'CompetitorHasInvalidClaim';
+		},
+		{
+			code: 6018;
+			name: 'CompetitorUpdateInvalid';
+			msg: 'CompetitorUpdateInvalid';
+		},
+		{
+			code: 6019;
+			name: 'CompetitionInvariantIssue';
+			msg: 'CompetitionInvariantIssue';
 		}
 	];
 };
@@ -1035,6 +1115,39 @@ export const IDL: DriftCompetitions = {
 				},
 			],
 			args: [],
+		},
+		{
+			name: 'updateCompetitorStatus',
+			accounts: [
+				{
+					name: 'competition',
+					isMut: true,
+					isSigner: false,
+				},
+				{
+					name: 'sponsor',
+					isMut: false,
+					isSigner: true,
+				},
+				{
+					name: 'competitor',
+					isMut: true,
+					isSigner: false,
+				},
+				{
+					name: 'driftUserStats',
+					isMut: true,
+					isSigner: false,
+				},
+			],
+			args: [
+				{
+					name: 'newStatus',
+					type: {
+						defined: 'crate::state::CompetitorStatus',
+					},
+				},
+			],
 		},
 		{
 			name: 'initializeCompetitor',
@@ -1275,7 +1388,14 @@ export const IDL: DriftCompetitions = {
 					isSigner: false,
 				},
 			],
-			args: [],
+			args: [
+				{
+					name: 'bounty',
+					type: {
+						option: 'u64',
+					},
+				},
+			],
 		},
 		{
 			name: 'receiveRandomness',
@@ -1425,6 +1545,10 @@ export const IDL: DriftCompetitions = {
 						type: 'u128',
 					},
 					{
+						name: 'outstandingUnclaimedWinnings',
+						type: 'u128',
+					},
+					{
 						name: 'roundNumber',
 						type: 'u64',
 					},
@@ -1453,7 +1577,7 @@ export const IDL: DriftCompetitions = {
 					{
 						name: 'padding',
 						type: {
-							array: ['u8', 6],
+							array: ['u8', 30],
 						},
 					},
 				],
@@ -1507,6 +1631,18 @@ export const IDL: DriftCompetitions = {
 					{
 						name: 'bonusScore',
 						type: 'u64',
+					},
+					{
+						name: 'status',
+						type: {
+							defined: 'CompetitorStatus',
+						},
+					},
+					{
+						name: 'padding',
+						type: {
+							array: ['u8', 31],
+						},
 					},
 				],
 			},
@@ -1634,6 +1770,20 @@ export const IDL: DriftCompetitions = {
 					},
 					{
 						name: 'Expired',
+					},
+				],
+			},
+		},
+		{
+			name: 'CompetitorStatus',
+			type: {
+				kind: 'enum',
+				variants: [
+					{
+						name: 'Active',
+					},
+					{
+						name: 'Disqualified',
 					},
 				],
 			},
@@ -1796,6 +1946,16 @@ export const IDL: DriftCompetitions = {
 			code: 6017,
 			name: 'CompetitorHasInvalidClaim',
 			msg: 'CompetitorHasInvalidClaim',
+		},
+		{
+			code: 6018,
+			name: 'CompetitorUpdateInvalid',
+			msg: 'CompetitorUpdateInvalid',
+		},
+		{
+			code: 6019,
+			name: 'CompetitionInvariantIssue',
+			msg: 'CompetitionInvariantIssue',
 		},
 	],
 };
