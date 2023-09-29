@@ -68,8 +68,8 @@ pub fn request_randomness<'info>(
     request_init_and_trigger_ctx.invoke_signed(
         ctx.accounts.switchboard.clone(),
         // bounty - optional fee to reward oracles for priority processing
-        // default: 0 lamports
-        bounty,
+        // default: 1 lamports
+        bounty.map_or(Some(1), |b| Some(b.min(1))),
         None,
         None,
         &[&function_authority_seeds[..]],
