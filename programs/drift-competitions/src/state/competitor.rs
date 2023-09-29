@@ -29,6 +29,7 @@ impl Default for CompetitorStatus {
         CompetitorStatus::Active
     }
 }
+
 #[assert_no_slop]
 #[account(zero_copy(unsafe))]
 #[derive(Default, Eq, PartialEq, Debug)]
@@ -87,7 +88,7 @@ impl Competitor {
         Ok(())
     }
 
-    pub fn is_in_good_standing(&self) -> CompetitionResult<bool> {
+    pub fn is_active(&self) -> CompetitionResult<bool> {
         Ok(self.status == CompetitorStatus::Active)
     }
 

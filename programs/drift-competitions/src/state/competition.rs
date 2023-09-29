@@ -270,7 +270,7 @@ impl Competition {
     pub fn competitor_can_be_settled(&self, competitor: &Competitor) -> CompetitionResult<bool> {
         let round_match = self.round_number == competitor.competition_round_number;
 
-        Ok(round_match && competitor.is_in_good_standing()?)
+        Ok(round_match && competitor.is_active()?)
     }
 
     pub fn settle_competitor(

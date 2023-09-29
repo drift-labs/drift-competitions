@@ -46,7 +46,4 @@ pub struct UpdateCompetitorStatus<'info> {
         constraint = is_user_stats_for_competitor(&competitor, &drift_user_stats)?
     )]
     pub drift_user_stats: AccountLoader<'info, UserStats>,
-    /// CHECK: fixed instructions sysvar account
-    #[account(address = instructions::ID)]
-    pub instructions: UncheckedAccount<'info>,
 }
