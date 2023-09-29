@@ -29,11 +29,11 @@ use drift::math::insurance::{if_shares_to_vault_amount, vault_amount_to_if_share
 
 #[derive(Clone, Copy, BorshSerialize, BorshDeserialize, PartialOrd, Ord, PartialEq, Eq, Debug)]
 pub enum CompetitionRoundStatus {
-    Active = 1,
-    WinnerAndPrizeRandomnessRequested = 2,
-    WinnerAndPrizeRandomnessComplete = 3,
-    WinnerSettlementComplete = 4,
-    Expired = 5,
+    Active = 0,
+    WinnerAndPrizeRandomnessRequested = 1,
+    WinnerAndPrizeRandomnessComplete = 2,
+    WinnerSettlementComplete = 3,
+    Expired = 4,
 }
 
 impl Default for CompetitionRoundStatus {
@@ -103,15 +103,20 @@ const_assert_eq!(Competition::SIZE, std::mem::size_of::<Competition>() + 8);
 impl Competition {
     pub fn update_status(&mut self, new_status: CompetitionRoundStatus) -> CompetitionResult {
         if new_status != CompetitionRoundStatus::Expired {
+            let status_delta = (new_status as i32 + 1) - ((self.status as i32 + 1) % 4);
             validate!(
-                (new_status as i32) - (self.status as i32 % 4) == 1,
+                status_delta == 1,
                 ErrorCode::InvalidStatusUpdateDetected,
                 "new status = {:?}, current status = {:?}",
                 new_status,
                 self.status
             )?;
 
-            msg!("updating Competition status: {:?} -> {:?}", self.status, new_status);
+            msg!(
+                "updating Competition status: {:?} -> {:?}",
+                self.status,
+                new_status
+            );
             self.status = new_status;
         }
 

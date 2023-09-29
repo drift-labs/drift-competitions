@@ -1289,7 +1289,7 @@ mod competition_fcn {
         let mut us: UserStats = UserStats::default();
         us.fees.total_fee_paid = QUOTE_PRECISION_U64 + 1;
 
-        let mut us4: UserStats = UserStats::default();
+        let us4: UserStats = UserStats::default();
 
         assert_eq!(comp1.status, CompetitorStatus::Active);
         comp1
