@@ -682,10 +682,7 @@ mod competition_fcn {
         assert_eq!(comp2.unclaimed_winnings_base, 6);
 
         // rebased by 1 zero
-        assert_eq!(
-            share_to_claim_1 + share_to_claim_2,
-            6
-        );
+        assert_eq!(share_to_claim_1 + share_to_claim_2, 6);
     }
 
     #[test]
@@ -1058,18 +1055,12 @@ mod competition_fcn {
         let share_to_claim = comp1
             .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
             .unwrap();
-        assert_eq!(
-            share_to_claim,
-            696202
-        );
+        assert_eq!(share_to_claim, 696202);
 
         let share_to_claim_2 = comp2
             .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
             .unwrap();
-        assert_eq!(
-            share_to_claim_2,
-            6
-        );
+        assert_eq!(share_to_claim_2, 6);
 
         assert_eq!(comp1.competition_round_number, 2);
         assert_eq!(comp2.competition_round_number, 2);
