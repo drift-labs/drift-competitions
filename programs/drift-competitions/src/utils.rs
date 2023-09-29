@@ -45,6 +45,9 @@ pub fn apply_rebase_to_competition_prize(
         let new_if_shares = old_if_shares.safe_div(rebase_divisor)?;
 
         competition.prize_amount = new_if_shares;
+        competition.outstanding_unclaimed_winnings = competition
+            .outstanding_unclaimed_winnings
+            .safe_div(rebase_divisor)?;
     }
     Ok(())
 }

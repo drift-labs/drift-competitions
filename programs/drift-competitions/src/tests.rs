@@ -628,6 +628,8 @@ mod competition_fcn {
             prize_amount: 69,
             prize_randomness: 47,
             prize_randomness_max: 95,
+            outstanding_unclaimed_winnings: 69,
+
             winner_randomness: 2,
             sponsor_info: SponsorInfo {
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
@@ -642,13 +644,25 @@ mod competition_fcn {
 
         let mut insurance_fund_stake = InsuranceFundStake::default();
         assert!(comp2
-            .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
+            .claim_winnings(
+                sweepstakes,
+                &spot_market,
+                &mut insurance_fund_stake,
+                None,
+                now
+            )
             .is_err()); // insurance_fund_stake base mismatch w/ spot_market
         assert!(comp2.unclaimed_winnings > 0);
 
         insurance_fund_stake.if_base = 5; // match unclaimed_winnings_base
         assert!(comp2
-            .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
+            .claim_winnings(
+                sweepstakes,
+                &spot_market,
+                &mut insurance_fund_stake,
+                None,
+                now
+            )
             .is_err()); // still insurance_fund_stake base mismatch w/ spot_market
         assert_eq!(comp2.unclaimed_winnings, sweepstakes.prize_amount as u64);
         assert!(comp2.unclaimed_winnings > 0);
@@ -659,9 +673,11 @@ mod competition_fcn {
         assert_eq!(comp2.unclaimed_winnings_base, 5);
         assert!(comp2
             .claim_winnings(
+                sweepstakes,
                 &spot_market,
                 &mut insurance_fund_stake,
-                Some(comp2.unclaimed_winnings)
+                Some(comp2.unclaimed_winnings),
+                now
             )
             .is_err());
 
@@ -670,13 +686,25 @@ mod competition_fcn {
         assert_eq!(comp2.unclaimed_winnings_base, 6);
 
         let share_to_claim_1 = comp2
-            .claim_winnings(&spot_market, &mut insurance_fund_stake, Some(1))
+            .claim_winnings(
+                sweepstakes,
+                &spot_market,
+                &mut insurance_fund_stake,
+                Some(1),
+                now,
+            )
             .unwrap();
         assert_eq!(share_to_claim_1, 1);
         assert_eq!(comp2.unclaimed_winnings, 5);
         assert_eq!(comp2.unclaimed_winnings_base, 6);
         let share_to_claim_2 = comp2
-            .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
+            .claim_winnings(
+                sweepstakes,
+                &spot_market,
+                &mut insurance_fund_stake,
+                None,
+                now,
+            )
             .unwrap();
         assert_eq!(share_to_claim_2, 5);
 
@@ -746,6 +774,8 @@ mod competition_fcn {
             round_duration: 60,
             prize_base: 1,
             prize_amount: 696202,
+            outstanding_unclaimed_winnings: 696202,
+
             prize_randomness: 478,
             prize_randomness_max: 957,
             winner_randomness: 1,
@@ -799,6 +829,8 @@ mod competition_fcn {
             round_duration: 60,
             prize_base: 1,
             prize_amount: 549499999,
+            outstanding_unclaimed_winnings: 550196201,
+
             prize_randomness: 957,
             prize_randomness_max: 957,
             winner_randomness: 1,
@@ -950,6 +982,7 @@ mod competition_fcn {
             round_duration: 60,
             prize_base: 5,
             prize_amount: 69,
+            outstanding_unclaimed_winnings: 69,
             prize_randomness_max: 95,
             prize_randomness: 47,
             winner_randomness: 2,
@@ -966,13 +999,25 @@ mod competition_fcn {
 
         let mut insurance_fund_stake = InsuranceFundStake::default();
         assert!(comp2
-            .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
+            .claim_winnings(
+                sweepstakes,
+                &spot_market,
+                &mut insurance_fund_stake,
+                None,
+                now
+            )
             .is_err()); // insurance_fund_stake base mismatch w/ spot_market
         assert!(comp2.unclaimed_winnings > 0);
 
         insurance_fund_stake.if_base = 5; // match unclaimed_winnings_base
         assert!(comp2
-            .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
+            .claim_winnings(
+                sweepstakes,
+                &spot_market,
+                &mut insurance_fund_stake,
+                None,
+                now
+            )
             .is_err()); // still insurance_fund_stake base mismatch w/ spot_market
         assert_eq!(comp2.unclaimed_winnings, sweepstakes.prize_amount as u64);
         assert!(comp2.unclaimed_winnings > 0);
@@ -1055,21 +1100,34 @@ mod competition_fcn {
             0
         );
         let share_to_claim = comp1
-            .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
+            .claim_winnings(
+                sweepstakes,
+                &spot_market,
+                &mut insurance_fund_stake,
+                None,
+                now,
+            )
             .unwrap();
         assert_eq!(share_to_claim, 696202);
 
         let share_to_claim_2 = comp2
-            .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
+            .claim_winnings(
+                sweepstakes,
+                &spot_market,
+                &mut insurance_fund_stake,
+                None,
+                now,
+            )
             .unwrap();
         assert_eq!(share_to_claim_2, 6);
 
         assert_eq!(comp1.competition_round_number, 2);
         assert_eq!(comp2.competition_round_number, 2);
 
-        // both have claimed, now try running another round (but resetting it late)
         now += (sweepstakes.round_duration * 55 + 17) as i64;
 
+        assert_eq!(sweepstakes.number_of_competitors, 2);
+        assert_eq!(sweepstakes.number_of_competitors_settled, 2);
         sweepstakes.reset_round(now).unwrap();
 
         assert!(sweepstakes.settle_competitor(comp1, us, now).is_err()); // late round reset means you gotta wait til next expiry
@@ -1146,10 +1204,22 @@ mod competition_fcn {
         sweepstakes.settle_winner(comp1, &spot_market, now).unwrap();
 
         let share_to_claim_3 = comp1
-            .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
+            .claim_winnings(
+                sweepstakes,
+                &spot_market,
+                &mut insurance_fund_stake,
+                None,
+                now,
+            )
             .unwrap();
         assert!(comp2
-            .claim_winnings(&spot_market, &mut insurance_fund_stake, None)
+            .claim_winnings(
+                sweepstakes,
+                &spot_market,
+                &mut insurance_fund_stake,
+                None,
+                now
+            )
             .is_err());
         assert_eq!(
             share_to_claim_3,

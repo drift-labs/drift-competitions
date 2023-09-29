@@ -2,6 +2,7 @@ use crate::state::Size;
 use crate::utils::apply_rebase_to_competitor_unclaimed_winnings;
 use anchor_lang::prelude::*;
 use drift::error::DriftResult;
+use drift::math::casting::Cast;
 use drift::math::safe_math::SafeMath;
 
 use drift::math::constants::QUOTE_PRECISION_U64;
@@ -17,6 +18,7 @@ use drift_macros::assert_no_slop;
 use static_assertions::const_assert_eq;
 
 use super::Competition;
+use crate::state::CompetitionRoundStatus;
 
 #[derive(Clone, Copy, BorshSerialize, BorshDeserialize, PartialOrd, Ord, PartialEq, Eq, Debug)]
 pub enum CompetitorStatus {
@@ -119,11 +121,22 @@ impl Competitor {
 
     pub fn claim_winnings(
         &mut self,
+        competition: &mut Competition,
         spot_market: &SpotMarket,
         insurance_fund_stake: &InsuranceFundStake,
         n_shares: Option<u64>,
+        now: i64,
     ) -> CompetitionResult<u64> {
         // cpi update to insurance fund stake occurs outside this (in claim instruction)
+
+        // don't allow claiming during round resolution stages / expired
+        validate!(
+            competition.status == CompetitionRoundStatus::Active
+                || competition.status == CompetitionRoundStatus::WinnerSettlementComplete,
+            ErrorCode::CompetitionRoundOngoing
+        )?;
+
+        validate!(!competition.is_expired(now)?, ErrorCode::CompetitionExpired)?;
 
         validate!(
             spot_market.insurance_fund.shares_base == insurance_fund_stake.if_base,
@@ -159,6 +172,9 @@ impl Competitor {
         )?;
 
         self.unclaimed_winnings = self.unclaimed_winnings.safe_sub(shares_to_claim)?;
+        competition.outstanding_unclaimed_winnings = competition
+            .outstanding_unclaimed_winnings
+            .saturating_sub(shares_to_claim.cast::<u128>()?);
 
         Ok(shares_to_claim)
     }

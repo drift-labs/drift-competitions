@@ -79,6 +79,7 @@ pub struct Competition {
     pub prize_randomness: u128,
     // the max number in the prize_randomness request
     pub prize_randomness_max: u128,
+    pub outstanding_unclaimed_winnings: u128,
 
     // scheduling variables
     pub round_number: u64,
@@ -90,11 +91,11 @@ pub struct Competition {
     pub status: CompetitionRoundStatus,
     pub competition_authority_bump: u8,
 
-    pub padding: [u8; 6],
+    pub padding: [u8; 30],
 }
 
 impl Size for Competition {
-    const SIZE: usize = 392 + 8;
+    const SIZE: usize = 432 + 8;
 }
 
 const_assert_eq!(Competition::SIZE, std::mem::size_of::<Competition>() + 8);
@@ -179,7 +180,6 @@ impl Competition {
             self.competition_expiry_ts,
             now - self.competition_expiry_ts
         )?;
-
         Ok(())
     }
 
@@ -506,6 +506,10 @@ impl Competition {
             .saturating_add(self.prize_amount.cast()?);
         competitor.unclaimed_winnings_base = self.prize_base;
         competitor.bonus_score = 0; // reset bonus score to 0
+
+        self.outstanding_unclaimed_winnings = self
+            .outstanding_unclaimed_winnings
+            .saturating_add(self.prize_amount.cast()?);
 
         self.update_status(CompetitionRoundStatus::WinnerSettlementComplete)?;
 

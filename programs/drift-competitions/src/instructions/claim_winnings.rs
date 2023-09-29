@@ -19,19 +19,28 @@ pub fn claim_winnings<'info>(
     ctx: Context<'_, '_, '_, 'info, ClaimWinnings<'info>>,
     n_shares: Option<u64>,
 ) -> Result<()> {
+    let clock = Clock::get()?;
+    let now = clock.unix_timestamp;
+
     let competition_key = ctx.accounts.competition.key();
     let bump = ctx.accounts.competition.load()?.competition_authority_bump;
     let competition_authority_seeds = get_competition_authority_seeds(&competition_key, &bump);
     let siger_seeds = &[&competition_authority_seeds[..]];
 
+    let mut competition = ctx.accounts.competition.load_mut()?;
     let mut competitor = ctx.accounts.competitor.load_mut()?;
 
     let spot_market = ctx.accounts.spot_market.load()?;
     let insurance_fund_stake = ctx.accounts.insurance_fund_stake.load()?;
 
     let shares_before = insurance_fund_stake.checked_if_shares(&spot_market)?;
-    let shares_to_claim =
-        competitor.claim_winnings(&spot_market, &insurance_fund_stake, n_shares)?;
+    let shares_to_claim = competitor.claim_winnings(
+        &mut competition,
+        &spot_market,
+        &insurance_fund_stake,
+        n_shares,
+        now,
+    )?;
 
     drop(spot_market);
     drop(insurance_fund_stake);

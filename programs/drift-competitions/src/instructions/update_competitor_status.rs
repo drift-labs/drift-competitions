@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::sysvar::instructions;
 
 use super::constraints::*;
 use crate::error::ErrorCode;
