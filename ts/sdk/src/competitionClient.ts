@@ -25,7 +25,7 @@ import {
 import * as anchor from '@coral-xyz/anchor';
 
 const defaultProgramId = new PublicKey(
-	'9FHbMuNCRRCXsvKEkA3V8xJmysAqkZrGfrppvUhGTq7x'
+	'3WUp9Zchwp9CBeK7j8dwq8Dpfb3JLZGB8V9QwJ3j5xxy'
 );
 
 export class CompetitionsClient {
@@ -173,8 +173,7 @@ export class CompetitionsClient {
 	}
 
 	public async initializeCompetitor(
-		competition: PublicKey,
-		userStats: PublicKey
+		competition: PublicKey
 	): Promise<TransactionSignature> {
 		const competitor = getCompetitorAddressSync(
 			this.program.programId,
@@ -187,14 +186,13 @@ export class CompetitionsClient {
 			.accounts({
 				competitor,
 				competition: competition,
-				driftUserStats: userStats,
+				driftUserStats: this.driftClient.getUserStatsAccountPublicKey(),
 			})
 			.rpc();
 	}
 
 	public async claimEntry(
 		competition: PublicKey,
-		userStats: PublicKey
 	): Promise<TransactionSignature> {
 		const competitor = getCompetitorAddressSync(
 			this.program.programId,
@@ -207,7 +205,7 @@ export class CompetitionsClient {
 			.accounts({
 				competitor,
 				competition: competition,
-				driftUserStats: userStats,
+				driftUserStats: this.driftClient.getUserStatsAccountPublicKey(),
 				instructions: anchor.web3.SYSVAR_INSTRUCTIONS_PUBKEY,
 			})
 			.rpc();
@@ -215,7 +213,6 @@ export class CompetitionsClient {
 
 	public async claimWinnings(
 		competition: PublicKey,
-		userStats: PublicKey,
 		shares?: BN
 	): Promise<TransactionSignature> {
 		const competitor = getCompetitorAddressSync(
@@ -229,11 +226,11 @@ export class CompetitionsClient {
 		);
 
 		const spotMarket = await getSpotMarketPublicKey(
-			this.program.provider.publicKey,
+			this.driftClient.program.programId,
 			QUOTE_SPOT_MARKET_INDEX
 		);
 		const insuranceFundVault = await getInsuranceFundVaultPublicKey(
-			this.program.provider.publicKey,
+			this.driftClient.program.programId,
 			QUOTE_SPOT_MARKET_INDEX
 		);
 		const insuranceFundStake = await getInsuranceFundStakeAccountPublicKey(
@@ -245,7 +242,7 @@ export class CompetitionsClient {
 		const driftTransferConfig = PublicKey.findProgramAddressSync(
 			[
 				Buffer.from(
-					anchor.utils.bytes.utf8.encode('protocol_if_shares_transfer_config')
+					anchor.utils.bytes.utf8.encode('if_shares_transfer_config')
 				),
 			],
 			this.driftClient.program.programId
@@ -256,7 +253,7 @@ export class CompetitionsClient {
 			.accounts({
 				competitor,
 				competition: competition,
-				driftUserStats: userStats,
+				driftUserStats: this.driftClient.getUserStatsAccountPublicKey(),
 				spotMarket,
 				insuranceFundStake,
 				insuranceFundVault,
@@ -324,11 +321,11 @@ export class CompetitionsClient {
 		);
 
 		const spotMarket = await getSpotMarketPublicKey(
-			this.program.provider.publicKey,
+			this.driftClient.program.programId,
 			QUOTE_SPOT_MARKET_INDEX
 		);
 		const insuranceFundVault = await getInsuranceFundVaultPublicKey(
-			this.program.provider.publicKey,
+			this.driftClient.program.programId,
 			QUOTE_SPOT_MARKET_INDEX
 		);
 
@@ -355,13 +352,27 @@ export class CompetitionsClient {
 		competitor: PublicKey,
 		userStats: PublicKey
 	): Promise<TransactionSignature> {
+		const spotMarket = await getSpotMarketPublicKey(
+			this.driftClient.program.programId,
+			QUOTE_SPOT_MARKET_INDEX
+		);
+
 		return await this.program.methods
 			.settleWinner()
 			.accounts({
 				competitor,
 				competition: competition,
 				driftUserStats: userStats,
+				spotMarket,
 			})
 			.rpc();
+	}
+
+	public getCompetitionPublicKey(name: string): PublicKey {
+		const encodedName = encodeName(name);
+		return getCompetitionAddressSync(
+			this.program.programId,
+			encodedName
+		);
 	}
 }
