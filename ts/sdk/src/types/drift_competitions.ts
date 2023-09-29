@@ -163,7 +163,7 @@ export type DriftCompetitions = {
 				{
 					name: 'newStatus';
 					type: {
-						defined: 'crate::state::CompetitorStatus';
+						defined: 'CompetitorStatus';
 					};
 				}
 			];
@@ -1144,7 +1144,7 @@ export const IDL: DriftCompetitions = {
 				{
 					name: 'newStatus',
 					type: {
-						defined: 'crate::state::CompetitorStatus',
+						defined: 'CompetitorStatus',
 					},
 				},
 			],

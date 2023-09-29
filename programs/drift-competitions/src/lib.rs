@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 use instructions::*;
 use switchboard_solana::prelude::*;
+use state::CompetitorStatus;
 
 mod error;
 mod instructions;
@@ -41,7 +42,7 @@ pub mod drift_competitions {
 
     pub fn update_competitor_status<'info>(
         ctx: Context<'_, '_, '_, 'info, UpdateCompetitorStatus<'info>>,
-        new_status: crate::state::CompetitorStatus,
+        new_status: CompetitorStatus,
     ) -> Result<()> {
         instructions::update_competitor_status(ctx, new_status)
     }
