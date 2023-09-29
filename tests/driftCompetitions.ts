@@ -69,7 +69,7 @@ describe('drift competitions', () => {
 	});
 
 	it('initialize competition', async () => {
-		const name = 'test';
+		const name = 'sweepstakes';
 		const encodedName = encodeName(name);
 
 		const competitionAddress = getCompetitionAddressSync(
@@ -105,7 +105,7 @@ describe('drift competitions', () => {
 	});
 
 	it('initialize competitor', async () => {
-		const name = 'test';
+		const name = 'sweepstakes';
 		const encodedName = encodeName(name);
 
 		const competitionAddress = getCompetitionAddressSync(
@@ -166,7 +166,7 @@ describe('drift competitions', () => {
 			program: program,
 		});
 
-		const name = 'test';
+		const name = 'sweepstakes';
 		const encodedName = encodeName(name);
 
 		const competitionAddress = getCompetitionAddressSync(
@@ -251,7 +251,7 @@ describe('drift competitions', () => {
 			program: program,
 		});
 
-		const name = 'test';
+		const name = 'sweepstakes';
 		const encodedName = encodeName(name);
 
 		const competitionAddress = getCompetitionAddressSync(

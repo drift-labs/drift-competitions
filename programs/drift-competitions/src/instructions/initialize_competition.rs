@@ -1,6 +1,14 @@
 use crate::state::Size;
 use crate::state::{Competition, CompetitionRoundStatus};
 use anchor_lang::prelude::*;
+use crate::error::ErrorCode;
+
+const SWEEPSTAKES_NAME : [u8; 32] = [
+    115, 119, 101, 101, 112, 115, 116, 97,
+    107, 101, 115,  32,  32,  32,  32, 32,
+    32,  32,  32,  32,  32,  32,  32, 32,
+    32,  32,  32,  32,  32,  32,  32, 32
+];
 
 pub fn initialize_competition<'info>(
     ctx: Context<'_, '_, '_, 'info, InitializeCompetition<'info>>,
@@ -8,6 +16,11 @@ pub fn initialize_competition<'info>(
 ) -> Result<()> {
     let competition_key = ctx.accounts.competition.key();
     let mut competition = ctx.accounts.competition.load_init()?;
+
+    if params.name != SWEEPSTAKES_NAME {
+        msg!("Invalid competition name");
+        return Err(ErrorCode::Default.into());
+    }
 
     competition.name = params.name;
     competition.sponsor_info.sponsor = ctx.accounts.sponsor.key();
