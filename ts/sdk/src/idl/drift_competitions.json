@@ -165,7 +165,7 @@
         {
           "name": "newStatus",
           "type": {
-            "defined": "crate::state::CompetitorStatus"
+            "defined": "CompetitorStatus"
           }
         }
       ]
