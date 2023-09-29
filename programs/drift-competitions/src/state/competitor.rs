@@ -12,11 +12,26 @@ use drift::validate;
 
 use crate::error::{CompetitionResult, ErrorCode};
 
+use borsh::{BorshDeserialize, BorshSerialize};
 use drift_macros::assert_no_slop;
 use static_assertions::const_assert_eq;
 
+use super::Competition;
+
+#[derive(Clone, Copy, BorshSerialize, BorshDeserialize, PartialOrd, Ord, PartialEq, Eq, Debug)]
+pub enum CompetitorStatus {
+    Active,
+    Disqualified,
+}
+
+impl Default for CompetitorStatus {
+    fn default() -> Self {
+        CompetitorStatus::Active
+    }
+}
+
 #[assert_no_slop]
-#[account(zero_copy)]
+#[account(zero_copy(unsafe))]
 #[derive(Default, Eq, PartialEq, Debug)]
 #[repr(C)]
 pub struct Competitor {
@@ -36,15 +51,47 @@ pub struct Competitor {
     pub previous_snapshot_score: u64,
     pub latest_snapshot_score: u64,
     pub bonus_score: u64, // this can be used to claim raffle w/o purchase
+
+    pub status: CompetitorStatus,
+    pub padding: [u8; 31],
 }
 
 impl Size for Competitor {
-    const SIZE: usize = 184 + 8;
+    const SIZE: usize = 216 + 8;
 }
 
 const_assert_eq!(Competitor::SIZE, std::mem::size_of::<Competitor>() + 8);
 
 impl Competitor {
+    pub fn update_status(
+        &mut self,
+        competition: &mut Competition,
+        user_stats: &UserStats,
+        new_status: CompetitorStatus,
+        now: i64,
+    ) -> CompetitionResult {
+        competition.validate_round_settlement_hasnt_started(now)?;
+
+        if self.status == CompetitorStatus::Active && new_status == CompetitorStatus::Disqualified {
+            competition.number_of_competitors = competition.number_of_competitors.safe_sub(1)?;
+        } else if self.status == CompetitorStatus::Disqualified
+            && new_status == CompetitorStatus::Active
+        {
+            competition.number_of_competitors = competition.number_of_competitors.safe_add(1)?;
+            self.competition_round_number = competition.round_number;
+            self.previous_snapshot_score = self.calculate_snapshot_score(&user_stats)?;
+            self.bonus_score = 0;
+        }
+
+        self.status = new_status;
+
+        Ok(())
+    }
+
+    pub fn is_active(&self) -> CompetitionResult<bool> {
+        Ok(self.status == CompetitorStatus::Active)
+    }
+
     pub fn calculate_snapshot_score(&self, user_stats: &UserStats) -> DriftResult<u64> {
         // 10 cents of taker volume (entry tier of 10 bps) => 1 ticket
         let taker_fee = user_stats

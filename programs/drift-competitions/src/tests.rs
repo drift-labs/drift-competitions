@@ -323,7 +323,9 @@ mod competition_helpers {
 }
 
 mod competition_fcn {
-    use crate::state::{Competition, CompetitionRoundStatus, Competitor, SponsorInfo};
+    use crate::state::{
+        Competition, CompetitionRoundStatus, Competitor, CompetitorStatus, SponsorInfo,
+    };
     use drift::{
         math::{
             constants::{
@@ -1188,6 +1190,126 @@ mod competition_fcn {
             comp1.bonus_score,
             (sweepstakes.max_entries_per_competitor / 2) as u64
         );
+        let last_round_score_after = comp1.calculate_round_score(&us).unwrap();
+        assert_eq!(last_round_score_after, comp1.bonus_score);
+    }
+
+    #[test]
+    fn test_disqualified_and_requalified() {
+        let mut now = 168000000;
+        let sweepstakes = &mut Competition::default();
+
+        sweepstakes.next_round_expiry_ts = now + 60;
+        sweepstakes.round_duration = 60;
+
+        assert_eq!(sweepstakes.status, CompetitionRoundStatus::Active);
+
+        sweepstakes.number_of_competitors = 4;
+        let comp1 = &mut Competitor::default();
+        let comp2: &mut Competitor = &mut Competitor::default();
+        let comp3: &mut Competitor = &mut Competitor::default();
+        let comp4: &mut Competitor = &mut Competitor::default();
+
+        while comp2.bonus_score < 16900000 {
+            comp2.claim_entry().unwrap();
+            comp3.claim_entry().unwrap();
+            comp3.claim_entry().unwrap();
+        }
+
+        let mut us: UserStats = UserStats::default();
+        us.fees.total_fee_paid = QUOTE_PRECISION_U64 + 1;
+
+        let mut us4: UserStats = UserStats::default();
+
+        assert_eq!(comp1.status, CompetitorStatus::Active);
+        comp1
+            .update_status(sweepstakes, &us, CompetitorStatus::Disqualified, now)
+            .unwrap();
+        assert_eq!(comp1.status, CompetitorStatus::Disqualified);
+        assert_eq!(sweepstakes.number_of_competitors, 3);
+
+        comp1
+            .update_status(sweepstakes, &us, CompetitorStatus::Active, now)
+            .unwrap();
+        assert_eq!(comp1.status, CompetitorStatus::Active);
+        assert_eq!(sweepstakes.number_of_competitors, 4);
+
+        let last_round_score = comp1.calculate_round_score(&us).unwrap();
+        assert_eq!(last_round_score, 0);
+
+        sweepstakes.max_entries_per_competitor = 500000;
+        let last_round_score_2 = comp1.calculate_round_score(&us).unwrap();
+        assert_eq!(last_round_score, last_round_score_2);
+
+        now += 60;
+
+        // can disqualify before round starts settlement
+        comp1
+            .update_status(sweepstakes, &us, CompetitorStatus::Disqualified, now)
+            .unwrap();
+        comp1
+            .update_status(sweepstakes, &us, CompetitorStatus::Active, now)
+            .unwrap();
+
+        comp3
+            .update_status(sweepstakes, &us, CompetitorStatus::Disqualified, now)
+            .unwrap();
+
+        sweepstakes.settle_competitor(comp1, &us, now).unwrap();
+
+        assert_eq!(comp1.min_draw, 0);
+        assert_eq!(comp1.max_draw, 0);
+
+        assert_eq!(sweepstakes.number_of_competitors_settled, 1);
+        assert_eq!(sweepstakes.total_score_settled, 0);
+
+        // cannot disqualify comp2 once round starts settlement
+        assert!(comp1
+            .update_status(sweepstakes, &us, CompetitorStatus::Disqualified, now)
+            .is_err());
+        sweepstakes.settle_competitor(comp2, &us, now).unwrap();
+        assert_eq!(comp2.min_draw, 0);
+        assert_eq!(comp2.max_draw, 500000);
+        // comp3 was already disqualified before start
+        assert!(comp1
+            .update_status(sweepstakes, &us, CompetitorStatus::Active, now)
+            .is_err());
+        assert_eq!(sweepstakes.number_of_competitors_settled, 2);
+        assert_eq!(sweepstakes.total_score_settled, 500000);
+        let score_before_comp3_settle = sweepstakes.total_score_settled;
+        // no errors, just fail gracefully
+        sweepstakes.settle_competitor(comp3, &us, now).unwrap();
+        sweepstakes.settle_competitor(comp3, &us, now).unwrap();
+        sweepstakes.settle_competitor(comp3, &us, now).unwrap();
+        sweepstakes.settle_competitor(comp3, &us, now).unwrap();
+        sweepstakes.settle_competitor(comp3, &us, now).unwrap();
+        sweepstakes.settle_competitor(comp3, &us, now).unwrap();
+
+        assert_eq!(comp3.min_draw, 0);
+        assert_eq!(comp3.max_draw, 0);
+        assert_eq!(sweepstakes.total_score_settled, score_before_comp3_settle);
+        assert_eq!(sweepstakes.number_of_competitors_settled, 2);
+
+        // cannot disqualify comp1 once settlement starts
+        assert!(comp1
+            .update_status(sweepstakes, &us, CompetitorStatus::Disqualified, now)
+            .is_err());
+
+        assert_eq!(
+            comp2.bonus_score,
+            (sweepstakes.max_entries_per_competitor / 2) as u64
+        );
+        assert_eq!(comp3.bonus_score, 33800000); // once flipped to active will lose this
+
+        sweepstakes.settle_competitor(comp4, &us4, now).unwrap();
+        assert_eq!(comp4.min_draw, 500000);
+        assert_eq!(comp4.max_draw, 500000);
+
+        assert_eq!(
+            sweepstakes.number_of_competitors,
+            sweepstakes.number_of_competitors_settled
+        );
+
         let last_round_score_after = comp1.calculate_round_score(&us).unwrap();
         assert_eq!(last_round_score_after, comp1.bonus_score);
     }

@@ -7,6 +7,7 @@ pub use request_randomness::*;
 pub use settle_competitor::*;
 pub use settle_winner::*;
 pub use update_competition::*;
+pub use update_competitor_status::*;
 pub use update_switchboard_function::*;
 
 mod claim_entry;
@@ -19,4 +20,5 @@ mod request_randomness;
 mod settle_competitor;
 mod settle_winner;
 mod update_competition;
+mod update_competitor_status;
 mod update_switchboard_function;
