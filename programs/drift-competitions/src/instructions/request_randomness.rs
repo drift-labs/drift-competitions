@@ -8,6 +8,7 @@ use switchboard_solana::prelude::*;
 
 pub fn request_randomness<'info>(
     ctx: Context<'_, '_, '_, 'info, RequestRandomness<'info>>,
+    bounty: Option<u64>
 ) -> Result<()> {
     let competition_key = ctx.accounts.competition.key();
     let spot_market_key = ctx.accounts.spot_market.key();
@@ -67,8 +68,8 @@ pub fn request_randomness<'info>(
     request_init_and_trigger_ctx.invoke_signed(
         ctx.accounts.switchboard.clone(),
         // bounty - optional fee to reward oracles for priority processing
-        // default: 0 lamports
-        Some(1),
+        // default: 1 lamports
+        bounty.map_or(Some(1), |b| Some(b.min(1))),
         None,
         None,
         &[&function_authority_seeds[..]],
