@@ -22,9 +22,15 @@ pub fn receive_randomness(
     competition.prize_randomness = prize_randomness;
 
     msg!("insurance_fund vault_balance: {}", vault_balance);
-    msg!("spot_market.insurance_fund.user_shares: {}", spot_market.insurance_fund.user_shares);
-    msg!("spot_market.insurance_fund.total_shares: {}", spot_market.insurance_fund.total_shares);
-    
+    msg!(
+        "spot_market.insurance_fund.user_shares: {}",
+        spot_market.insurance_fund.user_shares
+    );
+    msg!(
+        "spot_market.insurance_fund.total_shares: {}",
+        spot_market.insurance_fund.total_shares
+    );
+
     competition.resolve_winner_and_prize_randomness(&spot_market, vault_balance)?;
 
     Ok(())

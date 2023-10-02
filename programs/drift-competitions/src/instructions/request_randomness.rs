@@ -8,7 +8,7 @@ use switchboard_solana::prelude::*;
 
 pub fn request_randomness<'info>(
     ctx: Context<'_, '_, '_, 'info, RequestRandomness<'info>>,
-    bounty: Option<u64>
+    bounty: Option<u64>,
 ) -> Result<()> {
     let competition_key = ctx.accounts.competition.key();
     let spot_market_key = ctx.accounts.spot_market.key();

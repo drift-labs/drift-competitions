@@ -2,7 +2,6 @@ use crate::state::events::CompetitionRoundWinnerRecord;
 use crate::state::Size;
 use crate::utils::{
     apply_rebase_to_competition_prize, apply_rebase_to_competitor_unclaimed_winnings,
-    get_test_sample_draw,
 };
 use drift::{
     error::DriftResult,
@@ -407,10 +406,6 @@ impl Competition {
 
         self.update_status(CompetitionRoundStatus::WinnerAndPrizeRandomnessRequested)?;
 
-        // todo: remove, only for testing
-        self.prize_randomness = get_test_sample_draw(0, ratio_sum)?;
-        self.winner_randomness = get_test_sample_draw(1, self.total_score_settled)?;
-
         Ok(())
     }
 
@@ -437,7 +432,11 @@ impl Competition {
         let ratio_sum: u128 = ratios.iter().sum();
         msg!("prize buckets: {:?}", prize_buckets);
         msg!("ratios: {:?}", ratios);
-        msg!("ratio_sum={} vs prize_randomness_max={}", ratio_sum, self.prize_randomness_max);
+        msg!(
+            "ratio_sum={} vs prize_randomness_max={}",
+            ratio_sum,
+            self.prize_randomness_max
+        );
 
         // prize amounts changed since random draw request
         let draw = if ratio_sum < self.prize_randomness_max {

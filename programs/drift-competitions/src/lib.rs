@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use instructions::*;
-use switchboard_solana::prelude::*;
 use state::CompetitorStatus;
+use switchboard_solana::prelude::*;
 
 mod error;
 mod instructions;
