@@ -1,4 +1,4 @@
-import { BN, DataAndSlot } from '@drift-labs/sdk';
+import { BN, DataAndSlot, Event } from '@drift-labs/sdk';
 import { PublicKey } from '@solana/web3.js';
 import { EventEmitter } from 'events';
 import StrictEventEmitter from 'strict-event-emitter-types';
@@ -84,6 +84,32 @@ export type CompetitorAccountEvents =
 	DriftCompetitionsProgramAccountBaseEvents & {
 		competitorUpdate: (competitor: Competitor) => void;
 	};
+
+export type CompetitionRoundWinnerRecord = {
+	roundNumber: BN;
+	competitor: PublicKey;
+	minDraw: BN;
+	maxDraw: BN;
+	numberOfCompetitorsSettled: BN;
+	winnerRandomness: BN;
+	totalScoreSettled: BN;
+	prizeRandomness: BN;
+	prizeRandomnessMax: BN;
+	prizeAmount: BN;
+	prizeBase: BN;
+	ts: BN;
+};
+
+export type CompetitionsEventMap = {
+	CompetitionRoundWinnerRecord: Event<CompetitionRoundWinnerRecord>;
+};
+
+export type EventType = keyof CompetitionsEventMap;
+export type WrappedEvent<Type extends EventType> =
+	CompetitionsEventMap[Type] & {
+		eventType: Type;
+	};
+export type WrappedEvents = WrappedEvent<EventType>[];
 
 /** Account Subscribers */
 
