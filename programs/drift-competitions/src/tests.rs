@@ -832,7 +832,7 @@ mod competition_fcn {
             prize_base: 1,
             prize_amount: 696202,
             outstanding_unclaimed_winnings: 696202,
-            prize_amount_settled:696202,
+            prize_amount_settled: 696202,
             prize_randomness: 478,
             prize_randomness_max: 957,
             winner_randomness: 1,
@@ -917,7 +917,7 @@ mod competition_fcn {
             prize_base: 1,
             prize_amount: 549499999,
             outstanding_unclaimed_winnings: 550196201,
-            prize_amount_settled:549499999,
+            prize_amount_settled: 549499999,
             prize_randomness: 957,
             prize_randomness_max: 957,
             winner_randomness: 1,
@@ -1232,7 +1232,10 @@ mod competition_fcn {
 
         sweepstakes.settle_winner(comp1, &spot_market, now).unwrap();
         assert_eq!(sweepstakes.prize_amount, sweepstakes.prize_amount_settled);
-        assert_eq!(comp1.unclaimed_winnings as u128, sweepstakes.prize_amount_settled);
+        assert_eq!(
+            comp1.unclaimed_winnings as u128,
+            sweepstakes.prize_amount_settled
+        );
 
         assert_eq!(
             insurance_fund_stake

@@ -484,7 +484,10 @@ impl Competition {
         let winner_prize_amount = if self.number_of_winners <= 3 {
             self.prize_amount.safe_div(self.number_of_winners.cast()?)?
         } else {
+            // 50%, 20%, 15% for 1st, 2nd, 3rd respectively (in PERCENTAGE_PRECISION)
             let top_winner_prize_ratios: [u128; 3] = [500_000, 200_000, 150_000];
+
+            // consolation pool is even split of the remainder for any winner past the 3rd
             let remainder = PERCENTAGE_PRECISION.safe_sub(top_winner_prize_ratios.iter().sum())?;
 
             let winner_prize_ratio =
@@ -498,6 +501,13 @@ impl Competition {
                         .cast()?,
                     )?
                 };
+
+            validate!(
+                winner_prize_ratio <= top_winner_prize_ratios[0],
+                ErrorCode::CompetitionInvariantIssue,
+                "winner_prize_ratio = {}",
+                winner_prize_ratio
+            )?;
 
             self.prize_amount
                 .safe_mul(winner_prize_ratio)?
