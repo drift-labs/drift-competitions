@@ -9,6 +9,7 @@ mod competition_helpers {
         },
         state::spot_market::SpotMarket,
     };
+
     #[test]
     pub fn test_calculate_next_round_expiry_ts() {
         let mut now = 1695330779;
@@ -332,6 +333,7 @@ mod competition_fcn {
     use crate::state::{
         Competition, CompetitionRoundStatus, Competitor, CompetitorStatus, SponsorInfo,
     };
+    use crate::utils::get_test_sample_draw;
     use drift::{
         math::{
             constants::{
@@ -344,7 +346,6 @@ mod competition_fcn {
             insurance_fund_stake::InsuranceFundStake, spot_market::SpotMarket, user::UserStats,
         },
     };
-
     #[test]
     fn test_competition_settlement() {
         let mut now = 168000000;
@@ -400,6 +401,10 @@ mod competition_fcn {
             .request_winner_and_prize_randomness(&spot_market, vault_balance)
             .unwrap();
 
+        sweepstakes.prize_randomness = get_test_sample_draw(0, sweepstakes.prize_randomness_max).unwrap();
+        sweepstakes.winner_randomness =
+            get_test_sample_draw(1, sweepstakes.total_score_settled).unwrap();
+
         sweepstakes
             .resolve_winner_and_prize_randomness(&spot_market, vault_balance)
             .unwrap();
@@ -434,6 +439,24 @@ mod competition_fcn {
 
         assert_eq!(comp2.unclaimed_winnings, sweepstakes.prize_amount as u64);
 
+        let expected_sweepstakes = &mut Competition {
+            round_number: 0,
+            status: CompetitionRoundStatus::WinnerSettlementComplete,
+            next_round_expiry_ts: 168000000 + 60,
+            number_of_competitors: 2,
+            number_of_competitors_settled: 2,
+            total_score_settled: 4,
+            round_duration: 60,
+            winner_randomness: 2,
+            sponsor_info: SponsorInfo {
+                max_sponsor_fraction: 0,
+                ..SponsorInfo::default()
+            },
+            ..Competition::default()
+        };
+
+        assert_eq!(expected_sweepstakes, sweepstakes);
+
         sweepstakes.reset_round(now).unwrap();
 
         let expected_sweepstakes = &mut Competition {
@@ -445,7 +468,7 @@ mod competition_fcn {
             number_of_competitors: 2,
             total_score_settled: 0,
             round_duration: 60,
-            winner_randomness: 2,
+            winner_randomness: 0,
             sponsor_info: SponsorInfo {
                 max_sponsor_fraction: 0,
                 ..SponsorInfo::default()
@@ -555,6 +578,10 @@ mod competition_fcn {
         sweepstakes
             .request_winner_and_prize_randomness(&spot_market, vault_balance)
             .unwrap();
+
+        sweepstakes.prize_randomness = get_test_sample_draw(0, sweepstakes.prize_randomness_max).unwrap();
+        sweepstakes.winner_randomness =
+            get_test_sample_draw(1, sweepstakes.total_score_settled).unwrap();
         sweepstakes
             .resolve_winner_and_prize_randomness(&spot_market, vault_balance)
             .unwrap();
@@ -627,16 +654,15 @@ mod competition_fcn {
 
         assert_eq!(comp2.unclaimed_winnings, 69);
 
-        sweepstakes.reset_round(now).unwrap();
-        assert_eq!(sweepstakes.round_number, 1);
-        assert_eq!(sweepstakes.status, CompetitionRoundStatus::Active);
+
 
         let expected_sweepstakes = &mut Competition {
-            round_number: 1,
-            status: CompetitionRoundStatus::Active,
-            next_round_expiry_ts: 168000000 + 120,
+            round_number: 0,
+            status: CompetitionRoundStatus::WinnerSettlementComplete,
+            next_round_expiry_ts: 168000000 + 60,
             number_of_competitors: 2,
-            total_score_settled: 0,
+            number_of_competitors_settled: 2,
+            total_score_settled: 4,
             round_duration: 60,
             prize_base: 5,
             prize_amount: 69,
@@ -653,6 +679,11 @@ mod competition_fcn {
         };
 
         assert_eq!(expected_sweepstakes, sweepstakes);
+        sweepstakes.reset_round(now).unwrap();
+        assert_eq!(sweepstakes.round_number, 1);
+        assert_eq!(sweepstakes.status, CompetitionRoundStatus::Active);
+
+
 
         assert!(comp2.unclaimed_winnings > 0);
 
@@ -678,7 +709,7 @@ mod competition_fcn {
                 now
             )
             .is_err()); // still insurance_fund_stake base mismatch w/ spot_market
-        assert_eq!(comp2.unclaimed_winnings, sweepstakes.prize_amount as u64);
+        assert_eq!(comp2.unclaimed_winnings, 69);
         assert!(comp2.unclaimed_winnings > 0);
 
         insurance_fund_stake.if_base = 6; // match spot_market
@@ -768,6 +799,10 @@ mod competition_fcn {
         sweepstakes
             .request_winner_and_prize_randomness(&spot_market, vault_balance)
             .unwrap();
+
+        sweepstakes.prize_randomness = get_test_sample_draw(0, sweepstakes.prize_randomness_max).unwrap();
+        sweepstakes.winner_randomness =
+            get_test_sample_draw(1, sweepstakes.total_score_settled).unwrap();
         sweepstakes
             .resolve_winner_and_prize_randomness(&spot_market, vault_balance)
             .unwrap();
@@ -779,14 +814,14 @@ mod competition_fcn {
         assert_eq!(sweepstakes.round_number, 0);
         assert_eq!(comp1.competition_round_number, 1);
 
-        sweepstakes.reset_round(now).unwrap();
 
         let expected_sweepstakes = &mut Competition {
-            round_number: 1,
-            status: CompetitionRoundStatus::Active,
-            next_round_expiry_ts: 168000000 + 101 * 60,
+            round_number: 0,
+            status: CompetitionRoundStatus::WinnerSettlementComplete,
+            next_round_expiry_ts: 168000060,
             number_of_competitors: 1,
-            total_score_settled: 0,
+            number_of_competitors_settled: 1,
+            total_score_settled: 1,
             round_duration: 60,
             prize_base: 1,
             prize_amount: 696202,
@@ -795,6 +830,29 @@ mod competition_fcn {
             prize_randomness: 478,
             prize_randomness_max: 957,
             winner_randomness: 1,
+            sponsor_info: SponsorInfo {
+                max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
+                ..SponsorInfo::default()
+            },
+            ..Competition::default()
+        };
+
+        assert_eq!(expected_sweepstakes, sweepstakes);
+        sweepstakes.reset_round(now).unwrap();
+        let expected_sweepstakes = &mut Competition {
+            round_number: 1,
+            status: CompetitionRoundStatus::Active,
+            next_round_expiry_ts: 168000000 + 101 * 60,
+            number_of_competitors: 1,
+            total_score_settled: 0,
+            round_duration: 60,
+            prize_base: 1,
+            prize_amount: 0,
+            outstanding_unclaimed_winnings: 696202,
+
+            prize_randomness: 0,
+            prize_randomness_max: 0,
+            winner_randomness: 0,
             sponsor_info: SponsorInfo {
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
                 ..SponsorInfo::default()
@@ -812,6 +870,10 @@ mod competition_fcn {
         sweepstakes
             .request_winner_and_prize_randomness(&spot_market, vault_balance)
             .unwrap();
+
+        sweepstakes.prize_randomness = get_test_sample_draw(0, sweepstakes.prize_randomness_max).unwrap();
+        sweepstakes.winner_randomness =
+            get_test_sample_draw(1, sweepstakes.total_score_settled).unwrap();
         sweepstakes
             .resolve_winner_and_prize_randomness(&spot_market, vault_balance)
             .unwrap();
@@ -834,14 +896,17 @@ mod competition_fcn {
         assert_eq!(sweepstakes.round_number, 1);
         assert_eq!(comp1.competition_round_number, 2);
 
-        sweepstakes.reset_round(now).unwrap();
 
         let expected_sweepstakes2 = &mut Competition {
-            round_number: 2,
-            status: CompetitionRoundStatus::Active,
-            next_round_expiry_ts: 1113896280,
+            round_number: 1,
+            status: CompetitionRoundStatus::WinnerSettlementComplete,
+            next_round_expiry_ts: 168006060,
+            // next_round_expiry_ts: 1113896280,
+
             number_of_competitors: 1,
-            total_score_settled: 0,
+            number_of_competitors_settled: 1,
+
+            total_score_settled: 1,
             round_duration: 60,
             prize_base: 1,
             prize_amount: 549499999,
@@ -858,6 +923,22 @@ mod competition_fcn {
         };
 
         assert_eq!(expected_sweepstakes2, sweepstakes);
+        sweepstakes.reset_round(now).unwrap();
+
+        expected_sweepstakes2.status = CompetitionRoundStatus::Active;
+        expected_sweepstakes2.round_number = 2;
+        expected_sweepstakes2.number_of_competitors_settled = 0;
+        expected_sweepstakes2.total_score_settled = 0;
+        expected_sweepstakes2.next_round_expiry_ts = 1113896280;
+        expected_sweepstakes2.prize_amount = 0;
+        expected_sweepstakes2.winner_randomness = 0;
+        expected_sweepstakes2.prize_randomness = 0;
+        expected_sweepstakes2.prize_randomness_max = 0;
+
+        assert_eq!(expected_sweepstakes2, sweepstakes);
+        // todo do another assert for         
+        // assert_eq!(expected_sweepstakes2, sweepstakes);
+
     }
 
     #[test]
@@ -914,6 +995,10 @@ mod competition_fcn {
         sweepstakes
             .request_winner_and_prize_randomness(&spot_market, vault_balance)
             .unwrap();
+
+        sweepstakes.prize_randomness = get_test_sample_draw(0, sweepstakes.prize_randomness_max).unwrap();
+        sweepstakes.winner_randomness =
+            get_test_sample_draw(1, sweepstakes.total_score_settled).unwrap();
 
         sweepstakes
             .resolve_winner_and_prize_randomness(&spot_market, vault_balance)
@@ -987,16 +1072,13 @@ mod competition_fcn {
 
         assert_eq!(comp2.unclaimed_winnings, 69);
 
-        sweepstakes.reset_round(now).unwrap();
-        assert_eq!(sweepstakes.round_number, 1);
-        assert_eq!(sweepstakes.status, CompetitionRoundStatus::Active);
-
         let expected_sweepstakes = &mut Competition {
-            round_number: 1,
-            status: CompetitionRoundStatus::Active,
-            next_round_expiry_ts: 168000000 + 120,
+            round_number: 0,
+            status: CompetitionRoundStatus::WinnerSettlementComplete,
+            next_round_expiry_ts: 168000000 + 60,
             number_of_competitors: 2,
-            total_score_settled: 0,
+            number_of_competitors_settled: 2,
+            total_score_settled: 4,
             round_duration: 60,
             prize_base: 5,
             prize_amount: 69,
@@ -1012,6 +1094,22 @@ mod competition_fcn {
         };
 
         assert_eq!(expected_sweepstakes, sweepstakes);
+
+        sweepstakes.reset_round(now).unwrap();
+
+        expected_sweepstakes.status = CompetitionRoundStatus::Active;
+        expected_sweepstakes.round_number += 1;
+        expected_sweepstakes.number_of_competitors_settled = 0;
+        expected_sweepstakes.total_score_settled = 0;
+        expected_sweepstakes.next_round_expiry_ts += 60;
+        expected_sweepstakes.prize_amount = 0;
+        expected_sweepstakes.winner_randomness = 0;
+        expected_sweepstakes.prize_randomness = 0;
+        expected_sweepstakes.prize_randomness_max = 0;
+        assert_eq!(expected_sweepstakes, sweepstakes);
+
+        assert_eq!(sweepstakes.round_number, 1);
+        assert_eq!(sweepstakes.status, CompetitionRoundStatus::Active);
 
         assert!(comp2.unclaimed_winnings > 0);
 
@@ -1037,7 +1135,7 @@ mod competition_fcn {
                 now
             )
             .is_err()); // still insurance_fund_stake base mismatch w/ spot_market
-        assert_eq!(comp2.unclaimed_winnings, sweepstakes.prize_amount as u64);
+        assert_eq!(comp2.unclaimed_winnings, 69);
         assert!(comp2.unclaimed_winnings > 0);
 
         insurance_fund_stake.if_base = 6; // match spot_market
@@ -1064,6 +1162,10 @@ mod competition_fcn {
         sweepstakes
             .request_winner_and_prize_randomness(&spot_market, vault_balance)
             .unwrap();
+
+        sweepstakes.prize_randomness = get_test_sample_draw(0, sweepstakes.prize_randomness_max).unwrap();
+        sweepstakes.winner_randomness =
+            get_test_sample_draw(1, sweepstakes.total_score_settled).unwrap();
         sweepstakes
             .resolve_winner_and_prize_randomness(&spot_market, vault_balance)
             .unwrap();
@@ -1173,6 +1275,11 @@ mod competition_fcn {
         sweepstakes
             .request_winner_and_prize_randomness(&spot_market, vault_balance)
             .unwrap();
+
+        sweepstakes.prize_randomness =
+            get_test_sample_draw(0, sweepstakes.prize_randomness_max).unwrap();
+        sweepstakes.winner_randomness =
+            get_test_sample_draw(1, sweepstakes.total_score_settled).unwrap();
         sweepstakes
             .resolve_winner_and_prize_randomness(&spot_market, vault_balance)
             .unwrap();
