@@ -259,7 +259,9 @@ impl Competition {
         validate!(
             self.status == CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
                 && self.winner_randomness != 0,
-            ErrorCode::CompetitionWinnerNotDetermined
+            ErrorCode::CompetitionWinnerNotDetermined,
+            "CompetitionWinnerNotDetermined, winner randomness = {}",
+            self.winner_randomness
         )?;
 
         // competitor account was settled and set to next round
@@ -480,6 +482,27 @@ impl Competition {
         Ok(())
     }
 
+    pub fn calculate_next_winner_randomness(&mut self) -> CompetitionResult<u128> {
+        let winner_randomness_offset: u128 = self
+            .total_score_settled
+            .safe_div(self.number_of_winners.cast()?)?
+            .safe_add(1)?
+            .safe_mul(
+                self.prize_randomness
+                    .safe_mul(self.number_of_winners_settled.cast()?)?,
+            )?.saturating_add(17)
+            ^ (self.prize_randomness)
+            ^ (self.winner_randomness)
+            << 3; // Bitwise XOR and left shift for added unpredictability
+
+        let next_winner_randomness =
+            self.winner_randomness.saturating_add(winner_randomness_offset) % (self.total_score_settled.saturating_add(1));
+
+        msg!("winner_randomness: {} -> {} (offset={})", self.winner_randomness, next_winner_randomness, winner_randomness_offset);
+
+        Ok(next_winner_randomness)
+    }
+
     pub fn calculate_next_winner_prize_amount(&mut self) -> CompetitionResult<u128> {
         let winner_prize_amount = if self.number_of_winners <= 3 {
             // equal split of prize_amount when number_of_winners is low
@@ -513,7 +536,6 @@ impl Competition {
             self.prize_amount
                 .safe_mul(winner_prize_ratio)?
                 .safe_div(PERCENTAGE_PRECISION)?
-                .safe_div(self.number_of_winners.cast()?)?
         };
 
         let prize_amount_remaining = self.prize_amount.safe_sub(self.prize_amount_settled)?;
@@ -575,12 +597,20 @@ impl Competition {
         self.number_of_winners_settled = self.number_of_winners_settled.safe_add(1)?;
 
         validate!(
-            self.prize_amount_settled <= self.prize_amount,
-            ErrorCode::CompetitionInvariantIssue
+            self.prize_amount_settled <= self.prize_amount
+                && self.number_of_winners_settled <= self.number_of_winners,
+            ErrorCode::CompetitionInvariantIssue,
+            "{} / {} winners with {} / {} prize settled",
+            self.number_of_winners_settled,
+            self.number_of_winners,
+            self.prize_amount_settled,
+            self.prize_amount
         )?;
 
         if self.number_of_winners == self.number_of_winners_settled {
             self.update_status(CompetitionRoundStatus::WinnerSettlementComplete)?;
+        } else {
+            self.winner_randomness = self.calculate_next_winner_randomness()?; // update randomness for next winner to settle
         }
 
         Ok(())
