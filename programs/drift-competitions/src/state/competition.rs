@@ -2,7 +2,6 @@ use crate::state::events::CompetitionRoundWinnerRecord;
 use crate::state::Size;
 use crate::utils::{
     apply_rebase_to_competition_prize, apply_rebase_to_competitor_unclaimed_winnings,
-    get_test_sample_draw,
 };
 use drift::{
     error::DriftResult,
@@ -407,10 +406,6 @@ impl Competition {
 
         self.update_status(CompetitionRoundStatus::WinnerAndPrizeRandomnessRequested)?;
 
-        // todo: remove, only for testing
-        self.prize_randomness = get_test_sample_draw(0, ratio_sum)?;
-        self.winner_randomness = get_test_sample_draw(1, self.total_score_settled)?;
-
         Ok(())
     }
 
@@ -435,7 +430,13 @@ impl Competition {
             self.calculate_prize_buckets_and_ratios(spot_market, vault_balance)?;
 
         let ratio_sum: u128 = ratios.iter().sum();
-        msg!("ratio_sum: {} vs {}", ratio_sum, self.prize_randomness_max);
+        msg!("prize buckets: {:?}", prize_buckets);
+        msg!("ratios: {:?}", ratios);
+        msg!(
+            "ratio_sum={} vs prize_randomness_max={}",
+            ratio_sum,
+            self.prize_randomness_max
+        );
 
         // prize amounts changed since random draw request
         let draw = if ratio_sum < self.prize_randomness_max {
@@ -526,10 +527,17 @@ impl Competition {
     pub fn reset_round(&mut self, now: i64) -> CompetitionResult {
         self.validate_round_settlement_complete()?;
 
+        // necessary
         self.total_score_settled = 0;
         self.number_of_competitors_settled = 0;
         self.round_number = self.round_number.safe_add(1)?;
         self.next_round_expiry_ts = self.calculate_next_round_expiry_ts(now)?;
+
+        // 'nice to clear'
+        self.winner_randomness = 0;
+        self.prize_randomness = 0;
+        self.prize_randomness_max = 0;
+        self.prize_amount = 0;
 
         self.update_status(CompetitionRoundStatus::Active)?;
 

@@ -10,8 +10,8 @@ pub fn receive_randomness(
     winner_randomness: u128,
     prize_randomness: u128,
 ) -> Result<()> {
-    msg!("winner_randomness {}", winner_randomness);
-    msg!("prize_randomness {}", prize_randomness);
+    msg!("winner_randomness: {}", winner_randomness);
+    msg!("prize_randomness: {}", prize_randomness);
 
     let mut competition = ctx.accounts.competition.load_mut()?;
 
@@ -20,6 +20,16 @@ pub fn receive_randomness(
 
     competition.winner_randomness = winner_randomness;
     competition.prize_randomness = prize_randomness;
+
+    msg!("insurance_fund vault_balance: {}", vault_balance);
+    msg!(
+        "spot_market.insurance_fund.user_shares: {}",
+        spot_market.insurance_fund.user_shares
+    );
+    msg!(
+        "spot_market.insurance_fund.total_shares: {}",
+        spot_market.insurance_fund.total_shares
+    );
 
     competition.resolve_winner_and_prize_randomness(&spot_market, vault_balance)?;
 
