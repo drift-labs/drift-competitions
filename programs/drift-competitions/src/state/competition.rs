@@ -482,6 +482,7 @@ impl Competition {
 
     pub fn calculate_next_winner_prize_amount(&mut self) -> CompetitionResult<u128> {
         let winner_prize_amount = if self.number_of_winners <= 3 {
+            // equal split of prize_amount when number_of_winners is low
             self.prize_amount.safe_div(self.number_of_winners.cast()?)?
         } else {
             // 50%, 20%, 15% for 1st, 2nd, 3rd respectively (in PERCENTAGE_PRECISION)
