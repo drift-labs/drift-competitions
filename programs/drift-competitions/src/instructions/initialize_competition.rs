@@ -1,13 +1,11 @@
+use crate::error::ErrorCode;
 use crate::state::Size;
 use crate::state::{Competition, CompetitionRoundStatus};
 use anchor_lang::prelude::*;
-use crate::error::ErrorCode;
 
-const SWEEPSTAKES_NAME : [u8; 32] = [
-    115, 119, 101, 101, 112, 115, 116, 97,
-    107, 101, 115,  32,  32,  32,  32, 32,
-    32,  32,  32,  32,  32,  32,  32, 32,
-    32,  32,  32,  32,  32,  32,  32, 32
+const SWEEPSTAKES_NAME: [u8; 32] = [
+    115, 119, 101, 101, 112, 115, 116, 97, 107, 101, 115, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
 ];
 
 pub fn initialize_competition<'info>(
@@ -44,6 +42,8 @@ pub fn initialize_competition<'info>(
 
     competition.max_entries_per_competitor = params.max_entries_per_competitor;
 
+    competition.number_of_winners = params.number_of_winners;
+
     Ok(())
 }
 
@@ -60,6 +60,9 @@ pub struct CompetitionParams {
     pub max_entries_per_competitor: u128,
     pub min_sponsor_amount: u64,
     pub max_sponsor_fraction: u64,
+
+    // number of winners
+    pub number_of_winners: u32,
 }
 
 #[derive(Accounts)]

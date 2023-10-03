@@ -6,7 +6,7 @@ use crate::utils::{
 };
 use drift::{
     error::DriftResult,
-    math::constants::{PERCENTAGE_PRECISION_U64, QUOTE_PRECISION},
+    math::constants::{PERCENTAGE_PRECISION, PERCENTAGE_PRECISION_U64, QUOTE_PRECISION},
     state::spot_market::SpotMarket,
 };
 
@@ -73,6 +73,7 @@ pub struct Competition {
 
     // giveaway details
     pub prize_amount: u128,
+    pub prize_amount_settled: u128,
     pub prize_base: u128,
 
     pub winner_randomness: u128,
@@ -88,6 +89,10 @@ pub struct Competition {
     // when competition ends, perpetual when == 0
     pub round_duration: u64,
 
+    // selecting multiple winners
+    pub number_of_winners: u32,
+    pub number_of_winners_settled: u32,
+
     pub status: CompetitionRoundStatus,
     pub competition_authority_bump: u8,
 
@@ -95,7 +100,7 @@ pub struct Competition {
 }
 
 impl Size for Competition {
-    const SIZE: usize = 432 + 8;
+    const SIZE: usize = 456 + 8;
 }
 
 const_assert_eq!(Competition::SIZE, std::mem::size_of::<Competition>() + 8);
@@ -474,12 +479,47 @@ impl Competition {
         Ok(())
     }
 
+    pub fn calculate_next_winner_prize_amount(&mut self) -> CompetitionResult<u128> {
+        let winner_prize_amount = if self.number_of_winners <= 3 {
+            self.prize_amount.safe_div(self.number_of_winners.cast()?)?
+        } else {
+            let top_winner_prize_ratios: [u128; 3] = [500_000, 200_000, 150_000];
+            let remainder = PERCENTAGE_PRECISION.safe_sub(top_winner_prize_ratios.iter().sum())?;
+
+            let winner_prize_ratio =
+                if (self.number_of_winners_settled as usize) < top_winner_prize_ratios.len() {
+                    top_winner_prize_ratios[self.number_of_winners_settled as usize]
+                } else {
+                    remainder.safe_div(
+                        (self
+                            .number_of_winners
+                            .safe_sub(top_winner_prize_ratios.len() as u32)?)
+                        .cast()?,
+                    )?
+                };
+
+            self.prize_amount
+                .safe_mul(winner_prize_ratio)?
+                .safe_div(PERCENTAGE_PRECISION)?
+                .safe_div(self.number_of_winners.cast()?)?
+        };
+
+        let prize_amount_remaining = self.prize_amount.safe_sub(self.prize_amount_settled)?;
+
+        Ok(winner_prize_amount.min(prize_amount_remaining))
+    }
+
     pub fn settle_winner(
         &mut self,
         competitor: &mut Competitor,
         spot_market: &SpotMarket,
         now: i64,
     ) -> CompetitionResult {
+        if self.number_of_winners == self.number_of_winners_settled {
+            self.update_status(CompetitionRoundStatus::WinnerSettlementComplete)?;
+            return Ok(());
+        }
+
         self.validate_competitor_is_winner(competitor)?;
 
         if competitor.unclaimed_winnings != 0 {
@@ -490,6 +530,8 @@ impl Competition {
             apply_rebase_to_competition_prize(self, spot_market)?;
         }
 
+        let winner_prize_amount = self.calculate_next_winner_prize_amount()?;
+
         emit!(CompetitionRoundWinnerRecord {
             round_number: self.round_number,
             competitor: competitor.authority,
@@ -498,7 +540,7 @@ impl Competition {
             total_score_settled: self.total_score_settled,
             number_of_competitors_settled: self.number_of_competitors_settled,
 
-            prize_amount: self.prize_amount,
+            prize_amount: winner_prize_amount,
             prize_base: self.prize_base,
 
             winner_randomness: self.winner_randomness,
@@ -510,15 +552,19 @@ impl Competition {
 
         competitor.unclaimed_winnings = competitor
             .unclaimed_winnings
-            .saturating_add(self.prize_amount.cast()?);
+            .saturating_add(winner_prize_amount.cast()?);
         competitor.unclaimed_winnings_base = self.prize_base;
         competitor.bonus_score = 0; // reset bonus score to 0
 
         self.outstanding_unclaimed_winnings = self
             .outstanding_unclaimed_winnings
-            .saturating_add(self.prize_amount.cast()?);
+            .saturating_add(winner_prize_amount.cast()?);
+        self.prize_amount_settled = self.prize_amount_settled.safe_sub(winner_prize_amount)?;
+        self.number_of_winners_settled = self.number_of_winners_settled.safe_add(1)?;
 
-        self.update_status(CompetitionRoundStatus::WinnerSettlementComplete)?;
+        if self.number_of_winners == self.number_of_winners_settled {
+            self.update_status(CompetitionRoundStatus::WinnerSettlementComplete)?;
+        }
 
         Ok(())
     }
@@ -532,6 +578,8 @@ impl Competition {
         self.next_round_expiry_ts = self.calculate_next_round_expiry_ts(now)?;
 
         self.update_status(CompetitionRoundStatus::Active)?;
+
+        self.number_of_winners_settled = 0;
 
         Ok(())
     }

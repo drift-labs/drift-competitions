@@ -14,6 +14,7 @@ mod competition_helpers {
         let mut now = 1695330779;
         let sweepstakes = &mut Competition::default();
         sweepstakes.round_duration = 604800;
+        sweepstakes.number_of_winners = 1;
 
         let first_expiry = 1695650400;
 
@@ -57,6 +58,7 @@ mod competition_helpers {
     #[test]
     pub fn test_prize_odds() {
         let sweepstakes = &mut Competition::default();
+        sweepstakes.number_of_winners = 1;
         sweepstakes.sponsor_info.max_sponsor_fraction = PERCENTAGE_PRECISION_U64;
 
         let mut spot_market = SpotMarket::default();
@@ -144,6 +146,8 @@ mod competition_helpers {
     #[test]
     pub fn test_prize_odds_insurance_odd_lot() {
         let sweepstakes = &mut Competition::default();
+        sweepstakes.number_of_winners = 1;
+
         sweepstakes.sponsor_info.max_sponsor_fraction = PERCENTAGE_PRECISION_U64;
 
         let mut spot_market = SpotMarket::default();
@@ -252,6 +256,8 @@ mod competition_helpers {
     #[test]
     pub fn test_prize_odds_changing_insurance_fund() {
         let sweepstakes = &mut Competition::default();
+        sweepstakes.number_of_winners = 1;
+
         sweepstakes.sponsor_info.max_sponsor_fraction = PERCENTAGE_PRECISION_U64;
 
         let mut spot_market = SpotMarket::default();
@@ -346,6 +352,8 @@ mod competition_fcn {
 
         sweepstakes.next_round_expiry_ts = now + 60;
         sweepstakes.round_duration = 60;
+        sweepstakes.number_of_winners = 1;
+
         assert_eq!(sweepstakes.status, CompetitionRoundStatus::Active);
 
         sweepstakes.number_of_competitors = 2;
@@ -429,6 +437,8 @@ mod competition_fcn {
         sweepstakes.reset_round(now).unwrap();
 
         let expected_sweepstakes = &mut Competition {
+            number_of_winners: 1,
+            number_of_winners_settled: 1,
             round_number: 1,
             status: CompetitionRoundStatus::Active,
             next_round_expiry_ts: 168000000 + 120,
@@ -453,6 +463,8 @@ mod competition_fcn {
 
         sweepstakes.next_round_expiry_ts = now + 60;
         sweepstakes.round_duration = 60;
+        sweepstakes.number_of_winners = 1;
+
         assert_eq!(sweepstakes.status, CompetitionRoundStatus::Active);
 
         sweepstakes.competition_expiry_ts = now + 88;
@@ -496,6 +508,8 @@ mod competition_fcn {
 
         sweepstakes.next_round_expiry_ts = now + 60;
         sweepstakes.round_duration = 60;
+        sweepstakes.number_of_winners = 1;
+
         assert_eq!(sweepstakes.status, CompetitionRoundStatus::Active);
         sweepstakes.sponsor_info.max_sponsor_fraction = PERCENTAGE_PRECISION_U64 / 2;
         sweepstakes.number_of_competitors = 2;
@@ -722,6 +736,8 @@ mod competition_fcn {
 
         sweepstakes.next_round_expiry_ts = now + 60;
         sweepstakes.round_duration = 60;
+        sweepstakes.number_of_winners = 1;
+
         assert_eq!(sweepstakes.status, CompetitionRoundStatus::Active);
         sweepstakes.sponsor_info.max_sponsor_fraction = PERCENTAGE_PRECISION_U64 / 2;
         sweepstakes.number_of_competitors = 2;
@@ -851,6 +867,8 @@ mod competition_fcn {
 
         sweepstakes.next_round_expiry_ts = now + 60;
         sweepstakes.round_duration = 60;
+        sweepstakes.number_of_winners = 1;
+
         assert_eq!(sweepstakes.status, CompetitionRoundStatus::Active);
         sweepstakes.sponsor_info.max_sponsor_fraction = PERCENTAGE_PRECISION_U64 / 2;
         sweepstakes.number_of_competitors = 2;
@@ -1234,6 +1252,7 @@ mod competition_fcn {
 
         sweepstakes.next_round_expiry_ts = now + 60;
         sweepstakes.round_duration = 60;
+        sweepstakes.number_of_winners = 1;
 
         assert_eq!(sweepstakes.status, CompetitionRoundStatus::Active);
 
@@ -1271,6 +1290,7 @@ mod competition_fcn {
 
         sweepstakes.next_round_expiry_ts = now + 60;
         sweepstakes.round_duration = 60;
+        sweepstakes.number_of_winners = 1;
 
         assert_eq!(sweepstakes.status, CompetitionRoundStatus::Active);
 
