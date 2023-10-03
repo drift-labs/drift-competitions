@@ -12,6 +12,7 @@
   "dependencies": {
     "@coral-xyz/anchor": "^0.26.0",
     "@solana/web3.js": "1.73.2",
+    "@switchboard-xyz/solana.js": "^2.7.1",
     "dotenv": "^16.3.1",
     "strict-event-emitter-types": "^2.0.0",
     "ts-node": "^10.9.1",
