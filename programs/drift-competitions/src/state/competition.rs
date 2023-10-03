@@ -485,7 +485,7 @@ impl Competition {
             // equal split of prize_amount when number_of_winners is low
             self.prize_amount.safe_div(self.number_of_winners.cast()?)?
         } else {
-            // 50%, 20%, 15% for 1st, 2nd, 3rd respectively (in PERCENTAGE_PRECISION)
+            // 50%, 20%, 15% of prize_amount for 1st, 2nd, 3rd respectively (in PERCENTAGE_PRECISION)
             let top_winner_prize_ratios: [u128; 3] = [500_000, 200_000, 150_000];
 
             // consolation pool is even split of the remainder for any winner past the 3rd
