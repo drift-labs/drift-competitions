@@ -560,8 +560,13 @@ impl Competition {
         self.outstanding_unclaimed_winnings = self
             .outstanding_unclaimed_winnings
             .saturating_add(winner_prize_amount.cast()?);
-        self.prize_amount_settled = self.prize_amount_settled.safe_sub(winner_prize_amount)?;
+        self.prize_amount_settled = self.prize_amount_settled.safe_add(winner_prize_amount)?;
         self.number_of_winners_settled = self.number_of_winners_settled.safe_add(1)?;
+
+        validate!(
+            self.prize_amount_settled <= self.prize_amount,
+            ErrorCode::CompetitionInvariantIssue
+        )?;
 
         if self.number_of_winners == self.number_of_winners_settled {
             self.update_status(CompetitionRoundStatus::WinnerSettlementComplete)?;
@@ -574,6 +579,7 @@ impl Competition {
         self.validate_round_settlement_complete()?;
 
         // necessary
+        self.number_of_winners_settled = 0;
         self.total_score_settled = 0;
         self.number_of_competitors_settled = 0;
         self.round_number = self.round_number.safe_add(1)?;
@@ -584,10 +590,9 @@ impl Competition {
         self.prize_randomness = 0;
         self.prize_randomness_max = 0;
         self.prize_amount = 0;
+        self.prize_amount_settled = 0;
 
         self.update_status(CompetitionRoundStatus::Active)?;
-
-        self.number_of_winners_settled = 0;
 
         Ok(())
     }
