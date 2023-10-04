@@ -204,9 +204,9 @@ export class CompetitionsClient {
 			const initCompetitorIx = this.program.instruction.initializeCompetitor({
 				accounts: {
 					...accounts,
-					payer: this.driftClient.wallet.publicKey,
+					payer: this.program.provider.publicKey,
 					rent: SYSVAR_RENT_PUBKEY,
-					authority: this.driftClient.wallet.publicKey,
+					authority: this.program.provider.publicKey,
 					systemProgram: anchor.web3.SystemProgram.programId,
 				},
 			});
@@ -240,10 +240,12 @@ export class CompetitionsClient {
 			const claimEntryIx = this.program.instruction.claimEntry({
 				accounts: {
 					...accounts,
-					authority: this.driftClient.wallet.publicKey,
+					authority: this.program.provider.publicKey,
 				},
 			});
-			return await this.createAndSendTxn([claimEntryIx]);
+			return await this.createAndSendTxn([claimEntryIx], {
+				noComputeBudgetIx: true, // claim entry needs to be a standalone ix in a tx
+			});
 		} else {
 			return await this.program.methods.claimEntry().accounts(accounts).rpc();
 		}
@@ -286,21 +288,34 @@ export class CompetitionsClient {
 			this.driftClient.program.programId
 		)[0];
 
-		return await this.program.methods
-			.claimWinnings(shares ?? null)
-			.accounts({
-				competitor,
-				competition: competition,
-				driftUserStats: this.driftClient.getUserStatsAccountPublicKey(),
-				spotMarket,
-				insuranceFundStake,
-				insuranceFundVault,
-				driftProgram: this.driftClient.program.programId,
-				competitionAuthority,
-				driftState,
-				driftTransferConfig,
-			})
-			.rpc();
+		const accounts = {
+			competitor,
+			competition: competition,
+			driftUserStats: this.driftClient.getUserStatsAccountPublicKey(),
+			spotMarket,
+			insuranceFundStake,
+			insuranceFundVault,
+			driftProgram: this.driftClient.program.programId,
+			competitionAuthority,
+			driftState,
+			driftTransferConfig,
+		};
+
+		if (this.uiMode) {
+			const claimIx = this.program.instruction.claimWinnings({
+				accounts: {
+					...accounts,
+					authority: this.program.provider.publicKey,
+				},
+			});
+
+			return await this.createAndSendTxn([claimIx]);
+		} else {
+			return await this.program.methods
+				.claimWinnings(shares ?? null)
+				.accounts(accounts)
+				.rpc();
+		}
 	}
 
 	public async settleCompetitor(
@@ -417,16 +432,21 @@ export class CompetitionsClient {
 	 */
 	async createAndSendTxn(
 		ixs: TransactionInstruction[],
-		computeUnitParams?: SetComputeUnitLimitParams
+		txOpts?: {
+			computeUnitParams?: SetComputeUnitLimitParams;
+			noComputeBudgetIx?: boolean;
+		}
 	): Promise<TransactionSignature> {
 		const tx = new Transaction();
-		tx.add(
-			ComputeBudgetProgram.setComputeUnitLimit(
-				computeUnitParams || {
-					units: 400_000,
-				}
-			)
-		);
+		if (!txOpts?.noComputeBudgetIx) {
+			tx.add(
+				ComputeBudgetProgram.setComputeUnitLimit(
+					txOpts?.computeUnitParams || {
+						units: 400_000,
+					}
+				)
+			);
+		}
 		tx.add(...ixs);
 		const { txSig } = await this.driftClient.sendTransaction(
 			tx,
