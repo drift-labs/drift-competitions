@@ -500,7 +500,7 @@ impl Competition {
 
         msg!("winner_randomness: {} -> {} (offset={})", self.winner_randomness, next_winner_randomness, winner_randomness_offset);
 
-        Ok(next_winner_randomness)
+        Ok(next_winner_randomness.max(1))
     }
 
     pub fn calculate_next_winner_prize_amount(&mut self) -> CompetitionResult<u128> {

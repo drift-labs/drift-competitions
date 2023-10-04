@@ -1617,7 +1617,7 @@ mod competition_multiple_winners {
             sweepstakes.status,
             CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
         );
-        assert_eq!(sweepstakes.winner_randomness, 4);
+        assert_eq!(sweepstakes.winner_randomness, 1);
 
         sweepstakes.winner_randomness = 1; // set so other comp wins
         sweepstakes.settle_winner(comp1, &spot_market, now).unwrap();
