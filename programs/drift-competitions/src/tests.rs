@@ -327,6 +327,52 @@ mod competition_helpers {
         assert_eq!(min_prize_times, [49141, 7923, 8]); // only when cnt = max prize draw
         assert!(min_prize_times[2] < if_deltas.len());
     }
+
+
+    #[test]
+    pub fn test_calculate_next_winner_randomness() {
+        let sweepstakes = &mut Competition::default();
+
+        sweepstakes.next_round_expiry_ts = 1696859969;
+        sweepstakes.round_duration = 604800;
+        sweepstakes.number_of_winners = 1000;
+        sweepstakes.number_of_competitors = 1000;
+        sweepstakes.total_score_settled = 10 * 5_000_000 * QUOTE_PRECISION * 7; // 5 million volume a day for 1 week
+
+
+        sweepstakes.prize_amount = 2000 * QUOTE_PRECISION;
+
+        assert_eq!(sweepstakes.winner_randomness, 0);
+        assert_eq!(sweepstakes.prize_randomness, 0);
+
+        let mut res1: [u128; 1000] = [0; 1000];
+        for i in 0..res1.len() {
+            res1[i] = sweepstakes.calculate_next_winner_randomness().unwrap();
+            sweepstakes.winner_randomness = res1[i];
+            assert!(sweepstakes.winner_randomness < sweepstakes.total_score_settled);
+            assert!(sweepstakes.winner_randomness > 0);
+            assert!(!res1[..i].contains(&sweepstakes.winner_randomness));
+
+        }
+
+        sweepstakes.prize_randomness = 1;
+        assert_eq!(sweepstakes.winner_randomness, 59690716702806);
+        assert_eq!(sweepstakes.prize_randomness, 1);
+        assert_eq!(res1[899], 155627316674945);
+
+        let mut res2: [u128; 1000] = [0; 1000];
+        for i in 0..res2.len() {
+            res2[i] = sweepstakes.calculate_next_winner_randomness().unwrap();
+            sweepstakes.winner_randomness = res2[i];
+            assert!(sweepstakes.winner_randomness < sweepstakes.total_score_settled);
+            assert!(sweepstakes.winner_randomness > 0);
+            assert!(!res1.contains(&sweepstakes.winner_randomness));
+            // Check only up to the current index for res2
+            assert!(!res2[..i].contains(&sweepstakes.winner_randomness));
+        }
+        assert_eq!(res2[994], 40087212372938);
+
+    }
 }
 
 mod competition_fcn {
@@ -1564,7 +1610,6 @@ mod competition_multiple_winners {
         sweepstakes.sponsor_info.max_sponsor_fraction = PERCENTAGE_PRECISION_U64 / 2;
         sweepstakes.number_of_competitors = 2;
         let comp1 = &mut Competitor::default();
-        let comp2 = &mut Competitor::default();
         comp1.claim_entry().unwrap();
 
         let comp2 = &mut Competitor::default();
