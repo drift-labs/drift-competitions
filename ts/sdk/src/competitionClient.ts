@@ -302,7 +302,7 @@ export class CompetitionsClient {
 		};
 
 		if (this.uiMode) {
-			const claimIx = this.program.instruction.claimWinnings({
+			const claimIx = this.program.instruction.claimWinnings(shares ?? null, {
 				accounts: {
 					...accounts,
 					authority: this.program.provider.publicKey,
