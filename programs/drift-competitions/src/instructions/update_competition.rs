@@ -32,6 +32,10 @@ pub fn update_competition<'info>(
         competition.sponsor_info.max_sponsor_fraction = max_sponsor_fraction;
     }
 
+    if let Some(number_of_winners) = params.number_of_winners {
+        competition.number_of_winners = number_of_winners;
+    }
+
     Ok(())
 }
 
@@ -46,6 +50,9 @@ pub struct UpdateCompetitionParams {
     pub max_entries_per_competitor: Option<u128>,
     pub min_sponsor_amount: Option<u64>,
     pub max_sponsor_fraction: Option<u64>,
+
+    // number of winners
+    pub number_of_winners: Option<u32>,
 }
 
 #[derive(Accounts)]
