@@ -589,7 +589,8 @@ impl Competition {
             .saturating_add(winner_prize_amount.cast()?);
         competitor.unclaimed_winnings_base = self.prize_base;
 
-        if self.number_of_winners_settled >= 3 {
+        // user splitting consolation pool by more than two retain tickets
+        if self.number_of_winners_settled < 3 || self.number_of_winners < 5 {
             competitor.bonus_score = 0; // reset bonus score to 0
         }
 
