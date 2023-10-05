@@ -588,7 +588,10 @@ impl Competition {
             .unclaimed_winnings
             .saturating_add(winner_prize_amount.cast()?);
         competitor.unclaimed_winnings_base = self.prize_base;
-        competitor.bonus_score = 0; // reset bonus score to 0
+
+        if self.number_of_winners_settled >= 3 {
+            competitor.bonus_score = 0; // reset bonus score to 0
+        }
 
         self.outstanding_unclaimed_winnings = self
             .outstanding_unclaimed_winnings
