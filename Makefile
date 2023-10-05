@@ -8,10 +8,10 @@
 DOCKER_IMAGE_NAME ?= gallynaut/solana-simple-randomness-function
 
 check_docker_env:
-ifeq ($(strip $(DOCKERHUB_IMAGE_NAME)),)
-	$(error DOCKERHUB_IMAGE_NAME is not set)
+ifeq ($(strip $(DOCKER_IMAGE_NAME)),)
+	$(error DOCKER_IMAGE_NAME is not set)
 else
-	@echo DOCKERHUB_IMAGE_NAME: ${DOCKERHUB_IMAGE_NAME}
+	@echo DOCKER_IMAGE_NAME: ${DOCKER_IMAGE_NAME}
 endif
 
 # Default make task
@@ -22,9 +22,9 @@ anchor_build :; anchor build
 anchor_publish:; make -j 2 simple-flip-deploy callback-flip-deploy
 
 docker_build:
-	docker buildx build --platform linux/amd64 --pull -f Dockerfile -t ${DOCKER_IMAGE_NAME} --load ./
+	docker buildx build --platform linux/amd64 --pull -f Dockerfile -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} --load ./
 docker_publish:
-	docker buildx build --platform linux/amd64 --pull -f Dockerfile -t ${DOCKER_IMAGE_NAME} --push ./
+	docker buildx build --platform linux/amd64 --pull -f Dockerfile -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} --push ./
 
 build: anchor_build docker_build measurement
 
@@ -33,8 +33,8 @@ dev: dev_docker_build measurement
 publish: anchor_publish docker_publish measurement
 
 measurement: check_docker_env
-	docker pull --platform=linux/amd64 -q ${DOCKERHUB_IMAGE_NAME}:latest
-	@docker run -d --platform=linux/amd64 --name=my-switchboard-function ${DOCKERHUB_IMAGE_NAME}:latest
+	docker pull --platform=linux/amd64 -q ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
+	@docker run -d --platform=linux/amd64 --name=my-switchboard-function ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
 	@docker cp my-switchboard-function:/measurement.txt ./measurement.txt
 	@echo -n 'MrEnclve: '
 	@cat measurement.txt
