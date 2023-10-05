@@ -561,6 +561,10 @@
             "type": "u128"
           },
           {
+            "name": "prizeAmountSettled",
+            "type": "u128"
+          },
+          {
             "name": "prizeBase",
             "type": "u128"
           },
@@ -595,6 +599,14 @@
           {
             "name": "roundDuration",
             "type": "u64"
+          },
+          {
+            "name": "numberOfWinners",
+            "type": "u32"
+          },
+          {
+            "name": "numberOfWinnersSettled",
+            "type": "u32"
           },
           {
             "name": "status",
@@ -724,6 +736,10 @@
           {
             "name": "maxSponsorFraction",
             "type": "u64"
+          },
+          {
+            "name": "numberOfWinners",
+            "type": "u32"
           }
         ]
       }
@@ -767,6 +783,12 @@
             "name": "maxSponsorFraction",
             "type": {
               "option": "u64"
+            }
+          },
+          {
+            "name": "numberOfWinners",
+            "type": {
+              "option": "u32"
             }
           }
         ]
