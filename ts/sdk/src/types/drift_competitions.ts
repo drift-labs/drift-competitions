@@ -548,6 +548,10 @@ export type DriftCompetitions = {
 						type: 'u128';
 					},
 					{
+						name: 'prizeAmountSettled';
+						type: 'u128';
+					},
+					{
 						name: 'prizeBase';
 						type: 'u128';
 					},
@@ -582,6 +586,14 @@ export type DriftCompetitions = {
 					{
 						name: 'roundDuration';
 						type: 'u64';
+					},
+					{
+						name: 'numberOfWinners';
+						type: 'u32';
+					},
+					{
+						name: 'numberOfWinnersSettled';
+						type: 'u32';
 					},
 					{
 						name: 'status';
@@ -702,6 +714,10 @@ export type DriftCompetitions = {
 					{
 						name: 'maxSponsorFraction';
 						type: 'u64';
+					},
+					{
+						name: 'numberOfWinners';
+						type: 'u32';
 					}
 				];
 			};
@@ -745,6 +761,12 @@ export type DriftCompetitions = {
 						name: 'maxSponsorFraction';
 						type: {
 							option: 'u64';
+						};
+					},
+					{
+						name: 'numberOfWinners';
+						type: {
+							option: 'u32';
 						};
 					}
 				];
@@ -1529,6 +1551,10 @@ export const IDL: DriftCompetitions = {
 						type: 'u128',
 					},
 					{
+						name: 'prizeAmountSettled',
+						type: 'u128',
+					},
+					{
 						name: 'prizeBase',
 						type: 'u128',
 					},
@@ -1563,6 +1589,14 @@ export const IDL: DriftCompetitions = {
 					{
 						name: 'roundDuration',
 						type: 'u64',
+					},
+					{
+						name: 'numberOfWinners',
+						type: 'u32',
+					},
+					{
+						name: 'numberOfWinnersSettled',
+						type: 'u32',
 					},
 					{
 						name: 'status',
@@ -1684,6 +1718,10 @@ export const IDL: DriftCompetitions = {
 						name: 'maxSponsorFraction',
 						type: 'u64',
 					},
+					{
+						name: 'numberOfWinners',
+						type: 'u32',
+					},
 				],
 			},
 		},
@@ -1726,6 +1764,12 @@ export const IDL: DriftCompetitions = {
 						name: 'maxSponsorFraction',
 						type: {
 							option: 'u64',
+						},
+					},
+					{
+						name: 'numberOfWinners',
+						type: {
+							option: 'u32',
 						},
 					},
 				],
