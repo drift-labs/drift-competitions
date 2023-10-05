@@ -22,12 +22,12 @@ export abstract class ProgramAccountBase<
 		return this.accountSubscriber.eventEmitter;
 	}
 
-	async subscribe(): Promise<boolean> {
-		return await this.accountSubscriber.subscribe();
+	subscribe(): Promise<boolean> {
+		return this.accountSubscriber.subscribe();
 	}
 
-	async unsubscribe(): Promise<void> {
-		return await this.accountSubscriber.unsubscribe();
+	unsubscribe(): Promise<void> {
+		return this.accountSubscriber.unsubscribe();
 	}
 
 	getData(): Account {
@@ -36,5 +36,9 @@ export abstract class ProgramAccountBase<
 
 	async updateData(newData: Account, slot: number): Promise<void> {
 		return await this.accountSubscriber.updateData(newData, slot);
+	}
+
+	fetch() {
+		return this.accountSubscriber.fetch();
 	}
 }
