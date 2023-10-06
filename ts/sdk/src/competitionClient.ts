@@ -70,6 +70,7 @@ export class CompetitionsClient {
 		maxEntriesPerCompetitor,
 		minSponsorAmount,
 		maxSponsorFraction,
+		numberOfWinners,
 	}: {
 		name: string;
 		nextRoundExpiryTs: BN;
@@ -78,6 +79,7 @@ export class CompetitionsClient {
 		maxEntriesPerCompetitor: BN;
 		minSponsorAmount: BN;
 		maxSponsorFraction: BN;
+		numberOfWinners: number;
 	}): Promise<TransactionSignature> {
 		const encodedName = encodeName(name);
 		const competitionAddress = getCompetitionAddressSync(
@@ -94,6 +96,7 @@ export class CompetitionsClient {
 				maxEntriesPerCompetitor,
 				minSponsorAmount,
 				maxSponsorFraction,
+				numberOfWinners,
 			})
 			.accounts({
 				competition: competitionAddress,
@@ -110,6 +113,7 @@ export class CompetitionsClient {
 			maxEntriesPerCompetitor = null,
 			minSponsorAmount = null,
 			maxSponsorFraction = null,
+			numberOfWinners = null,
 		}: {
 			nextRoundExpiryTs?: BN | null;
 			competitionExpiryTs?: BN | null;
@@ -117,6 +121,7 @@ export class CompetitionsClient {
 			maxEntriesPerCompetitor?: BN | null;
 			minSponsorAmount?: BN | null;
 			maxSponsorFraction?: BN | null;
+			numberOfWinners?: number | null;
 		}
 	): Promise<TransactionSignature> {
 		return await this.program.methods
@@ -127,6 +132,7 @@ export class CompetitionsClient {
 				maxEntriesPerCompetitor,
 				minSponsorAmount,
 				maxSponsorFraction,
+				numberOfWinners,
 			})
 			.accounts({
 				competition: competition,

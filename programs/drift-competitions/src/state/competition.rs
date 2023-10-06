@@ -2,11 +2,10 @@ use crate::state::events::CompetitionRoundWinnerRecord;
 use crate::state::Size;
 use crate::utils::{
     apply_rebase_to_competition_prize, apply_rebase_to_competitor_unclaimed_winnings,
-    get_test_sample_draw,
 };
 use drift::{
     error::DriftResult,
-    math::constants::{PERCENTAGE_PRECISION_U64, QUOTE_PRECISION},
+    math::constants::{PERCENTAGE_PRECISION, PERCENTAGE_PRECISION_U64, QUOTE_PRECISION},
     state::spot_market::SpotMarket,
 };
 
@@ -73,6 +72,7 @@ pub struct Competition {
 
     // giveaway details
     pub prize_amount: u128,
+    pub prize_amount_settled: u128,
     pub prize_base: u128,
 
     pub winner_randomness: u128,
@@ -88,6 +88,10 @@ pub struct Competition {
     // when competition ends, perpetual when == 0
     pub round_duration: u64,
 
+    // selecting multiple winners
+    pub number_of_winners: u32,
+    pub number_of_winners_settled: u32,
+
     pub status: CompetitionRoundStatus,
     pub competition_authority_bump: u8,
 
@@ -95,7 +99,7 @@ pub struct Competition {
 }
 
 impl Size for Competition {
-    const SIZE: usize = 432 + 8;
+    const SIZE: usize = 456 + 8;
 }
 
 const_assert_eq!(Competition::SIZE, std::mem::size_of::<Competition>() + 8);
@@ -255,7 +259,9 @@ impl Competition {
         validate!(
             self.status == CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
                 && self.winner_randomness != 0,
-            ErrorCode::CompetitionWinnerNotDetermined
+            ErrorCode::CompetitionWinnerNotDetermined,
+            "CompetitionWinnerNotDetermined, winner randomness = {}",
+            self.winner_randomness
         )?;
 
         // competitor account was settled and set to next round
@@ -407,10 +413,6 @@ impl Competition {
 
         self.update_status(CompetitionRoundStatus::WinnerAndPrizeRandomnessRequested)?;
 
-        // todo: remove, only for testing
-        self.prize_randomness = get_test_sample_draw(0, ratio_sum)?;
-        self.winner_randomness = get_test_sample_draw(1, self.total_score_settled)?;
-
         Ok(())
     }
 
@@ -435,7 +437,13 @@ impl Competition {
             self.calculate_prize_buckets_and_ratios(spot_market, vault_balance)?;
 
         let ratio_sum: u128 = ratios.iter().sum();
-        msg!("ratio_sum: {} vs {}", ratio_sum, self.prize_randomness_max);
+        msg!("prize buckets: {:?}", prize_buckets);
+        msg!("ratios: {:?}", ratios);
+        msg!(
+            "ratio_sum={} vs prize_randomness_max={}",
+            ratio_sum,
+            self.prize_randomness_max
+        );
 
         // prize amounts changed since random draw request
         let draw = if ratio_sum < self.prize_randomness_max {
@@ -474,12 +482,78 @@ impl Competition {
         Ok(())
     }
 
+    pub fn calculate_next_winner_randomness(&mut self) -> CompetitionResult<u128> {
+        let winner_randomness_offset: u128 = self
+            .total_score_settled
+            .safe_div(self.number_of_winners.cast()?)?
+            .safe_add(1)?
+            .safe_mul(
+                self.prize_randomness
+                    .safe_mul(self.number_of_winners_settled.cast()?)?,
+            )?.saturating_add(17)
+            ^ (self.prize_randomness)
+            ^ (self.winner_randomness)
+            << 3; // Bitwise XOR and left shift for added unpredictability
+
+        let next_winner_randomness =
+            self.winner_randomness.saturating_add(winner_randomness_offset) % (self.total_score_settled.saturating_add(1));
+
+        msg!("winner_randomness: {} -> {} (offset={})", self.winner_randomness, next_winner_randomness, winner_randomness_offset);
+
+        Ok(next_winner_randomness.max(1))
+    }
+
+    pub fn calculate_next_winner_prize_amount(&mut self) -> CompetitionResult<u128> {
+        let winner_prize_amount = if self.number_of_winners <= 3 {
+            // equal split of prize_amount when number_of_winners is low
+            self.prize_amount.safe_div(self.number_of_winners.cast()?)?
+        } else {
+            // 50%, 20%, 15% of prize_amount for 1st, 2nd, 3rd respectively (in PERCENTAGE_PRECISION)
+            let top_winner_prize_ratios: [u128; 3] = [500_000, 200_000, 150_000];
+
+            // consolation pool is even split of the remainder for any winner past the 3rd
+            let remainder = PERCENTAGE_PRECISION.safe_sub(top_winner_prize_ratios.iter().sum())?;
+
+            let winner_prize_ratio =
+                if (self.number_of_winners_settled as usize) < top_winner_prize_ratios.len() {
+                    top_winner_prize_ratios[self.number_of_winners_settled as usize]
+                } else {
+                    remainder.safe_div(
+                        (self
+                            .number_of_winners
+                            .safe_sub(top_winner_prize_ratios.len() as u32)?)
+                        .cast()?,
+                    )?
+                };
+
+            validate!(
+                winner_prize_ratio <= top_winner_prize_ratios[0],
+                ErrorCode::CompetitionInvariantIssue,
+                "winner_prize_ratio = {}",
+                winner_prize_ratio
+            )?;
+
+            self.prize_amount
+                .safe_mul(winner_prize_ratio)?
+                .safe_div(PERCENTAGE_PRECISION)?
+        };
+
+        let prize_amount_remaining = self.prize_amount.safe_sub(self.prize_amount_settled)?;
+
+        Ok(winner_prize_amount.min(prize_amount_remaining))
+    }
+
     pub fn settle_winner(
         &mut self,
         competitor: &mut Competitor,
         spot_market: &SpotMarket,
         now: i64,
     ) -> CompetitionResult {
+        if self.number_of_winners == self.number_of_winners_settled {
+            self.update_status(CompetitionRoundStatus::WinnerSettlementComplete)?;
+            return Ok(());
+        }
+
         self.validate_competitor_is_winner(competitor)?;
 
         if competitor.unclaimed_winnings != 0 {
@@ -490,6 +564,8 @@ impl Competition {
             apply_rebase_to_competition_prize(self, spot_market)?;
         }
 
+        let winner_prize_amount = self.calculate_next_winner_prize_amount()?;
+
         emit!(CompetitionRoundWinnerRecord {
             round_number: self.round_number,
             competitor: competitor.authority,
@@ -498,7 +574,7 @@ impl Competition {
             total_score_settled: self.total_score_settled,
             number_of_competitors_settled: self.number_of_competitors_settled,
 
-            prize_amount: self.prize_amount,
+            prize_amount: winner_prize_amount,
             prize_base: self.prize_base,
 
             winner_randomness: self.winner_randomness,
@@ -510,15 +586,36 @@ impl Competition {
 
         competitor.unclaimed_winnings = competitor
             .unclaimed_winnings
-            .saturating_add(self.prize_amount.cast()?);
+            .saturating_add(winner_prize_amount.cast()?);
         competitor.unclaimed_winnings_base = self.prize_base;
-        competitor.bonus_score = 0; // reset bonus score to 0
+
+        // user splitting consolation pool by more than two retain tickets
+        if self.number_of_winners_settled < 3 || self.number_of_winners <= 5 {
+            competitor.bonus_score = 0; // reset bonus score to 0
+        }
 
         self.outstanding_unclaimed_winnings = self
             .outstanding_unclaimed_winnings
-            .saturating_add(self.prize_amount.cast()?);
+            .saturating_add(winner_prize_amount.cast()?);
+        self.prize_amount_settled = self.prize_amount_settled.safe_add(winner_prize_amount)?;
+        self.number_of_winners_settled = self.number_of_winners_settled.safe_add(1)?;
 
-        self.update_status(CompetitionRoundStatus::WinnerSettlementComplete)?;
+        validate!(
+            self.prize_amount_settled <= self.prize_amount
+                && self.number_of_winners_settled <= self.number_of_winners,
+            ErrorCode::CompetitionInvariantIssue,
+            "{} / {} winners with {} / {} prize settled",
+            self.number_of_winners_settled,
+            self.number_of_winners,
+            self.prize_amount_settled,
+            self.prize_amount
+        )?;
+
+        if self.number_of_winners == self.number_of_winners_settled {
+            self.update_status(CompetitionRoundStatus::WinnerSettlementComplete)?;
+        } else {
+            self.winner_randomness = self.calculate_next_winner_randomness()?; // update randomness for next winner to settle
+        }
 
         Ok(())
     }
@@ -526,10 +623,19 @@ impl Competition {
     pub fn reset_round(&mut self, now: i64) -> CompetitionResult {
         self.validate_round_settlement_complete()?;
 
+        // necessary
+        self.number_of_winners_settled = 0;
         self.total_score_settled = 0;
         self.number_of_competitors_settled = 0;
         self.round_number = self.round_number.safe_add(1)?;
         self.next_round_expiry_ts = self.calculate_next_round_expiry_ts(now)?;
+
+        // 'nice to clear'
+        self.winner_randomness = 0;
+        self.prize_randomness = 0;
+        self.prize_randomness_max = 0;
+        self.prize_amount = 0;
+        self.prize_amount_settled = 0;
 
         self.update_status(CompetitionRoundStatus::Active)?;
 

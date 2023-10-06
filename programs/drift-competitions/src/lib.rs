@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use instructions::*;
-use switchboard_solana::prelude::*;
 use state::CompetitorStatus;
+use switchboard_solana::prelude::*;
 
 mod error;
 mod instructions;
@@ -12,7 +12,7 @@ mod utils;
 #[cfg(test)]
 mod tests;
 
-declare_id!("HjMa8sytpmBvf1Qr6UAJxYMtTfc3Qw8Z2cHD3nY1w2Nq");
+declare_id!("8yCtqd9UetSttHhbGJFRk3MpcQny3bNvEfv5YrADuHEp");
 
 #[program]
 pub mod drift_competitions {
