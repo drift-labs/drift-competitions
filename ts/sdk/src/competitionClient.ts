@@ -5,6 +5,7 @@ import {
 	getInsuranceFundVaultPublicKey,
 	getSpotMarketPublicKey,
 	QUOTE_SPOT_MARKET_INDEX,
+	ZERO,
 } from '@drift-labs/sdk';
 import { AnchorProvider, Program } from '@coral-xyz/anchor';
 import { DriftCompetitions, IDL } from './types/drift_competitions';
@@ -55,6 +56,7 @@ export class CompetitionsClient {
 		maxEntriesPerCompetitor,
 		minSponsorAmount,
 		maxSponsorFraction,
+		numberOfWinners,
 	}: {
 		name: string;
 		nextRoundExpiryTs: BN;
@@ -63,6 +65,7 @@ export class CompetitionsClient {
 		maxEntriesPerCompetitor: BN;
 		minSponsorAmount: BN;
 		maxSponsorFraction: BN;
+		numberOfWinners: number;
 	}): Promise<TransactionSignature> {
 		const encodedName = encodeName(name);
 		const competitionAddress = getCompetitionAddressSync(
@@ -79,6 +82,7 @@ export class CompetitionsClient {
 				maxEntriesPerCompetitor,
 				minSponsorAmount,
 				maxSponsorFraction,
+				numberOfWinners
 			})
 			.accounts({
 				competition: competitionAddress,
@@ -95,6 +99,7 @@ export class CompetitionsClient {
 			maxEntriesPerCompetitor = null,
 			minSponsorAmount = null,
 			maxSponsorFraction = null,
+			numberOfWinners = null,
 		}: {
 			nextRoundExpiryTs?: BN | null;
 			competitionExpiryTs?: BN | null;
@@ -102,6 +107,8 @@ export class CompetitionsClient {
 			maxEntriesPerCompetitor?: BN | null;
 			minSponsorAmount?: BN | null;
 			maxSponsorFraction?: BN | null;
+			numberOfWinners?: number | null;
+
 		}
 	): Promise<TransactionSignature> {
 		return await this.program.methods
@@ -112,6 +119,7 @@ export class CompetitionsClient {
 				maxEntriesPerCompetitor,
 				minSponsorAmount,
 				maxSponsorFraction,
+				numberOfWinners,
 			})
 			.accounts({
 				competition: competition,
@@ -297,6 +305,40 @@ export class CompetitionsClient {
 				);
 			}
 		}
+	}
+
+	public async settleNextWinner(competition: PublicKey): Promise<void> {
+		const competitionAccount = await this.program.account.competition.fetch(
+			competition
+		);
+
+		const winnerDraw = competitionAccount.winnerRandomness;
+		
+		if (winnerDraw.gt(ZERO)) {
+			const spotMarket = this.driftClient.getQuoteSpotMarketAccount().pubkey;
+
+			const competitorProgramAccounts =
+			await this.program.account.competitor.all();
+
+			for (const competitor of competitorProgramAccounts) {
+				if (competitor.account.competition.equals(competition) && competitor.account.minDraw.lt(winnerDraw) && competitor.account.maxDraw.gte(winnerDraw)) {
+					const txSig = await this.program.methods
+					.settleWinner()
+					.accounts({
+						competition,
+						competitor: competitor.publicKey,
+						driftUserStats: competitor.account.userStats,
+						spotMarket 
+					})
+					.rpc();
+					console.log(
+						`Settled winner authority ${competitor.account.authority.toBase58()}:`,
+						txSig
+					);
+				}
+			}
+		}
+		
 	}
 
 	public async requestRandomness(
