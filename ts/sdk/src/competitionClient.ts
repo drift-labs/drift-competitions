@@ -1,10 +1,12 @@
 import {
 	BN,
+	DEFAULT_USER_NAME,
 	DriftClient,
 	getInsuranceFundStakeAccountPublicKey,
 	getInsuranceFundVaultPublicKey,
 	getSpotMarketPublicKey,
 	QUOTE_SPOT_MARKET_INDEX,
+	ReferrerInfo,
 } from '@drift-labs/sdk';
 import { Program } from '@coral-xyz/anchor';
 import { DriftCompetitions, IDL } from './types/drift_competitions';
@@ -186,7 +188,9 @@ export class CompetitionsClient {
 	}
 
 	public async initializeCompetitor(
-		competition: PublicKey
+		competition: PublicKey,
+		initDriftUser?: boolean,
+		referrerInfo?: ReferrerInfo,
 	): Promise<TransactionSignature> {
 		const competitor = getCompetitorAddressSync(
 			this.program.programId,
@@ -201,6 +205,20 @@ export class CompetitionsClient {
 		};
 
 		if (this.uiMode) {
+			const instructions: TransactionInstruction[] = [];
+
+			if (initDriftUser) {
+				const initUserStatsIx = await this.driftClient.getInitializeUserStatsIx();
+				const [_userAccountPublicKey, initializeUserAccountIx] =
+				await this.driftClient.getInitializeUserInstructions(
+					0,
+					DEFAULT_USER_NAME,
+					referrerInfo
+				);
+				instructions.push(initUserStatsIx);
+				instructions.push(initializeUserAccountIx);
+			}
+
 			const initCompetitorIx = this.program.instruction.initializeCompetitor({
 				accounts: {
 					...accounts,
@@ -210,8 +228,14 @@ export class CompetitionsClient {
 					systemProgram: anchor.web3.SystemProgram.programId,
 				},
 			});
+			instructions.push(initCompetitorIx);
 
-			return await this.createAndSendTxn([initCompetitorIx]);
+
+			return await this.createAndSendTxn(instructions, {
+				computeUnitParams: {
+					units: 1_400_000,
+				}}
+			);
 		} else {
 			return await this.program.methods
 				.initializeCompetitor()
