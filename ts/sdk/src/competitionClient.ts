@@ -315,7 +315,10 @@ export class CompetitionsClient {
 		const winnerDraw = competitionAccount.winnerRandomness;
 		
 		if (winnerDraw.gt(ZERO)) {
-			const spotMarket = this.driftClient.getQuoteSpotMarketAccount().pubkey;
+			const spotMarket = await getSpotMarketPublicKey(
+				this.driftClient.program.programId,
+				QUOTE_SPOT_MARKET_INDEX
+			);
 
 			const competitorProgramAccounts =
 			await this.program.account.competitor.all();
