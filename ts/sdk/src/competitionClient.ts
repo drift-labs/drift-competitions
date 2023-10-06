@@ -187,11 +187,15 @@ export class CompetitionsClient {
 			.rpc();
 	}
 
-	public async initializeCompetitor(
-		competition: PublicKey,
-		initDriftUser?: boolean,
-		referrerInfo?: ReferrerInfo,
-	): Promise<TransactionSignature> {
+	public async initializeCompetitor({
+		competition,
+		initDriftUser,
+		referrerInfo,
+	}: {
+		competition: PublicKey;
+		initDriftUser?: boolean;
+		referrerInfo?: ReferrerInfo;
+	}): Promise<TransactionSignature> {
 		const competitor = getCompetitorAddressSync(
 			this.program.programId,
 			competition,
@@ -208,13 +212,14 @@ export class CompetitionsClient {
 			const instructions: TransactionInstruction[] = [];
 
 			if (initDriftUser) {
-				const initUserStatsIx = await this.driftClient.getInitializeUserStatsIx();
+				const initUserStatsIx =
+					await this.driftClient.getInitializeUserStatsIx();
 				const [_userAccountPublicKey, initializeUserAccountIx] =
-				await this.driftClient.getInitializeUserInstructions(
-					0,
-					DEFAULT_USER_NAME,
-					referrerInfo
-				);
+					await this.driftClient.getInitializeUserInstructions(
+						0,
+						DEFAULT_USER_NAME,
+						referrerInfo
+					);
 				instructions.push(initUserStatsIx);
 				instructions.push(initializeUserAccountIx);
 			}
@@ -230,12 +235,11 @@ export class CompetitionsClient {
 			});
 			instructions.push(initCompetitorIx);
 
-
 			return await this.createAndSendTxn(instructions, {
 				computeUnitParams: {
 					units: 1_400_000,
-				}}
-			);
+				},
+			});
 		} else {
 			return await this.program.methods
 				.initializeCompetitor()
@@ -275,10 +279,15 @@ export class CompetitionsClient {
 		}
 	}
 
-	public async claimWinnings(
-		competition: PublicKey,
-		shares?: BN
-	): Promise<TransactionSignature> {
+	public async claimWinnings({
+		competition,
+		shares,
+		initIFStake,
+	}: {
+		competition: PublicKey;
+		shares?: BN;
+		initIFStake?: boolean;
+	}): Promise<TransactionSignature> {
 		const competitor = getCompetitorAddressSync(
 			this.program.programId,
 			competition,
@@ -326,14 +335,23 @@ export class CompetitionsClient {
 		};
 
 		if (this.uiMode) {
+			const instructions: TransactionInstruction[] = [];
+
+			if (initIFStake) {
+				const initIFStakeIx =
+					await this.driftClient.getInitializeInsuranceFundStakeIx(0);
+				instructions.push(initIFStakeIx);
+			}
+
 			const claimIx = this.program.instruction.claimWinnings(shares ?? null, {
 				accounts: {
 					...accounts,
 					authority: this.program.provider.publicKey,
 				},
 			});
+			instructions.push(claimIx);
 
-			return await this.createAndSendTxn([claimIx]);
+			return await this.createAndSendTxn(instructions);
 		} else {
 			return await this.program.methods
 				.claimWinnings(shares ?? null)
