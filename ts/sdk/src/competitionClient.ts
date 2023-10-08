@@ -6,6 +6,8 @@ import {
 	getSpotMarketPublicKey,
 	QUOTE_SPOT_MARKET_INDEX,
 	ZERO,
+	unstakeSharesToAmount,
+	QUOTE_PRECISION,
 } from '@drift-labs/sdk';
 import { AnchorProvider, Program } from '@coral-xyz/anchor';
 import { DriftCompetitions, IDL } from './types/drift_competitions';
@@ -82,7 +84,7 @@ export class CompetitionsClient {
 				maxEntriesPerCompetitor,
 				minSponsorAmount,
 				maxSponsorFraction,
-				numberOfWinners
+				numberOfWinners,
 			})
 			.accounts({
 				competition: competitionAddress,
@@ -108,7 +110,6 @@ export class CompetitionsClient {
 			minSponsorAmount?: BN | null;
 			maxSponsorFraction?: BN | null;
 			numberOfWinners?: number | null;
-
 		}
 	): Promise<TransactionSignature> {
 		return await this.program.methods
@@ -200,7 +201,7 @@ export class CompetitionsClient {
 	}
 
 	public async claimEntry(
-		competition: PublicKey,
+		competition: PublicKey
 	): Promise<TransactionSignature> {
 		const competitor = getCompetitorAddressSync(
 			this.program.programId,
@@ -313,24 +314,28 @@ export class CompetitionsClient {
 		);
 
 		const winnerDraw = competitionAccount.winnerRandomness;
-		
+
 		if (winnerDraw.gt(ZERO)) {
 			const spotMarket = this.driftClient.getQuoteSpotMarketAccount().pubkey;
 
 			const competitorProgramAccounts =
-			await this.program.account.competitor.all();
+				await this.program.account.competitor.all();
 
 			for (const competitor of competitorProgramAccounts) {
-				if (competitor.account.competition.equals(competition) && competitor.account.minDraw.lt(winnerDraw) && competitor.account.maxDraw.gte(winnerDraw)) {
+				if (
+					competitor.account.competition.equals(competition) &&
+					competitor.account.minDraw.lt(winnerDraw) &&
+					competitor.account.maxDraw.gte(winnerDraw)
+				) {
 					const txSig = await this.program.methods
-					.settleWinner()
-					.accounts({
-						competition,
-						competitor: competitor.publicKey,
-						driftUserStats: competitor.account.userStats,
-						spotMarket 
-					})
-					.rpc();
+						.settleWinner()
+						.accounts({
+							competition,
+							competitor: competitor.publicKey,
+							driftUserStats: competitor.account.userStats,
+							spotMarket,
+						})
+						.rpc();
 					console.log(
 						`Settled winner authority ${competitor.account.authority.toBase58()}:`,
 						txSig
@@ -338,7 +343,6 @@ export class CompetitionsClient {
 				}
 			}
 		}
-		
 	}
 
 	public async requestRandomness(
@@ -413,9 +417,43 @@ export class CompetitionsClient {
 
 	public getCompetitionPublicKey(name: string): PublicKey {
 		const encodedName = encodeName(name);
-		return getCompetitionAddressSync(
-			this.program.programId,
-			encodedName
+		return getCompetitionAddressSync(this.program.programId, encodedName);
+	}
+
+	public async getCompetitionDetails(
+		competition: PublicKey,
+		insuranceFundVaultBalance: BN
+	) {
+		const competitionAccount = await this.program.account.competition.fetch(
+			competition
 		);
+
+		const quoteSpotMarketAccount = this.driftClient.getQuoteSpotMarketAccount();
+		const protocolOwnedShares =
+			quoteSpotMarketAccount.insuranceFund.totalShares.sub(
+				quoteSpotMarketAccount.insuranceFund.userShares
+			);
+
+		const protocolOwnedBalance = unstakeSharesToAmount(
+			protocolOwnedShares,
+			quoteSpotMarketAccount.insuranceFund.totalShares,
+			insuranceFundVaultBalance
+		);
+
+		const maxPrize = protocolOwnedBalance
+			.sub(competitionAccount.sponsorInfo.minSponsorAmount)
+			.mul(competitionAccount.sponsorInfo.maxSponsorFraction);
+
+		const prizePools = [
+			BN.min(new BN(1000).mul(QUOTE_PRECISION), maxPrize.div(new BN(10))),
+			BN.min(new BN(5000).mul(QUOTE_PRECISION), maxPrize.div(new BN(2))),
+			maxPrize,
+		];
+
+		return {
+			roundNumber: competitionAccount.roundNumber,
+			roundEndTs: competitionAccount.nextRoundExpiryTs,
+			prizePools: prizePools,
+		};
 	}
 }
