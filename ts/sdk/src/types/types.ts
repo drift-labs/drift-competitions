@@ -49,7 +49,7 @@ export type Competition = {
 	nextRoundExpiryTs: BN;
 	competitionExpiryTs: BN;
 	roundDuration: BN;
-	status;
+	status: CompetitionStatus;
 	competitionAuthorityBump: number;
 };
 
@@ -65,7 +65,7 @@ export type Competitor = {
 	previousSnapshotScore: BN;
 	latestSnapshotScore: BN;
 	bonusScore: BN;
-	status: CompetitionStatus;
+	status: CompetitorStatus;
 };
 
 /** Events */
