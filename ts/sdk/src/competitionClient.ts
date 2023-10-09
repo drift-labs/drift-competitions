@@ -1,15 +1,25 @@
 import {
 	BN,
+	DEFAULT_USER_NAME,
 	DriftClient,
 	getInsuranceFundStakeAccountPublicKey,
 	getInsuranceFundVaultPublicKey,
 	getSpotMarketPublicKey,
 	QUOTE_SPOT_MARKET_INDEX,
+	ReferrerInfo,
 	ZERO,
 } from '@drift-labs/sdk';
-import { AnchorProvider, Program } from '@coral-xyz/anchor';
+import { Program } from '@coral-xyz/anchor';
 import { DriftCompetitions, IDL } from './types/drift_competitions';
-import { PublicKey, TransactionSignature } from '@solana/web3.js';
+import {
+	ComputeBudgetProgram,
+	PublicKey,
+	SetComputeUnitLimitParams,
+	SYSVAR_RENT_PUBKEY,
+	Transaction,
+	TransactionInstruction,
+	TransactionSignature,
+} from '@solana/web3.js';
 import { encodeName } from './name';
 import {
 	getCompetitionAddressSync,
@@ -17,17 +27,13 @@ import {
 	getCompetitorAddressSync,
 } from './addresses';
 import {
-	AttestationQueueAccount,
 	DEVNET_GENESIS_HASH,
 	FunctionRequestAccount,
 	MAINNET_GENESIS_HASH,
 	SwitchboardProgram,
 } from '@switchboard-xyz/solana.js';
 import * as anchor from '@coral-xyz/anchor';
-
-const defaultProgramId = new PublicKey(
-	'8yCtqd9UetSttHhbGJFRk3MpcQny3bNvEfv5YrADuHEp'
-);
+import { DRIFT_COMPETITION_PROGRAM_ID } from './constants';
 
 export class CompetitionsClient {
 	driftClient: DriftClient;
@@ -43,7 +49,11 @@ export class CompetitionsClient {
 		this.driftClient = driftClient;
 
 		if (!program) {
-			program = new Program(IDL, defaultProgramId, driftClient.provider);
+			program = new Program(
+				IDL,
+				DRIFT_COMPETITION_PROGRAM_ID,
+				driftClient.provider
+			);
 		}
 		this.program = program;
 	}
@@ -82,7 +92,7 @@ export class CompetitionsClient {
 				maxEntriesPerCompetitor,
 				minSponsorAmount,
 				maxSponsorFraction,
-				numberOfWinners
+				numberOfWinners,
 			})
 			.accounts({
 				competition: competitionAddress,
@@ -108,7 +118,6 @@ export class CompetitionsClient {
 			minSponsorAmount?: BN | null;
 			maxSponsorFraction?: BN | null;
 			numberOfWinners?: number | null;
-
 		}
 	): Promise<TransactionSignature> {
 		return await this.program.methods
@@ -180,7 +189,60 @@ export class CompetitionsClient {
 			.rpc();
 	}
 
-	public async initializeCompetitor(
+	public async initializeCompetitor({
+		competition,
+		initDriftUser,
+		referrerInfo,
+	}: {
+		competition: PublicKey;
+		initDriftUser?: boolean;
+		referrerInfo?: ReferrerInfo;
+	}): Promise<TransactionSignature> {
+		const competitor = getCompetitorAddressSync(
+			this.program.programId,
+			competition,
+			this.program.provider.publicKey
+		);
+
+		const accounts = {
+			competitor,
+			competition: competition,
+			driftUserStats: this.driftClient.getUserStatsAccountPublicKey(),
+		};
+
+		const instructions: TransactionInstruction[] = [];
+
+		if (initDriftUser) {
+			const initUserStatsIx = await this.driftClient.getInitializeUserStatsIx();
+			const [_userAccountPublicKey, initializeUserAccountIx] =
+				await this.driftClient.getInitializeUserInstructions(
+					0,
+					DEFAULT_USER_NAME,
+					referrerInfo
+				);
+			instructions.push(initUserStatsIx);
+			instructions.push(initializeUserAccountIx);
+		}
+
+		const initCompetitorIx = this.program.instruction.initializeCompetitor({
+			accounts: {
+				...accounts,
+				payer: this.program.provider.publicKey,
+				rent: SYSVAR_RENT_PUBKEY,
+				authority: this.program.provider.publicKey,
+				systemProgram: anchor.web3.SystemProgram.programId,
+			},
+		});
+		instructions.push(initCompetitorIx);
+
+		return await this.createAndSendTxn(instructions, {
+			computeUnitParams: {
+				units: 1_400_000,
+			},
+		});
+	}
+
+	public async claimEntry(
 		competition: PublicKey
 	): Promise<TransactionSignature> {
 		const competitor = getCompetitorAddressSync(
@@ -189,40 +251,33 @@ export class CompetitionsClient {
 			this.program.provider.publicKey
 		);
 
-		return await this.program.methods
-			.initializeCompetitor()
-			.accounts({
-				competitor,
-				competition: competition,
-				driftUserStats: this.driftClient.getUserStatsAccountPublicKey(),
-			})
-			.rpc();
+		const accounts = {
+			competitor,
+			competition: competition,
+			driftUserStats: this.driftClient.getUserStatsAccountPublicKey(),
+			instructions: anchor.web3.SYSVAR_INSTRUCTIONS_PUBKEY,
+		};
+
+		const claimEntryIx = this.program.instruction.claimEntry({
+			accounts: {
+				...accounts,
+				authority: this.program.provider.publicKey,
+			},
+		});
+		return await this.createAndSendTxn([claimEntryIx], {
+			noComputeBudgetIx: true, // claim entry needs to be a standalone ix in a tx
+		});
 	}
 
-	public async claimEntry(
-		competition: PublicKey,
-	): Promise<TransactionSignature> {
-		const competitor = getCompetitorAddressSync(
-			this.program.programId,
-			competition,
-			this.program.provider.publicKey
-		);
-
-		return await this.program.methods
-			.claimEntry()
-			.accounts({
-				competitor,
-				competition: competition,
-				driftUserStats: this.driftClient.getUserStatsAccountPublicKey(),
-				instructions: anchor.web3.SYSVAR_INSTRUCTIONS_PUBKEY,
-			})
-			.rpc();
-	}
-
-	public async claimWinnings(
-		competition: PublicKey,
-		shares?: BN
-	): Promise<TransactionSignature> {
+	public async claimWinnings({
+		competition,
+		shares,
+		initIFStake,
+	}: {
+		competition: PublicKey;
+		shares?: BN;
+		initIFStake?: boolean;
+	}): Promise<TransactionSignature> {
 		const competitor = getCompetitorAddressSync(
 			this.program.programId,
 			competition,
@@ -256,21 +311,36 @@ export class CompetitionsClient {
 			this.driftClient.program.programId
 		)[0];
 
-		return await this.program.methods
-			.claimWinnings(shares ?? null)
-			.accounts({
-				competitor,
-				competition: competition,
-				driftUserStats: this.driftClient.getUserStatsAccountPublicKey(),
-				spotMarket,
-				insuranceFundStake,
-				insuranceFundVault,
-				driftProgram: this.driftClient.program.programId,
-				competitionAuthority,
-				driftState,
-				driftTransferConfig,
-			})
-			.rpc();
+		const accounts = {
+			competitor,
+			competition: competition,
+			driftUserStats: this.driftClient.getUserStatsAccountPublicKey(),
+			spotMarket,
+			insuranceFundStake,
+			insuranceFundVault,
+			driftProgram: this.driftClient.program.programId,
+			competitionAuthority,
+			driftState,
+			driftTransferConfig,
+		};
+
+		const instructions: TransactionInstruction[] = [];
+
+		if (initIFStake) {
+			const initIFStakeIx =
+				await this.driftClient.getInitializeInsuranceFundStakeIx(0);
+			instructions.push(initIFStakeIx);
+		}
+
+		const claimIx = this.program.instruction.claimWinnings(shares ?? null, {
+			accounts: {
+				...accounts,
+				authority: this.program.provider.publicKey,
+			},
+		});
+		instructions.push(claimIx);
+
+		return await this.createAndSendTxn(instructions);
 	}
 
 	public async settleCompetitor(
@@ -416,9 +486,36 @@ export class CompetitionsClient {
 
 	public getCompetitionPublicKey(name: string): PublicKey {
 		const encodedName = encodeName(name);
-		return getCompetitionAddressSync(
-			this.program.programId,
-			encodedName
+		return getCompetitionAddressSync(this.program.programId, encodedName);
+	}
+
+	/**
+	 * Used for UI wallet adapters compatibility
+	 */
+	async createAndSendTxn(
+		ixs: TransactionInstruction[],
+		txOpts?: {
+			computeUnitParams?: SetComputeUnitLimitParams;
+			noComputeBudgetIx?: boolean;
+		}
+	): Promise<TransactionSignature> {
+		const tx = new Transaction();
+		if (!txOpts?.noComputeBudgetIx) {
+			tx.add(
+				ComputeBudgetProgram.setComputeUnitLimit(
+					txOpts?.computeUnitParams || {
+						units: 400_000,
+					}
+				)
+			);
+		}
+		tx.add(...ixs);
+		const { txSig } = await this.driftClient.sendTransaction(
+			tx,
+			[],
+			this.driftClient.opts
 		);
+
+		return txSig;
 	}
 }
