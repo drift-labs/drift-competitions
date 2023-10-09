@@ -15,7 +15,11 @@ pub fn settle_winner<'info>(ctx: Context<'_, '_, '_, 'info, SettleWinner<'info>>
     let spot_market = ctx.accounts.spot_market.load()?;
 
     competition.settle_winner(&mut competitor, &spot_market, now)?;
-    competition.reset_round(now)?;
+
+    if competition.number_of_winners == competition.number_of_winners_settled {
+        competition.reset_round(now)?;
+    }
+
     Ok(())
 }
 

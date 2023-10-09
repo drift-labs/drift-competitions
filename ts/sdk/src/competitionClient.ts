@@ -7,6 +7,7 @@ import {
 	getSpotMarketPublicKey,
 	QUOTE_SPOT_MARKET_INDEX,
 	ReferrerInfo,
+	ZERO,
 } from '@drift-labs/sdk';
 import { Program } from '@coral-xyz/anchor';
 import { DriftCompetitions, IDL } from './types/drift_competitions';
@@ -374,6 +375,43 @@ export class CompetitionsClient {
 				);
 			}
 		}
+	}
+
+	public async settleNextWinner(competition: PublicKey): Promise<void> {
+		const competitionAccount = await this.program.account.competition.fetch(
+			competition
+		);
+
+		const winnerDraw = competitionAccount.winnerRandomness;
+		
+		if (winnerDraw.gt(ZERO)) {
+			const spotMarket = await getSpotMarketPublicKey(
+				this.driftClient.program.programId,
+				QUOTE_SPOT_MARKET_INDEX
+			);
+
+			const competitorProgramAccounts =
+			await this.program.account.competitor.all();
+
+			for (const competitor of competitorProgramAccounts) {
+				if (competitor.account.competition.equals(competition) && competitor.account.minDraw.lt(winnerDraw) && competitor.account.maxDraw.gte(winnerDraw)) {
+					const txSig = await this.program.methods
+					.settleWinner()
+					.accounts({
+						competition,
+						competitor: competitor.publicKey,
+						driftUserStats: competitor.account.userStats,
+						spotMarket 
+					})
+					.rpc();
+					console.log(
+						`Settled winner authority ${competitor.account.authority.toBase58()}:`,
+						txSig
+					);
+				}
+			}
+		}
+		
 	}
 
 	public async requestRandomness(
