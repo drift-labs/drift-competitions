@@ -9,7 +9,7 @@ pub use params::*;
 #[tokio::main(worker_threads = 12)]
 async fn main() {
     // First, initialize the runner instance with a freshly generated Gramine keypair
-    let runner = FunctionRunner::new_from_cluster(Cluster::Devnet, None).unwrap();
+    let runner = FunctionRunner::new_from_cluster(Cluster::Mainnet, None).unwrap();
 
     // parse and validate user provided request params
     let params = ContainerParams::decode(
