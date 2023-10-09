@@ -321,6 +321,9 @@ impl Competition {
             competitor.max_draw = new_total_score_settled;
 
             self.total_score_settled = new_total_score_settled;
+        } else {
+            competitor.min_draw = self.total_score_settled;
+            competitor.max_draw = self.total_score_settled;
         }
 
         validate!(
