@@ -10,6 +10,8 @@ pub struct CompetitionRoundWinnerRecord {
     pub min_draw: u128,
     pub max_draw: u128,
 
+    pub winner_placement: u32,
+    pub number_of_winners: u32,
     pub number_of_competitors_settled: u128,
 
     pub winner_randomness: u128,

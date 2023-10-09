@@ -961,11 +961,11 @@ mod competition_fcn {
             total_score_settled: 1,
             round_duration: 60,
             prize_base: 1,
-            prize_amount: 549499999,
-            outstanding_unclaimed_winnings: 550196201,
-            prize_amount_settled: 549499999,
-            prize_randomness: 957,
-            prize_randomness_max: 957,
+            prize_amount: 549151898,
+            outstanding_unclaimed_winnings: 549848100,
+            prize_amount_settled: 549151898,
+            prize_randomness: 955,
+            prize_randomness_max: 955,
             winner_randomness: 1,
             sponsor_info: SponsorInfo {
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
@@ -1239,7 +1239,7 @@ mod competition_fcn {
             .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
             .unwrap();
 
-        assert_eq!(prize_buckets, [1000000000, 5000000000, 71818181818]);
+        assert_eq!(prize_buckets, [1000000000, 5000000000, 71818132263]);
         assert_eq!(ratios, [78, 16, 1]);
 
         sweepstakes
@@ -1363,7 +1363,7 @@ mod competition_fcn {
             .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
             .unwrap();
 
-        assert_eq!(prize_buckets, [1000000000, 5000000000, 71818181818]);
+        assert_eq!(prize_buckets, [1000000000, 5000000000, 71818136572]);
         assert_eq!(ratios, [78, 16, 1]);
 
         sweepstakes

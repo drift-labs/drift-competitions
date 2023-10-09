@@ -348,18 +348,20 @@ impl Competition {
         spot_market: &SpotMarket,
         vault_balance: u64,
     ) -> CompetitionResult<u64> {
-        let protocol_owned_shares = spot_market
+
+        let protocol_owned_shares_remaining = spot_market
             .insurance_fund
             .total_shares
-            .safe_sub(spot_market.insurance_fund.user_shares)?;
+            .safe_sub(spot_market.insurance_fund.user_shares)?
+            .saturating_sub(self.outstanding_unclaimed_winnings);
 
-        let protocol_owned_amount = if_shares_to_vault_amount(
-            protocol_owned_shares,
+        let protocol_owned_amount_remaining = if_shares_to_vault_amount(
+            protocol_owned_shares_remaining,
             spot_market.insurance_fund.total_shares,
             vault_balance,
         )?;
 
-        let max_prize = protocol_owned_amount
+        let max_prize = protocol_owned_amount_remaining
             .saturating_sub(self.sponsor_info.min_sponsor_amount)
             .safe_mul(self.sponsor_info.max_sponsor_fraction)?
             .safe_div(PERCENTAGE_PRECISION_U64)?;
@@ -576,6 +578,9 @@ impl Competition {
 
             prize_amount: winner_prize_amount,
             prize_base: self.prize_base,
+
+            winner_placement: self.number_of_winners_settled,
+            number_of_winners: self.number_of_winners,
 
             winner_randomness: self.winner_randomness,
             prize_randomness: self.prize_randomness,
