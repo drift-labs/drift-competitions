@@ -8,6 +8,7 @@ import {
 	ZERO,
 	unstakeSharesToAmount,
 	QUOTE_PRECISION,
+	PERCENTAGE_PRECISION,
 } from '@drift-labs/sdk';
 import { AnchorProvider, Program } from '@coral-xyz/anchor';
 import { DriftCompetitions, IDL } from './types/drift_competitions';
@@ -422,13 +423,23 @@ export class CompetitionsClient {
 
 	public async getCompetitionDetails(
 		competition: PublicKey,
-		insuranceFundVaultBalance: BN
+		insuranceFundVaultBalance?: BN
 	) {
 		const competitionAccount = await this.program.account.competition.fetch(
 			competition
 		);
-
 		const quoteSpotMarketAccount = this.driftClient.getQuoteSpotMarketAccount();
+
+		if (!insuranceFundVaultBalance) {
+			insuranceFundVaultBalance = new BN(
+				(
+					await this.driftClient.provider.connection.getTokenAccountBalance(
+						quoteSpotMarketAccount.insuranceFund.vault
+					)
+				).value.amount
+			);
+		}
+
 		const protocolOwnedShares =
 			quoteSpotMarketAccount.insuranceFund.totalShares.sub(
 				quoteSpotMarketAccount.insuranceFund.userShares
@@ -442,7 +453,8 @@ export class CompetitionsClient {
 
 		const maxPrize = protocolOwnedBalance
 			.sub(competitionAccount.sponsorInfo.minSponsorAmount)
-			.mul(competitionAccount.sponsorInfo.maxSponsorFraction);
+			.mul(competitionAccount.sponsorInfo.maxSponsorFraction)
+			.div(PERCENTAGE_PRECISION);
 
 		const prizePools = [
 			BN.min(new BN(1000).mul(QUOTE_PRECISION), maxPrize.div(new BN(10))),
