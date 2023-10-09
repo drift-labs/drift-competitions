@@ -37,16 +37,13 @@ import { DRIFT_COMPETITION_PROGRAM_ID } from './constants';
 export class CompetitionsClient {
 	driftClient: DriftClient;
 	program: Program<DriftCompetitions>;
-	uiMode: boolean;
 
 	constructor({
 		driftClient,
 		program,
-		uiMode = false,
 	}: {
 		driftClient: DriftClient;
 		program?: Program<DriftCompetitions>;
-		uiMode?: boolean;
 	}) {
 		this.driftClient = driftClient;
 
@@ -58,8 +55,6 @@ export class CompetitionsClient {
 			);
 		}
 		this.program = program;
-
-		this.uiMode = uiMode;
 	}
 
 	public async initializeCompetition({
@@ -214,44 +209,36 @@ export class CompetitionsClient {
 			driftUserStats: this.driftClient.getUserStatsAccountPublicKey(),
 		};
 
-		if (this.uiMode) {
-			const instructions: TransactionInstruction[] = [];
+		const instructions: TransactionInstruction[] = [];
 
-			if (initDriftUser) {
-				const initUserStatsIx =
-					await this.driftClient.getInitializeUserStatsIx();
-				const [_userAccountPublicKey, initializeUserAccountIx] =
-					await this.driftClient.getInitializeUserInstructions(
-						0,
-						DEFAULT_USER_NAME,
-						referrerInfo
-					);
-				instructions.push(initUserStatsIx);
-				instructions.push(initializeUserAccountIx);
-			}
-
-			const initCompetitorIx = this.program.instruction.initializeCompetitor({
-				accounts: {
-					...accounts,
-					payer: this.program.provider.publicKey,
-					rent: SYSVAR_RENT_PUBKEY,
-					authority: this.program.provider.publicKey,
-					systemProgram: anchor.web3.SystemProgram.programId,
-				},
-			});
-			instructions.push(initCompetitorIx);
-
-			return await this.createAndSendTxn(instructions, {
-				computeUnitParams: {
-					units: 1_400_000,
-				},
-			});
-		} else {
-			return await this.program.methods
-				.initializeCompetitor()
-				.accounts(accounts)
-				.rpc();
+		if (initDriftUser) {
+			const initUserStatsIx = await this.driftClient.getInitializeUserStatsIx();
+			const [_userAccountPublicKey, initializeUserAccountIx] =
+				await this.driftClient.getInitializeUserInstructions(
+					0,
+					DEFAULT_USER_NAME,
+					referrerInfo
+				);
+			instructions.push(initUserStatsIx);
+			instructions.push(initializeUserAccountIx);
 		}
+
+		const initCompetitorIx = this.program.instruction.initializeCompetitor({
+			accounts: {
+				...accounts,
+				payer: this.program.provider.publicKey,
+				rent: SYSVAR_RENT_PUBKEY,
+				authority: this.program.provider.publicKey,
+				systemProgram: anchor.web3.SystemProgram.programId,
+			},
+		});
+		instructions.push(initCompetitorIx);
+
+		return await this.createAndSendTxn(instructions, {
+			computeUnitParams: {
+				units: 1_400_000,
+			},
+		});
 	}
 
 	public async claimEntry(
@@ -270,19 +257,15 @@ export class CompetitionsClient {
 			instructions: anchor.web3.SYSVAR_INSTRUCTIONS_PUBKEY,
 		};
 
-		if (this.uiMode) {
-			const claimEntryIx = this.program.instruction.claimEntry({
-				accounts: {
-					...accounts,
-					authority: this.program.provider.publicKey,
-				},
-			});
-			return await this.createAndSendTxn([claimEntryIx], {
-				noComputeBudgetIx: true, // claim entry needs to be a standalone ix in a tx
-			});
-		} else {
-			return await this.program.methods.claimEntry().accounts(accounts).rpc();
-		}
+		const claimEntryIx = this.program.instruction.claimEntry({
+			accounts: {
+				...accounts,
+				authority: this.program.provider.publicKey,
+			},
+		});
+		return await this.createAndSendTxn([claimEntryIx], {
+			noComputeBudgetIx: true, // claim entry needs to be a standalone ix in a tx
+		});
 	}
 
 	public async claimWinnings({
@@ -340,30 +323,23 @@ export class CompetitionsClient {
 			driftTransferConfig,
 		};
 
-		if (this.uiMode) {
-			const instructions: TransactionInstruction[] = [];
+		const instructions: TransactionInstruction[] = [];
 
-			if (initIFStake) {
-				const initIFStakeIx =
-					await this.driftClient.getInitializeInsuranceFundStakeIx(0);
-				instructions.push(initIFStakeIx);
-			}
-
-			const claimIx = this.program.instruction.claimWinnings(shares ?? null, {
-				accounts: {
-					...accounts,
-					authority: this.program.provider.publicKey,
-				},
-			});
-			instructions.push(claimIx);
-
-			return await this.createAndSendTxn(instructions);
-		} else {
-			return await this.program.methods
-				.claimWinnings(shares ?? null)
-				.accounts(accounts)
-				.rpc();
+		if (initIFStake) {
+			const initIFStakeIx =
+				await this.driftClient.getInitializeInsuranceFundStakeIx(0);
+			instructions.push(initIFStakeIx);
 		}
+
+		const claimIx = this.program.instruction.claimWinnings(shares ?? null, {
+			accounts: {
+				...accounts,
+				authority: this.program.provider.publicKey,
+			},
+		});
+		instructions.push(claimIx);
+
+		return await this.createAndSendTxn(instructions);
 	}
 
 	public async settleCompetitor(
