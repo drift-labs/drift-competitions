@@ -8,6 +8,9 @@ import {
 	QUOTE_SPOT_MARKET_INDEX,
 	ReferrerInfo,
 	ZERO,
+	unstakeSharesToAmount,
+	QUOTE_PRECISION,
+	PERCENTAGE_PRECISION,
 } from '@drift-labs/sdk';
 import { Program } from '@coral-xyz/anchor';
 import { DriftCompetitions, IDL } from './types/drift_competitions';
@@ -383,7 +386,7 @@ export class CompetitionsClient {
 		);
 
 		const winnerDraw = competitionAccount.winnerRandomness;
-		
+
 		if (winnerDraw.gt(ZERO)) {
 			const spotMarket = await getSpotMarketPublicKey(
 				this.driftClient.program.programId,
@@ -391,19 +394,23 @@ export class CompetitionsClient {
 			);
 
 			const competitorProgramAccounts =
-			await this.program.account.competitor.all();
+				await this.program.account.competitor.all();
 
 			for (const competitor of competitorProgramAccounts) {
-				if (competitor.account.competition.equals(competition) && competitor.account.minDraw.lt(winnerDraw) && competitor.account.maxDraw.gte(winnerDraw)) {
+				if (
+					competitor.account.competition.equals(competition) &&
+					competitor.account.minDraw.lt(winnerDraw) &&
+					competitor.account.maxDraw.gte(winnerDraw)
+				) {
 					const txSig = await this.program.methods
-					.settleWinner()
-					.accounts({
-						competition,
-						competitor: competitor.publicKey,
-						driftUserStats: competitor.account.userStats,
-						spotMarket 
-					})
-					.rpc();
+						.settleWinner()
+						.accounts({
+							competition,
+							competitor: competitor.publicKey,
+							driftUserStats: competitor.account.userStats,
+							spotMarket,
+						})
+						.rpc();
 					console.log(
 						`Settled winner authority ${competitor.account.authority.toBase58()}:`,
 						txSig
@@ -411,7 +418,6 @@ export class CompetitionsClient {
 				}
 			}
 		}
-		
 	}
 
 	public async requestRandomness(
@@ -489,6 +495,53 @@ export class CompetitionsClient {
 		return getCompetitionAddressSync(this.program.programId, encodedName);
 	}
 
+	public async getCompetitionDetails(
+		competition: PublicKey,
+		insuranceFundVaultBalance?: BN
+	) {
+		const competitionAccount = await this.program.account.competition.fetch(
+			competition
+		);
+		const quoteSpotMarketAccount = this.driftClient.getQuoteSpotMarketAccount();
+
+		if (!insuranceFundVaultBalance) {
+			insuranceFundVaultBalance = new BN(
+				(
+					await this.driftClient.provider.connection.getTokenAccountBalance(
+						quoteSpotMarketAccount.insuranceFund.vault
+					)
+				).value.amount
+			);
+		}
+
+		const protocolOwnedShares =
+			quoteSpotMarketAccount.insuranceFund.totalShares.sub(
+				quoteSpotMarketAccount.insuranceFund.userShares
+			);
+
+		const protocolOwnedBalance = unstakeSharesToAmount(
+			protocolOwnedShares,
+			quoteSpotMarketAccount.insuranceFund.totalShares,
+			insuranceFundVaultBalance
+		);
+
+		const maxPrize = protocolOwnedBalance
+			.sub(competitionAccount.sponsorInfo.minSponsorAmount)
+			.mul(competitionAccount.sponsorInfo.maxSponsorFraction)
+			.div(PERCENTAGE_PRECISION);
+
+		const prizePools = [
+			BN.min(new BN(1000).mul(QUOTE_PRECISION), maxPrize.div(new BN(10))),
+			BN.min(new BN(5000).mul(QUOTE_PRECISION), maxPrize.div(new BN(2))),
+			maxPrize,
+		];
+
+		return {
+			roundNumber: competitionAccount.roundNumber,
+			roundEndTs: competitionAccount.nextRoundExpiryTs,
+			prizePools: prizePools,
+		};
+	}
 	/**
 	 * Used for UI wallet adapters compatibility
 	 */
