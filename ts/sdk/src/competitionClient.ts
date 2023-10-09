@@ -246,7 +246,8 @@ export class CompetitionsClient {
 	}
 
 	public async claimEntry(
-		competition: PublicKey
+		competition: PublicKey,
+		userStatsKey?: PublicKey
 	): Promise<TransactionSignature> {
 		const competitor = getCompetitorAddressSync(
 			this.program.programId,
@@ -254,10 +255,14 @@ export class CompetitionsClient {
 			this.program.provider.publicKey
 		);
 
+		if(!userStatsKey){
+			userStatsKey = this.driftClient.getUserStatsAccountPublicKey();
+		}
+
 		const accounts = {
 			competitor,
 			competition: competition,
-			driftUserStats: this.driftClient.getUserStatsAccountPublicKey(),
+			driftUserStats: userStatsKey,
 			instructions: anchor.web3.SYSVAR_INSTRUCTIONS_PUBKEY,
 		};
 
@@ -385,9 +390,7 @@ export class CompetitionsClient {
 			competition
 		);
 
-		const winnerDraw = competitionAccount.winnerRandomness;
-
-		if (winnerDraw.gt(ZERO)) {
+		if (competitionAccount.winnerRandomness.gt(ZERO)) {
 			const spotMarket = await getSpotMarketPublicKey(
 				this.driftClient.program.programId,
 				QUOTE_SPOT_MARKET_INDEX
@@ -399,8 +402,8 @@ export class CompetitionsClient {
 			for (const competitor of competitorProgramAccounts) {
 				if (
 					competitor.account.competition.equals(competition) &&
-					competitor.account.minDraw.lt(winnerDraw) &&
-					competitor.account.maxDraw.gte(winnerDraw)
+					competitor.account.minDraw.lt(competitionAccount.winnerRandomness) &&
+					competitor.account.maxDraw.gte(competitionAccount.winnerRandomness)
 				) {
 					const txSig = await this.program.methods
 						.settleWinner()
@@ -514,18 +517,18 @@ export class CompetitionsClient {
 			);
 		}
 
-		const protocolOwnedShares =
-			quoteSpotMarketAccount.insuranceFund.totalShares.sub(
+		const protocolOwnedSharesRemaining =
+			BN.max(quoteSpotMarketAccount.insuranceFund.totalShares.sub(
 				quoteSpotMarketAccount.insuranceFund.userShares
-			);
+			).sub(competitionAccount.outstandingUnclaimedWinnings), ZERO);
 
-		const protocolOwnedBalance = unstakeSharesToAmount(
-			protocolOwnedShares,
+		const protocolOwnedBalanceRemaining = unstakeSharesToAmount(
+			protocolOwnedSharesRemaining,
 			quoteSpotMarketAccount.insuranceFund.totalShares,
 			insuranceFundVaultBalance
 		);
 
-		const maxPrize = protocolOwnedBalance
+		const maxPrize = protocolOwnedBalanceRemaining
 			.sub(competitionAccount.sponsorInfo.minSponsorAmount)
 			.mul(competitionAccount.sponsorInfo.maxSponsorFraction)
 			.div(PERCENTAGE_PRECISION);
