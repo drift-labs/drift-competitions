@@ -24,6 +24,7 @@
   },
   "scripts": {
     "clean": "rm -rf lib",
-    "build": "yarn clean && tsc"
+    "build": "yarn clean && tsc",
+    "update-program-errors": "ts-node src/scripts/update-drift-competitions-errors.ts"
   }
 }
