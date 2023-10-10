@@ -10,6 +10,8 @@ export class LogParser {
 	public parseEventsFromLogs(event: Log): WrappedEvents {
 		const records: WrappedEvents = [];
 
+		if (!event.logs) return records;
+
 		// @ts-ignore
 		const eventGenerator = this.program._events._eventParser.parseLogs(
 			event.logs,
