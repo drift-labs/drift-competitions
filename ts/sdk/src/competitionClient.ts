@@ -255,7 +255,7 @@ export class CompetitionsClient {
 			this.program.provider.publicKey
 		);
 
-		if(!userStatsKey){
+		if (!userStatsKey) {
 			userStatsKey = this.driftClient.getUserStatsAccountPublicKey();
 		}
 
@@ -517,10 +517,12 @@ export class CompetitionsClient {
 			);
 		}
 
-		const protocolOwnedSharesRemaining =
-			BN.max(quoteSpotMarketAccount.insuranceFund.totalShares.sub(
-				quoteSpotMarketAccount.insuranceFund.userShares
-			).sub(competitionAccount.outstandingUnclaimedWinnings), ZERO);
+		const protocolOwnedSharesRemaining = BN.max(
+			quoteSpotMarketAccount.insuranceFund.totalShares
+				.sub(quoteSpotMarketAccount.insuranceFund.userShares)
+				.sub(competitionAccount.outstandingUnclaimedWinnings),
+			ZERO
+		);
 
 		const protocolOwnedBalanceRemaining = unstakeSharesToAmount(
 			protocolOwnedSharesRemaining,
@@ -528,8 +530,12 @@ export class CompetitionsClient {
 			insuranceFundVaultBalance
 		);
 
-		const maxPrize = protocolOwnedBalanceRemaining
-			.sub(competitionAccount.sponsorInfo.minSponsorAmount)
+		const maxPrize = BN.max(
+			protocolOwnedBalanceRemaining.sub(
+				competitionAccount.sponsorInfo.minSponsorAmount
+			),
+			ZERO
+		)
 			.mul(competitionAccount.sponsorInfo.maxSponsorFraction)
 			.div(PERCENTAGE_PRECISION);
 
