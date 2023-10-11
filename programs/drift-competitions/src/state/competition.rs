@@ -1,5 +1,5 @@
 use crate::state::events::CompetitionRoundWinnerRecord;
-use crate::state::Size;
+use crate::state::{Size, CompetitorSettledRecord};
 use crate::utils::{
     apply_rebase_to_competition_prize, apply_rebase_to_competitor_unclaimed_winnings,
 };
@@ -294,6 +294,8 @@ impl Competition {
         now: i64,
     ) -> CompetitionResult {
         let previous_snapshot_score_before = competitor.previous_snapshot_score;
+        let bonus_score_before = competitor.bonus_score;
+
         self.validate_round_ready_for_settlement(now)?;
 
         if !self.competitor_can_be_settled(competitor)? {
@@ -335,6 +337,19 @@ impl Competition {
         )?;
 
         competitor.previous_snapshot_score = competitor.calculate_snapshot_score(&user_stats)?;
+
+
+        emit!(CompetitorSettledRecord {
+            round_number: self.round_number,
+            competitor: competitor.authority,
+            min_draw: competitor.min_draw,
+            max_draw: competitor.max_draw,
+            bonus_score_before: competitor.bonus_score,
+            previous_snapshot_score_before: previous_snapshot_score_before,
+            snapshot_score: competitor.previous_snapshot_score,
+            ts: now,
+        });
+
         competitor.competition_round_number = competitor.competition_round_number.safe_add(1)?;
         self.number_of_competitors_settled = self.number_of_competitors_settled.saturating_add(1);
 
@@ -552,6 +567,7 @@ impl Competition {
         &mut self,
         competitor: &mut Competitor,
         spot_market: &SpotMarket,
+        insurance_fund_vault_balance: u64,
         now: i64,
     ) -> CompetitionResult {
         if self.number_of_winners == self.number_of_winners_settled {
@@ -571,6 +587,12 @@ impl Competition {
 
         let winner_prize_amount = self.calculate_next_winner_prize_amount()?;
 
+        let prize_value = if_shares_to_vault_amount(
+            winner_prize_amount, 
+            spot_market.insurance_fund.total_shares, 
+            insurance_fund_vault_balance
+        )?;
+
         emit!(CompetitionRoundWinnerRecord {
             round_number: self.round_number,
             competitor: competitor.authority,
@@ -581,6 +603,7 @@ impl Competition {
 
             prize_amount: winner_prize_amount,
             prize_base: self.prize_base,
+            prize_value: prize_value,
 
             winner_placement: self.number_of_winners_settled,
             number_of_winners: self.number_of_winners,

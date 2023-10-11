@@ -1,7 +1,7 @@
 use crate::signer_seeds::get_competition_authority_seeds;
 use crate::state::Competition;
 use anchor_lang::prelude::*;
-use anchor_spl::token::Token;
+use anchor_spl::token::TokenAccount;
 use drift::math::constants::QUOTE_SPOT_MARKET_INDEX;
 use drift::state::spot_market::SpotMarket;
 use switchboard_solana::prelude::*;

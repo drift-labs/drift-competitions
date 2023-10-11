@@ -476,9 +476,9 @@ mod competition_fcn {
 
         assert_eq!(sweepstakes.winner_randomness, 2);
 
-        assert!(sweepstakes.settle_winner(comp1, &spot_market, now).is_err());
-        sweepstakes.settle_winner(comp2, &spot_market, now).unwrap();
-        assert!(sweepstakes.settle_winner(comp2, &spot_market, now).is_err()); // cannot settle twice
+        assert!(sweepstakes.settle_winner(comp1, &spot_market, vault_balance, now).is_err());
+        sweepstakes.settle_winner(comp2, &spot_market, vault_balance, now).unwrap();
+        assert!(sweepstakes.settle_winner(comp2, &spot_market, vault_balance, now).is_err()); // cannot settle twice
         assert_eq!(
             sweepstakes.status,
             CompetitionRoundStatus::WinnerSettlementComplete
@@ -678,12 +678,12 @@ mod competition_fcn {
         spot_market.insurance_fund.shares_base = 5;
         assert_eq!(sweepstakes.winner_randomness, 2);
 
-        assert!(sweepstakes.settle_winner(comp1, &spot_market, now).is_err());
+        assert!(sweepstakes.settle_winner(comp1, &spot_market, vault_balance, now).is_err());
 
         assert_eq!(sweepstakes.prize_amount, 696202);
         assert_eq!(sweepstakes.prize_base, 1);
 
-        sweepstakes.settle_winner(comp2, &spot_market, now).unwrap();
+        sweepstakes.settle_winner(comp2, &spot_market, vault_balance, now).unwrap();
         assert_eq!(
             sweepstakes.status,
             CompetitionRoundStatus::WinnerSettlementComplete
@@ -693,7 +693,7 @@ mod competition_fcn {
         assert_eq!(comp2.unclaimed_winnings, 69);
         assert_eq!(sweepstakes.prize_amount, 69); //rebased by 4 zeros
 
-        assert!(sweepstakes.settle_winner(comp2, &spot_market, now).is_err()); // cannot settle twice
+        assert!(sweepstakes.settle_winner(comp2, &spot_market, vault_balance, now).is_err()); // cannot settle twice
         assert_eq!(
             sweepstakes.status,
             CompetitionRoundStatus::WinnerSettlementComplete
@@ -861,7 +861,7 @@ mod competition_fcn {
             sweepstakes.status,
             CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
         );
-        sweepstakes.settle_winner(comp1, &spot_market, now).unwrap();
+        sweepstakes.settle_winner(comp1, &spot_market, vault_balance, now).unwrap();
         assert_eq!(sweepstakes.round_number, 0);
         assert_eq!(comp1.competition_round_number, 1);
 
@@ -945,7 +945,7 @@ mod competition_fcn {
             sweepstakes.status,
             CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
         );
-        sweepstakes.settle_winner(comp1, &spot_market, now).unwrap();
+        sweepstakes.settle_winner(comp1, &spot_market, vault_balance, now).unwrap();
         assert_eq!(sweepstakes.round_number, 1);
         assert_eq!(comp1.competition_round_number, 2);
 
@@ -1099,12 +1099,12 @@ mod competition_fcn {
         spot_market.insurance_fund.shares_base = 5;
         assert_eq!(sweepstakes.winner_randomness, 2);
 
-        assert!(sweepstakes.settle_winner(comp1, &spot_market, now).is_err());
+        assert!(sweepstakes.settle_winner(comp1, &spot_market, vault_balance, now).is_err());
 
         assert_eq!(sweepstakes.prize_amount, 696202);
         assert_eq!(sweepstakes.prize_base, 1);
 
-        sweepstakes.settle_winner(comp2, &spot_market, now).unwrap();
+        sweepstakes.settle_winner(comp2, &spot_market, vault_balance, now).unwrap();
         assert_eq!(
             sweepstakes.status,
             CompetitionRoundStatus::WinnerSettlementComplete
@@ -1114,7 +1114,7 @@ mod competition_fcn {
         assert_eq!(comp2.unclaimed_winnings, 69);
         assert_eq!(sweepstakes.prize_amount, 69); //rebased by 4 zeros
 
-        assert!(sweepstakes.settle_winner(comp2, &spot_market, now).is_err()); // cannot settle twice
+        assert!(sweepstakes.settle_winner(comp2, &spot_market, vault_balance, now).is_err()); // cannot settle twice
         assert_eq!(
             sweepstakes.status,
             CompetitionRoundStatus::WinnerSettlementComplete
@@ -1273,10 +1273,10 @@ mod competition_fcn {
 
         // unchanged
         assert_eq!(comp2.unclaimed_winnings as u128, 69);
-        assert!(sweepstakes.settle_winner(comp2, &spot_market, now).is_err());
+        assert!(sweepstakes.settle_winner(comp2, &spot_market, vault_balance, now).is_err());
         assert_eq!(comp2.unclaimed_winnings as u128, 69);
 
-        sweepstakes.settle_winner(comp1, &spot_market, now).unwrap();
+        sweepstakes.settle_winner(comp1, &spot_market, vault_balance, now).unwrap();
         assert_eq!(sweepstakes.prize_amount, sweepstakes.prize_amount_settled);
         assert_eq!(
             comp1.unclaimed_winnings as u128,
@@ -1395,8 +1395,8 @@ mod competition_fcn {
 
         assert_eq!(sweepstakes.prize_base, 6);
 
-        assert!(sweepstakes.settle_winner(comp2, &spot_market, now).is_err());
-        sweepstakes.settle_winner(comp1, &spot_market, now).unwrap();
+        assert!(sweepstakes.settle_winner(comp2, &spot_market, vault_balance, now).is_err());
+        sweepstakes.settle_winner(comp1, &spot_market, vault_balance, now).unwrap();
 
         let share_to_claim_3 = comp1
             .claim_winnings(
@@ -1657,7 +1657,7 @@ mod competition_multiple_winners {
             CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
         );
         assert_eq!(sweepstakes.winner_randomness, 2);
-        sweepstakes.settle_winner(comp2, &spot_market, now).unwrap();
+        sweepstakes.settle_winner(comp2, &spot_market, vault_balance, now).unwrap();
         assert_eq!(
             sweepstakes.status,
             CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
@@ -1665,7 +1665,7 @@ mod competition_multiple_winners {
         assert_eq!(sweepstakes.winner_randomness, 1);
 
         sweepstakes.winner_randomness = 1; // set so other comp wins
-        sweepstakes.settle_winner(comp1, &spot_market, now).unwrap();
+        sweepstakes.settle_winner(comp1, &spot_market, vault_balance, now).unwrap();
 
         assert_eq!(
             sweepstakes.status,
@@ -1736,7 +1736,7 @@ mod competition_multiple_winners {
         while sweepstakes.number_of_winners_settled != sweepstakes.number_of_winners {
             for (index, c) in comps.iter_mut().enumerate() {
                 let winner_prize_amount = sweepstakes.calculate_next_winner_prize_amount().unwrap();
-                let res = sweepstakes.settle_winner(c, &spot_market, now);
+                let res = sweepstakes.settle_winner(c, &spot_market, vault_balance, now);
                 if !res.is_err() {
                     winnings_bucket_arr[index] += winner_prize_amount;
                 }

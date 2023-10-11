@@ -498,6 +498,11 @@
           "name": "spotMarket",
           "isMut": true,
           "isSigner": false
+        },
+        {
+          "name": "insuranceFundVault",
+          "isMut": false,
+          "isSigner": false
         }
       ],
       "args": []
@@ -877,6 +882,16 @@
           "index": false
         },
         {
+          "name": "winnerPlacement",
+          "type": "u32",
+          "index": false
+        },
+        {
+          "name": "numberOfWinners",
+          "type": "u32",
+          "index": false
+        },
+        {
           "name": "numberOfCompetitorsSettled",
           "type": "u128",
           "index": false
@@ -909,6 +924,56 @@
         {
           "name": "prizeBase",
           "type": "u128",
+          "index": false
+        },
+        {
+          "name": "prizeValue",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "ts",
+          "type": "i64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "CompetitorSettledRecord",
+      "fields": [
+        {
+          "name": "roundNumber",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "competitor",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "minDraw",
+          "type": "u128",
+          "index": false
+        },
+        {
+          "name": "maxDraw",
+          "type": "u128",
+          "index": false
+        },
+        {
+          "name": "bonusScoreBefore",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "previousSnapshotScoreBefore",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "snapshotScore",
+          "type": "u64",
           "index": false
         },
         {

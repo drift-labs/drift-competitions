@@ -22,6 +22,23 @@ pub struct CompetitionRoundWinnerRecord {
 
     pub prize_amount: u128,
     pub prize_base: u128,
+    pub prize_value: u64,
+
+    pub ts: i64,
+}
+
+
+#[event]
+#[derive(Default)]
+pub struct CompetitorSettledRecord {
+    pub round_number: u64,
+    pub competitor: Pubkey,
+
+    pub min_draw: u128,
+    pub max_draw: u128,
+    pub bonus_score_before: u64,
+    pub previous_snapshot_score_before: u64,
+    pub snapshot_score: u64,
 
     pub ts: i64,
 }
