@@ -952,6 +952,18 @@
           "index": false
         },
         {
+          "name": "status",
+          "type": {
+            "defined": "CompetitorStatus"
+          },
+          "index": false
+        },
+        {
+          "name": "unclaimedWinnings",
+          "type": "u64",
+          "index": false
+        },
+        {
           "name": "minDraw",
           "type": "u128",
           "index": false

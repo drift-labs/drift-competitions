@@ -88,6 +88,7 @@ describe('drift competitions', () => {
 				maxEntriesPerCompetitor: ZERO,
 				minSponsorAmount: ZERO,
 				maxSponsorFraction: ZERO,
+				numberOfWinners: ONE,
 			})
 			.accounts({
 				competition: competitionAddress,

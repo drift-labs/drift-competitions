@@ -341,7 +341,9 @@ impl Competition {
 
         emit!(CompetitorSettledRecord {
             round_number: self.round_number,
+            status: competitor.status,
             competitor: competitor.authority,
+            unclaimed_winnings: competitor.unclaimed_winnings,
             min_draw: competitor.min_draw,
             max_draw: competitor.max_draw,
             bonus_score_before: competitor.bonus_score,

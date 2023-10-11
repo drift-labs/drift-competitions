@@ -1,6 +1,8 @@
 use anchor_lang::prelude::*;
 use borsh::BorshSerialize;
 
+use super::CompetitorStatus;
+
 #[event]
 #[derive(Default)]
 pub struct CompetitionRoundWinnerRecord {
@@ -33,6 +35,9 @@ pub struct CompetitionRoundWinnerRecord {
 pub struct CompetitorSettledRecord {
     pub round_number: u64,
     pub competitor: Pubkey,
+
+    pub status: CompetitorStatus,
+    pub unclaimed_winnings: u64,
 
     pub min_draw: u128,
     pub max_draw: u128,
