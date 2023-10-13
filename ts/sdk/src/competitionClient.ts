@@ -11,6 +11,7 @@ import {
 	unstakeSharesToAmount,
 	QUOTE_PRECISION,
 	PERCENTAGE_PRECISION,
+	fetchLogs,
 } from '@drift-labs/sdk';
 import { Program } from '@coral-xyz/anchor';
 import { DriftCompetitions, IDL } from './types/drift_competitions';
@@ -37,6 +38,7 @@ import {
 } from '@switchboard-xyz/solana.js';
 import * as anchor from '@coral-xyz/anchor';
 import { DRIFT_COMPETITION_PROGRAM_ID } from './constants';
+import { LogParser } from './parsers';
 
 export class CompetitionsClient {
 	driftClient: DriftClient;
@@ -579,5 +581,40 @@ export class CompetitionsClient {
 		);
 
 		return txSig;
+	}
+
+	/**
+	 * Fetch all time competition events.
+	 * NOTE: THIS IS A TEMPORARY SOLUTION AND WILL BE VERY HEAVY ONCE THERE HAVE BEEN A LOT OF HISTORICAL EVENTS EMITTED.
+	 */
+	async getAllCompetitionEvents() {
+
+		let logs : Awaited<ReturnType<typeof fetchLogs>>['transactionLogs'] = [];
+		let fetchedAllLogs = false;
+		let oldestFetchedTx: string;
+
+		while (!fetchedAllLogs) {
+			const response = await fetchLogs(
+				this.driftClient.connection,
+				this.program.programId,
+				'confirmed',
+				oldestFetchedTx
+			);
+
+			if (!response?.transactionLogs || response.transactionLogs.length === 0) {
+				fetchedAllLogs = true;
+				break;
+			}
+			
+			oldestFetchedTx = response.earliestTx;
+
+			const newLogs = response.transactionLogs;
+			logs = logs.concat(newLogs);
+		}
+
+		const logParser = new LogParser(this.program);
+		const events = logs.map((log) => logParser.parseEventsFromLogs(log)).flat();
+
+		return events;
 	}
 }
