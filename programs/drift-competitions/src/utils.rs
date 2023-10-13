@@ -1,4 +1,4 @@
-use drift::{error::DriftResult, state::spot_market::SpotMarket};
+use drift::state::spot_market::SpotMarket;
 
 use crate::error::{CompetitionResult, ErrorCode};
 
@@ -8,6 +8,10 @@ use drift::math::casting::Cast;
 use drift::math::safe_math::SafeMath;
 use drift::validate;
 
+#[cfg(test)]
+use drift::error::DriftResult;
+
+#[cfg(test)]
 pub fn get_test_sample_draw(min: u128, max: u128) -> DriftResult<u128> {
     // do a fake random draw
 

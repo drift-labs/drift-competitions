@@ -25,7 +25,8 @@ pub fn claim_entry<'info>(ctx: Context<'_, '_, '_, 'info, ClaimEntry<'info>>) ->
 
         let ix = instructions::load_instruction_at_checked(current_index, ixs)?;
 
-        let compute_program_id = Pubkey::from_str("ComputeBudget111111111111111111111111111111").unwrap();
+        let compute_program_id =
+            Pubkey::from_str("ComputeBudget111111111111111111111111111111").unwrap();
         if ix.program_id != compute_program_id {
             msg!("found ix that is not compute budget {:?}", ix.program_id);
             return Err(ErrorCode::Default.into());

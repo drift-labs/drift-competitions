@@ -10,11 +10,20 @@ pub fn settle_competitor<'info>(
     let clock = Clock::get()?;
     let now = clock.unix_timestamp;
 
+    let competitor_pubkey = ctx.accounts.competitor.key();
+    let competition_pubkey = ctx.accounts.competition.key();
+
     let mut competitor = ctx.accounts.competitor.load_mut()?;
     let mut competition = ctx.accounts.competition.load_mut()?;
     let user_stats = ctx.accounts.drift_user_stats.load()?;
 
-    competition.settle_competitor(&mut competitor, &user_stats, now)?;
+    competition.settle_competitor(
+        &mut competitor,
+        &user_stats,
+        now,
+        competitor_pubkey,
+        competition_pubkey,
+    )?;
 
     Ok(())
 }

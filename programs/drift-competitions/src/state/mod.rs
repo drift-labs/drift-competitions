@@ -6,5 +6,5 @@ pub use traits::*;
 
 mod competition;
 mod competitor;
-mod events;
+pub mod events;
 mod traits;

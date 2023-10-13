@@ -105,7 +105,8 @@ mod competition_helpers {
             sweepstakes.prize_randomness = cnt;
             let prize_shares = sweepstakes
                 .calculate_prize_amount(&spot_market, vault_balance)
-                .unwrap();
+                .unwrap()
+                .0;
             let prize_quote = if_shares_to_vault_amount(
                 prize_shares,
                 spot_market.insurance_fund.total_shares,
@@ -119,7 +120,8 @@ mod competition_helpers {
         sweepstakes.prize_randomness = total - 1;
         let prize_shares = sweepstakes
             .calculate_prize_amount(&spot_market, vault_balance)
-            .unwrap();
+            .unwrap()
+            .0;
         let prize_quote = if_shares_to_vault_amount(
             prize_shares,
             spot_market.insurance_fund.total_shares,
@@ -133,7 +135,8 @@ mod competition_helpers {
         sweepstakes.prize_randomness = total;
         let prize_shares = sweepstakes
             .calculate_prize_amount(&spot_market, vault_balance)
-            .unwrap();
+            .unwrap()
+            .0;
         assert_eq!(prize_shares, spot_market.insurance_fund.total_shares);
         let prize_quote = if_shares_to_vault_amount(
             prize_shares,
@@ -185,7 +188,8 @@ mod competition_helpers {
 
         let prize_shares = sweepstakes
             .calculate_prize_amount(&spot_market, vault_balance)
-            .unwrap();
+            .unwrap()
+            .0;
         let prize_quote = if_shares_to_vault_amount(
             prize_shares,
             spot_market.insurance_fund.total_shares,
@@ -199,7 +203,8 @@ mod competition_helpers {
         spot_market.insurance_fund.total_shares *= 1000000;
         let prize_shares = sweepstakes
             .calculate_prize_amount(&spot_market, vault_balance)
-            .unwrap();
+            .unwrap()
+            .0;
         let prize_quote = if_shares_to_vault_amount(
             prize_shares,
             spot_market.insurance_fund.total_shares,
@@ -213,7 +218,8 @@ mod competition_helpers {
             sweepstakes.prize_randomness = cnt;
             let prize_shares = sweepstakes
                 .calculate_prize_amount(&spot_market, vault_balance)
-                .unwrap();
+                .unwrap()
+                .0;
             let prize_quote = if_shares_to_vault_amount(
                 prize_shares,
                 spot_market.insurance_fund.total_shares,
@@ -229,7 +235,8 @@ mod competition_helpers {
         sweepstakes.prize_randomness = total - 1;
         let prize_shares = sweepstakes
             .calculate_prize_amount(&spot_market, vault_balance)
-            .unwrap();
+            .unwrap()
+            .0;
         let prize_quote = if_shares_to_vault_amount(
             prize_shares,
             spot_market.insurance_fund.total_shares,
@@ -243,7 +250,8 @@ mod competition_helpers {
         sweepstakes.prize_randomness = total;
         let prize_shares = sweepstakes
             .calculate_prize_amount(&spot_market, vault_balance)
-            .unwrap();
+            .unwrap()
+            .0;
         assert_eq!(prize_shares, spot_market.insurance_fund.total_shares);
         let prize_quote = if_shares_to_vault_amount(
             prize_shares,
@@ -306,7 +314,8 @@ mod competition_helpers {
                 let vv = (vault_balance as i64 + if_delta) as u64;
                 let prize_shares = sweepstakes
                     .calculate_prize_amount(&spot_market, vv)
-                    .unwrap();
+                    .unwrap()
+                    .0;
                 let prize_quote = if_shares_to_vault_amount(
                     prize_shares,
                     spot_market.insurance_fund.total_shares,
@@ -328,7 +337,6 @@ mod competition_helpers {
         assert!(min_prize_times[2] < if_deltas.len());
     }
 
-
     #[test]
     pub fn test_calculate_next_winner_randomness() {
         let sweepstakes = &mut Competition::default();
@@ -338,7 +346,6 @@ mod competition_helpers {
         sweepstakes.number_of_winners = 1000;
         sweepstakes.number_of_competitors = 1000;
         sweepstakes.total_score_settled = 10 * 5_000_000 * QUOTE_PRECISION * 7; // 5 million volume a day for 1 week
-
 
         sweepstakes.prize_amount = 2000 * QUOTE_PRECISION;
 
@@ -352,7 +359,6 @@ mod competition_helpers {
             assert!(sweepstakes.winner_randomness < sweepstakes.total_score_settled);
             assert!(sweepstakes.winner_randomness > 0);
             assert!(!res1[..i].contains(&sweepstakes.winner_randomness));
-
         }
 
         sweepstakes.prize_randomness = 1;
@@ -371,7 +377,6 @@ mod competition_helpers {
             assert!(!res2[..i].contains(&sweepstakes.winner_randomness));
         }
         assert_eq!(res2[994], 40087212372938);
-
     }
 }
 
@@ -380,6 +385,7 @@ mod competition_fcn {
         Competition, CompetitionRoundStatus, Competitor, CompetitorStatus, SponsorInfo,
     };
     use crate::utils::get_test_sample_draw;
+    use anchor_lang::prelude::Pubkey;
     use drift::{
         math::{
             constants::{
@@ -413,8 +419,12 @@ mod competition_fcn {
 
         let us: &UserStats = &UserStats::default();
 
-        assert!(sweepstakes.settle_competitor(comp1, us, now).is_err());
-        assert!(sweepstakes.settle_competitor(comp2, us, now).is_err());
+        assert!(sweepstakes
+            .settle_competitor(comp1, us, now, Pubkey::default(), Pubkey::default())
+            .is_err());
+        assert!(sweepstakes
+            .settle_competitor(comp2, us, now, Pubkey::default(), Pubkey::default())
+            .is_err());
 
         now += 60;
 
@@ -430,12 +440,18 @@ mod competition_fcn {
             .resolve_winner_and_prize_randomness(&spot_market, vault_balance)
             .is_err());
 
-        sweepstakes.settle_competitor(comp1, us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp1, us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
         assert!(sweepstakes.number_of_competitors_settled == 1);
-        sweepstakes.settle_competitor(comp1, us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp1, us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
         assert!(sweepstakes.number_of_competitors_settled == 1); // resettle a competitor doesnt increment
 
-        sweepstakes.settle_competitor(comp2, us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp2, us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
         assert!(sweepstakes.number_of_competitors_settled == 2);
 
         assert_eq!(comp1.min_draw, 0);
@@ -476,9 +492,36 @@ mod competition_fcn {
 
         assert_eq!(sweepstakes.winner_randomness, 2);
 
-        assert!(sweepstakes.settle_winner(comp1, &spot_market, vault_balance, now).is_err());
-        sweepstakes.settle_winner(comp2, &spot_market, vault_balance, now).unwrap();
-        assert!(sweepstakes.settle_winner(comp2, &spot_market, vault_balance, now).is_err()); // cannot settle twice
+        assert!(sweepstakes
+            .settle_winner(
+                comp1,
+                &spot_market,
+                vault_balance,
+                now,
+                Pubkey::default(),
+                Pubkey::default()
+            )
+            .is_err());
+        sweepstakes
+            .settle_winner(
+                comp2,
+                &spot_market,
+                vault_balance,
+                now,
+                Pubkey::default(),
+                Pubkey::default(),
+            )
+            .unwrap();
+        assert!(sweepstakes
+            .settle_winner(
+                comp2,
+                &spot_market,
+                vault_balance,
+                now,
+                Pubkey::default(),
+                Pubkey::default()
+            )
+            .is_err()); // cannot settle twice
         assert_eq!(
             sweepstakes.status,
             CompetitionRoundStatus::WinnerSettlementComplete
@@ -566,8 +609,12 @@ mod competition_fcn {
 
         let us: &UserStats = &UserStats::default();
 
-        assert!(sweepstakes.settle_competitor(comp1, us, now).is_err());
-        assert!(sweepstakes.settle_competitor(comp2, us, now).is_err());
+        assert!(sweepstakes
+            .settle_competitor(comp1, us, now, Pubkey::default(), Pubkey::default())
+            .is_err());
+        assert!(sweepstakes
+            .settle_competitor(comp2, us, now, Pubkey::default(), Pubkey::default())
+            .is_err());
 
         sweepstakes.expire(now).unwrap();
 
@@ -595,8 +642,12 @@ mod competition_fcn {
 
         let us: &UserStats = &UserStats::default();
 
-        assert!(sweepstakes.settle_competitor(comp1, us, now).is_err());
-        assert!(sweepstakes.settle_competitor(comp2, us, now).is_err());
+        assert!(sweepstakes
+            .settle_competitor(comp1, us, now, Pubkey::default(), Pubkey::default())
+            .is_err());
+        assert!(sweepstakes
+            .settle_competitor(comp2, us, now, Pubkey::default(), Pubkey::default())
+            .is_err());
 
         now += 60;
 
@@ -612,12 +663,18 @@ mod competition_fcn {
             .resolve_winner_and_prize_randomness(&spot_market, vault_balance)
             .is_err());
 
-        sweepstakes.settle_competitor(comp1, us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp1, us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
         assert!(sweepstakes.number_of_competitors_settled == 1);
-        sweepstakes.settle_competitor(comp1, us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp1, us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
         assert!(sweepstakes.number_of_competitors_settled == 1); // resettle a competitor doesnt increment
 
-        sweepstakes.settle_competitor(comp2, us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp2, us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
         assert!(sweepstakes.number_of_competitors_settled == 2);
 
         assert_eq!(comp1.min_draw, 0);
@@ -678,12 +735,30 @@ mod competition_fcn {
         spot_market.insurance_fund.shares_base = 5;
         assert_eq!(sweepstakes.winner_randomness, 2);
 
-        assert!(sweepstakes.settle_winner(comp1, &spot_market, vault_balance, now).is_err());
+        assert!(sweepstakes
+            .settle_winner(
+                comp1,
+                &spot_market,
+                vault_balance,
+                now,
+                Pubkey::default(),
+                Pubkey::default()
+            )
+            .is_err());
 
         assert_eq!(sweepstakes.prize_amount, 696202);
         assert_eq!(sweepstakes.prize_base, 1);
 
-        sweepstakes.settle_winner(comp2, &spot_market, vault_balance, now).unwrap();
+        sweepstakes
+            .settle_winner(
+                comp2,
+                &spot_market,
+                vault_balance,
+                now,
+                Pubkey::default(),
+                Pubkey::default(),
+            )
+            .unwrap();
         assert_eq!(
             sweepstakes.status,
             CompetitionRoundStatus::WinnerSettlementComplete
@@ -693,7 +768,16 @@ mod competition_fcn {
         assert_eq!(comp2.unclaimed_winnings, 69);
         assert_eq!(sweepstakes.prize_amount, 69); //rebased by 4 zeros
 
-        assert!(sweepstakes.settle_winner(comp2, &spot_market, vault_balance, now).is_err()); // cannot settle twice
+        assert!(sweepstakes
+            .settle_winner(
+                comp2,
+                &spot_market,
+                vault_balance,
+                now,
+                Pubkey::default(),
+                Pubkey::default()
+            )
+            .is_err()); // cannot settle twice
         assert_eq!(
             sweepstakes.status,
             CompetitionRoundStatus::WinnerSettlementComplete
@@ -833,7 +917,9 @@ mod competition_fcn {
 
         let us: &UserStats = &UserStats::default();
 
-        sweepstakes.settle_competitor(comp1, us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp1, us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
 
         assert!(sweepstakes.reset_round(now).is_err());
 
@@ -861,7 +947,16 @@ mod competition_fcn {
             sweepstakes.status,
             CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
         );
-        sweepstakes.settle_winner(comp1, &spot_market, vault_balance, now).unwrap();
+        sweepstakes
+            .settle_winner(
+                comp1,
+                &spot_market,
+                vault_balance,
+                now,
+                Pubkey::default(),
+                Pubkey::default(),
+            )
+            .unwrap();
         assert_eq!(sweepstakes.round_number, 0);
         assert_eq!(comp1.competition_round_number, 1);
 
@@ -918,7 +1013,9 @@ mod competition_fcn {
         now += 945890235;
         comp1.bonus_score += 1;
         comp1.unclaimed_winnings = 0;
-        sweepstakes.settle_competitor(comp1, us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp1, us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
         sweepstakes
             .request_winner_and_prize_randomness(&spot_market, vault_balance)
             .unwrap();
@@ -945,7 +1042,16 @@ mod competition_fcn {
             sweepstakes.status,
             CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
         );
-        sweepstakes.settle_winner(comp1, &spot_market, vault_balance, now).unwrap();
+        sweepstakes
+            .settle_winner(
+                comp1,
+                &spot_market,
+                vault_balance,
+                now,
+                Pubkey::default(),
+                Pubkey::default(),
+            )
+            .unwrap();
         assert_eq!(sweepstakes.round_number, 1);
         assert_eq!(comp1.competition_round_number, 2);
 
@@ -1015,8 +1121,12 @@ mod competition_fcn {
 
         let us: &UserStats = &UserStats::default();
 
-        assert!(sweepstakes.settle_competitor(comp1, us, now).is_err());
-        assert!(sweepstakes.settle_competitor(comp2, us, now).is_err());
+        assert!(sweepstakes
+            .settle_competitor(comp1, us, now, Pubkey::default(), Pubkey::default())
+            .is_err());
+        assert!(sweepstakes
+            .settle_competitor(comp2, us, now, Pubkey::default(), Pubkey::default())
+            .is_err());
 
         now += 60;
 
@@ -1032,12 +1142,18 @@ mod competition_fcn {
             .resolve_winner_and_prize_randomness(&spot_market, vault_balance)
             .is_err());
 
-        sweepstakes.settle_competitor(comp1, us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp1, us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
         assert!(sweepstakes.number_of_competitors_settled == 1);
-        sweepstakes.settle_competitor(comp1, us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp1, us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
         assert!(sweepstakes.number_of_competitors_settled == 1); // resettle a competitor doesnt increment
 
-        sweepstakes.settle_competitor(comp2, us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp2, us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
         assert!(sweepstakes.number_of_competitors_settled == 2);
 
         assert_eq!(comp1.min_draw, 0);
@@ -1099,12 +1215,30 @@ mod competition_fcn {
         spot_market.insurance_fund.shares_base = 5;
         assert_eq!(sweepstakes.winner_randomness, 2);
 
-        assert!(sweepstakes.settle_winner(comp1, &spot_market, vault_balance, now).is_err());
+        assert!(sweepstakes
+            .settle_winner(
+                comp1,
+                &spot_market,
+                vault_balance,
+                now,
+                Pubkey::default(),
+                Pubkey::default()
+            )
+            .is_err());
 
         assert_eq!(sweepstakes.prize_amount, 696202);
         assert_eq!(sweepstakes.prize_base, 1);
 
-        sweepstakes.settle_winner(comp2, &spot_market, vault_balance, now).unwrap();
+        sweepstakes
+            .settle_winner(
+                comp2,
+                &spot_market,
+                vault_balance,
+                now,
+                Pubkey::default(),
+                Pubkey::default(),
+            )
+            .unwrap();
         assert_eq!(
             sweepstakes.status,
             CompetitionRoundStatus::WinnerSettlementComplete
@@ -1114,7 +1248,16 @@ mod competition_fcn {
         assert_eq!(comp2.unclaimed_winnings, 69);
         assert_eq!(sweepstakes.prize_amount, 69); //rebased by 4 zeros
 
-        assert!(sweepstakes.settle_winner(comp2, &spot_market, vault_balance, now).is_err()); // cannot settle twice
+        assert!(sweepstakes
+            .settle_winner(
+                comp2,
+                &spot_market,
+                vault_balance,
+                now,
+                Pubkey::default(),
+                Pubkey::default()
+            )
+            .is_err()); // cannot settle twice
         assert_eq!(
             sweepstakes.status,
             CompetitionRoundStatus::WinnerSettlementComplete
@@ -1209,13 +1352,19 @@ mod competition_fcn {
         comp1.bonus_score = 1;
         comp2.bonus_score = 10;
 
-        sweepstakes.settle_competitor(comp1, us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp1, us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
         assert!(sweepstakes.number_of_competitors_settled == 1);
-        sweepstakes.settle_competitor(comp1, us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp1, us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
         assert!(sweepstakes.number_of_competitors_settled == 1); // resettle a competitor doesnt increment
         assert_eq!(sweepstakes.total_score_settled, 1);
 
-        sweepstakes.settle_competitor(comp2, us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp2, us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
         assert_eq!(sweepstakes.total_score_settled, 1); // comp2 skipped since they already won and didnt claim
         assert!(sweepstakes.number_of_competitors_settled == 2);
         sweepstakes
@@ -1273,10 +1422,28 @@ mod competition_fcn {
 
         // unchanged
         assert_eq!(comp2.unclaimed_winnings as u128, 69);
-        assert!(sweepstakes.settle_winner(comp2, &spot_market, vault_balance, now).is_err());
+        assert!(sweepstakes
+            .settle_winner(
+                comp2,
+                &spot_market,
+                vault_balance,
+                now,
+                Pubkey::default(),
+                Pubkey::default()
+            )
+            .is_err());
         assert_eq!(comp2.unclaimed_winnings as u128, 69);
 
-        sweepstakes.settle_winner(comp1, &spot_market, vault_balance, now).unwrap();
+        sweepstakes
+            .settle_winner(
+                comp1,
+                &spot_market,
+                vault_balance,
+                now,
+                Pubkey::default(),
+                Pubkey::default(),
+            )
+            .unwrap();
         assert_eq!(sweepstakes.prize_amount, sweepstakes.prize_amount_settled);
         assert_eq!(
             comp1.unclaimed_winnings as u128,
@@ -1320,7 +1487,9 @@ mod competition_fcn {
         assert_eq!(sweepstakes.number_of_competitors_settled, 2);
         sweepstakes.reset_round(now).unwrap();
 
-        assert!(sweepstakes.settle_competitor(comp1, us, now).is_err()); // late round reset means you gotta wait til next expiry
+        assert!(sweepstakes
+            .settle_competitor(comp1, us, now, Pubkey::default(), Pubkey::default())
+            .is_err()); // late round reset means you gotta wait til next expiry
 
         assert_eq!(sweepstakes.next_round_expiry_ts, 168003480); // multiple of round duration
         now += 999;
@@ -1333,13 +1502,19 @@ mod competition_fcn {
         comp1.bonus_score = 1;
         comp2.bonus_score = 10;
 
-        sweepstakes.settle_competitor(comp1, us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp1, us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
         assert!(sweepstakes.number_of_competitors_settled == 1);
-        sweepstakes.settle_competitor(comp1, us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp1, us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
         assert!(sweepstakes.number_of_competitors_settled == 1); // resettle a competitor doesnt increment
         assert_eq!(sweepstakes.total_score_settled, 1);
 
-        sweepstakes.settle_competitor(comp2, us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp2, us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
         assert_eq!(sweepstakes.total_score_settled, 11);
         assert_eq!(sweepstakes.number_of_competitors_settled, 2);
         sweepstakes
@@ -1395,8 +1570,26 @@ mod competition_fcn {
 
         assert_eq!(sweepstakes.prize_base, 6);
 
-        assert!(sweepstakes.settle_winner(comp2, &spot_market, vault_balance, now).is_err());
-        sweepstakes.settle_winner(comp1, &spot_market, vault_balance, now).unwrap();
+        assert!(sweepstakes
+            .settle_winner(
+                comp2,
+                &spot_market,
+                vault_balance,
+                now,
+                Pubkey::default(),
+                Pubkey::default()
+            )
+            .is_err());
+        sweepstakes
+            .settle_winner(
+                comp1,
+                &spot_market,
+                vault_balance,
+                now,
+                Pubkey::default(),
+                Pubkey::default(),
+            )
+            .unwrap();
 
         let share_to_claim_3 = comp1
             .claim_winnings(
@@ -1451,7 +1644,9 @@ mod competition_fcn {
         assert_eq!(last_round_score, last_round_score_2);
 
         now += 60;
-        sweepstakes.settle_competitor(comp1, &us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp1, &us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
         assert_eq!(
             comp1.bonus_score,
             (sweepstakes.max_entries_per_competitor / 2) as u64
@@ -1522,7 +1717,9 @@ mod competition_fcn {
             .update_status(sweepstakes, &us, CompetitorStatus::Disqualified, now)
             .unwrap();
 
-        sweepstakes.settle_competitor(comp1, &us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp1, &us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
 
         assert_eq!(comp1.min_draw, 0);
         assert_eq!(comp1.max_draw, 0);
@@ -1534,7 +1731,9 @@ mod competition_fcn {
         assert!(comp1
             .update_status(sweepstakes, &us, CompetitorStatus::Disqualified, now)
             .is_err());
-        sweepstakes.settle_competitor(comp2, &us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp2, &us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
         assert_eq!(comp2.min_draw, 0);
         assert_eq!(comp2.max_draw, 500000);
         // comp3 was already disqualified before start
@@ -1545,12 +1744,24 @@ mod competition_fcn {
         assert_eq!(sweepstakes.total_score_settled, 500000);
         let score_before_comp3_settle = sweepstakes.total_score_settled;
         // no errors, just fail gracefully
-        sweepstakes.settle_competitor(comp3, &us, now).unwrap();
-        sweepstakes.settle_competitor(comp3, &us, now).unwrap();
-        sweepstakes.settle_competitor(comp3, &us, now).unwrap();
-        sweepstakes.settle_competitor(comp3, &us, now).unwrap();
-        sweepstakes.settle_competitor(comp3, &us, now).unwrap();
-        sweepstakes.settle_competitor(comp3, &us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp3, &us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
+        sweepstakes
+            .settle_competitor(comp3, &us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
+        sweepstakes
+            .settle_competitor(comp3, &us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
+        sweepstakes
+            .settle_competitor(comp3, &us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
+        sweepstakes
+            .settle_competitor(comp3, &us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
+        sweepstakes
+            .settle_competitor(comp3, &us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
 
         assert_eq!(comp3.min_draw, 0);
         assert_eq!(comp3.max_draw, 0);
@@ -1568,7 +1779,9 @@ mod competition_fcn {
         );
         assert_eq!(comp3.bonus_score, 33800000); // once flipped to active will lose this
 
-        sweepstakes.settle_competitor(comp4, &us4, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp4, &us4, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
         assert_eq!(comp4.min_draw, 500000);
         assert_eq!(comp4.max_draw, 500000);
 
@@ -1583,20 +1796,14 @@ mod competition_fcn {
 }
 
 mod competition_multiple_winners {
-    use crate::state::{
-        Competition, CompetitionRoundStatus, Competitor,
-    };
+    use crate::state::{Competition, CompetitionRoundStatus, Competitor};
     use crate::utils::get_test_sample_draw;
+    use anchor_lang::prelude::Pubkey;
     use drift::{
-        math::{
-            constants::{
-                PERCENTAGE_PRECISION_U64,
-                QUOTE_PRECISION,
-            },
-        },
-        state::{spot_market::SpotMarket, user::UserStats,
-        },
+        math::constants::{PERCENTAGE_PRECISION_U64, QUOTE_PRECISION},
+        state::{spot_market::SpotMarket, user::UserStats},
     };
+
     #[test]
     fn test_competition_2_winners_settlement() {
         let mut now = 168000000;
@@ -1625,13 +1832,21 @@ mod competition_multiple_winners {
         // 10k max
         let vault_balance: u64 = (10000 * QUOTE_PRECISION) as u64;
 
-        assert!(sweepstakes.settle_competitor(comp1, us, now).is_err());
-        assert!(sweepstakes.settle_competitor(comp2, us, now).is_err());
+        assert!(sweepstakes
+            .settle_competitor(comp1, us, now, Pubkey::default(), Pubkey::default())
+            .is_err());
+        assert!(sweepstakes
+            .settle_competitor(comp2, us, now, Pubkey::default(), Pubkey::default())
+            .is_err());
 
         now += 60;
 
-        sweepstakes.settle_competitor(comp1, us, now).unwrap();
-        sweepstakes.settle_competitor(comp2, us, now).unwrap();
+        sweepstakes
+            .settle_competitor(comp1, us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
+        sweepstakes
+            .settle_competitor(comp2, us, now, Pubkey::default(), Pubkey::default())
+            .unwrap();
         sweepstakes
             .request_winner_and_prize_randomness(&spot_market, vault_balance)
             .unwrap();
@@ -1657,7 +1872,16 @@ mod competition_multiple_winners {
             CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
         );
         assert_eq!(sweepstakes.winner_randomness, 2);
-        sweepstakes.settle_winner(comp2, &spot_market, vault_balance, now).unwrap();
+        sweepstakes
+            .settle_winner(
+                comp2,
+                &spot_market,
+                vault_balance,
+                now,
+                Pubkey::default(),
+                Pubkey::default(),
+            )
+            .unwrap();
         assert_eq!(
             sweepstakes.status,
             CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
@@ -1665,7 +1889,16 @@ mod competition_multiple_winners {
         assert_eq!(sweepstakes.winner_randomness, 1);
 
         sweepstakes.winner_randomness = 1; // set so other comp wins
-        sweepstakes.settle_winner(comp1, &spot_market, vault_balance, now).unwrap();
+        sweepstakes
+            .settle_winner(
+                comp1,
+                &spot_market,
+                vault_balance,
+                now,
+                Pubkey::default(),
+                Pubkey::default(),
+            )
+            .unwrap();
 
         assert_eq!(
             sweepstakes.status,
@@ -1705,7 +1938,9 @@ mod competition_multiple_winners {
 
         now += 60;
         for c in &mut comps {
-            sweepstakes.settle_competitor(c, us, now).unwrap();
+            sweepstakes
+                .settle_competitor(c, us, now, Pubkey::default(), Pubkey::default())
+                .unwrap();
         }
 
         sweepstakes
@@ -1717,7 +1952,13 @@ mod competition_multiple_winners {
         sweepstakes.winner_randomness =
             get_test_sample_draw(1, sweepstakes.total_score_settled).unwrap();
 
-        assert_eq!(sweepstakes.calculate_prize_amount(&spot_market, vault_balance).unwrap(), 18181818);
+        assert_eq!(
+            sweepstakes
+                .calculate_prize_amount(&spot_market, vault_balance)
+                .unwrap()
+                .0,
+            18181818
+        );
 
         sweepstakes
             .resolve_winner_and_prize_randomness(&spot_market, vault_balance)
@@ -1736,7 +1977,14 @@ mod competition_multiple_winners {
         while sweepstakes.number_of_winners_settled != sweepstakes.number_of_winners {
             for (index, c) in comps.iter_mut().enumerate() {
                 let winner_prize_amount = sweepstakes.calculate_next_winner_prize_amount().unwrap();
-                let res = sweepstakes.settle_winner(c, &spot_market, vault_balance, now);
+                let res = sweepstakes.settle_winner(
+                    c,
+                    &spot_market,
+                    vault_balance,
+                    now,
+                    Pubkey::default(),
+                    Pubkey::default(),
+                );
                 if !res.is_err() {
                     winnings_bucket_arr[index] += winner_prize_amount;
                 }
@@ -1744,13 +1992,73 @@ mod competition_multiple_winners {
             num_full_cycles += 1;
         }
 
-        let res: [u128; 1001] = [0, 0, 2727, 0, 5454, 2727, 2727, 2727, 5454, 0, 0, 2727, 5454, 0, 2727, 0, 5454, 0, 5454, 5454, 2727, 5454, 0, 2727, 2727, 5454, 5454, 2727, 2727, 8181, 0, 2727, 2727, 2727, 5454, 2727, 2727, 2727, 0, 0, 5454, 0, 5454, 0, 0, 2727, 2727, 2727, 2727, 2727, 0, 0, 2727, 2727, 5454, 2727, 2727, 0, 8181, 0, 2727, 2727, 5454, 5454, 5454, 0, 5454, 0, 2727, 2727, 2727, 0, 5454, 5454, 5454, 2727, 2727, 2727, 8181, 5454, 2727, 0, 2727, 5454, 2727, 0, 0, 0, 8181, 10908, 0, 0, 2727, 5454, 2727, 2727, 0, 0, 2727, 2727, 5454, 5454, 8181, 2727, 2727, 0, 0, 5454, 2727, 0, 0, 0, 2727, 5454, 0, 5454, 5454, 5454, 2727, 2727, 2727, 2727, 8181, 0, 2727, 5454, 2727, 5454, 0, 0, 2727, 2727, 0, 2727, 0, 5454, 5454, 0, 8181, 8181, 5454, 0, 0, 5454, 0, 2727, 0, 5454, 5454, 2727, 2727, 8181, 0, 0, 5454, 0, 5454, 2727, 2727, 2727, 2727, 8181, 2727, 0, 2727, 0, 2727, 0, 0, 0, 2727, 0, 8181, 0, 2727, 5454, 2727, 0, 0, 2727, 5454, 5454, 5454, 2727, 0, 0, 2727, 0, 2727, 2727, 0, 5454, 5454, 2727, 2727, 0, 5454, 2727, 2727, 5454, 2727, 2727, 0, 0, 2727, 2727, 0, 2727, 2727, 2727, 2727, 0, 0, 5454, 5454, 0, 5454, 2727, 2727, 2727, 2727, 0, 2727, 0, 0, 2727, 0, 0, 2727, 2727, 2727, 8181, 2727, 0, 2727, 5454, 2727, 2727, 0, 0, 2727, 0, 8181, 2727, 10908, 0, 2727, 0, 8181, 0, 2727, 2727, 2727, 8181, 0, 0, 5454, 2727, 2727, 2727, 5454, 8181, 5454, 2727, 2727, 5454, 8181, 2727, 5454, 2727, 0, 0, 5454, 2727, 0, 0, 0, 0, 0, 0, 2727, 0, 0, 2727, 0, 2727, 0, 0, 2727, 8181, 5454, 0, 2727, 2727, 2727, 8181, 0, 2727, 2727, 2727, 0, 0, 5454, 0, 0, 0, 0, 2727, 5454, 5454, 5454, 8181, 5454, 2727, 5454, 0, 0, 2727, 2727, 0, 5454, 0, 0, 2727, 2727, 0, 2727, 2727, 2727, 2727, 2727, 0, 8181, 0, 0, 5454, 2727, 0, 2727, 0, 10908, 2727, 0, 0, 5454, 0, 2727, 0, 0, 2727, 2727, 2727, 5454, 2727, 2727, 0, 5454, 2727, 5454, 0, 0, 0, 5454, 2727, 2727, 0, 0, 0, 5454, 0, 0, 8181, 8181, 2727, 2727, 2727, 0, 0, 0, 2727, 0, 5454, 5454, 8181, 0, 5454, 0, 5454, 2727, 2727, 0, 0, 2727, 0, 0, 2727, 0, 8181, 0, 2727, 0, 0, 2727, 2727, 2727, 2727, 0, 8181, 5454, 5454, 0, 0, 5454, 0, 0, 8181, 2727, 5454, 0, 0, 0, 2727, 0, 0, 0, 2727, 2727, 5454, 0, 5454, 2727, 0, 0, 5454, 0, 8181, 2727, 0, 0, 8181, 0, 2727, 2727, 2727, 5454, 13635, 2727, 2727, 0, 5454, 0, 2727, 0, 5454, 0, 0, 5454, 0, 5454, 5454, 2727, 0, 2727, 2727, 2727, 5454, 2727, 2727, 0, 0, 2727, 2727, 0, 2727, 5454, 0, 2727, 2727, 2727, 2727, 0, 5454, 5454, 0, 2727, 2727, 2727, 2727, 2727, 5454, 2727, 2727, 8181, 2727, 5454, 5454, 0, 0, 0, 0, 9090909, 0, 0, 2727, 2727, 0, 0, 2727, 5454, 0, 0, 0, 0, 2727, 0, 0, 0, 0, 3639090, 2727, 5454, 2727, 2727, 2727, 0, 0, 0, 0, 2727, 5454, 2727, 5454, 2727, 0, 5454, 0, 2727, 5454, 8181, 0, 5454, 5454, 2727, 0, 5454, 2727, 2727, 0, 5454, 10908, 5454, 0, 2727, 0, 5454, 2727, 0, 2727, 5454, 2727, 5454, 2727, 2727, 5454, 8181, 0, 8181, 2727, 0, 0, 2727, 2727, 5454, 0, 2727, 0, 2727, 0, 0, 2727, 2727, 2727, 2727, 0, 2727, 5454, 0, 0, 5454, 8181, 0, 2727, 0, 0, 2727, 2727, 8181, 5454, 0, 5454, 5454, 2727, 10908, 2727, 2727, 2727, 0, 5454, 10908, 8181, 8181, 0, 8181, 5454, 5454, 0, 2727, 2727, 2727, 10908, 2727, 0, 5454, 5454, 2727, 2727, 0, 0, 0, 2727, 2727, 0, 2727, 2727, 0, 0, 8181, 5454, 0, 2727, 2727, 0, 2727, 2727, 2727, 8181, 2727, 0, 5454, 0, 2727, 8181, 2727, 0, 0, 5454, 2727, 2727, 0, 2727, 2727, 10908, 2727, 0, 5454, 0, 2727, 0, 2727, 5454, 2727, 0, 2727, 2727, 0, 5454, 0, 5454, 2727, 10908, 5454, 2727, 0, 2727272, 8181, 0, 0, 0, 2727, 2727, 0, 2727, 0, 0, 0, 0, 0, 5454, 0, 0, 0, 0, 2727, 2727, 2727, 5454, 8181, 0, 0, 8181, 10908, 0, 2727, 8181, 2727, 0, 0, 0, 0, 0, 0, 2727, 0, 2727, 0, 8181, 2727, 0, 2727, 2727, 0, 0, 5454, 0, 2727, 2727, 0, 2727, 0, 2727, 0, 0, 2727, 2727, 0, 2727, 2727, 0, 8181, 2727, 5454, 2727, 2727, 2727, 2727, 5454, 0, 2727, 0, 5454, 10908, 8181, 0, 0, 2727, 2727, 2727, 2727, 2727, 8181, 5454, 2727, 8181, 5454, 2727, 2727, 2727, 0, 10908, 0, 0, 2727, 5454, 5454, 8181, 0, 2727, 2727, 0, 2727, 8181, 0, 5454, 5454, 0, 0, 5454, 2727, 0, 5454, 2727, 0, 0, 5454, 2727, 2727, 2727, 0, 8181, 0, 0, 0, 0, 0, 2727, 5454, 2727, 2727, 2727, 5454, 5454, 2727, 8181, 2727, 2727, 5454, 0, 2727, 0, 0, 5454, 10908, 2727, 2727, 2727, 0, 0, 0, 2727, 0, 0, 0, 0, 0, 8181, 0, 0, 5454, 2727, 2727, 0, 0, 0, 2727, 0, 8181, 2727, 0, 5454, 5454, 2727, 8181, 0, 5454, 0, 0, 0, 5454, 10908, 5454, 0, 0, 0, 5454, 2727, 0, 0, 0, 0, 2727, 0, 10908, 0, 5454, 10908, 0, 2727, 0, 2727, 5454, 5454, 5454, 2727, 2727, 8181, 5454, 0, 0, 2727, 0, 2727, 5454, 5454, 2727, 5454, 2727, 2727, 2727, 5454, 0, 2727, 0, 2727, 0, 2727, 0, 2727, 0, 5454, 5454, 2727, 0, 2727, 0, 5454, 8181, 2727, 2727, 5454, 0, 2727, 0, 8181, 5454, 0, 2727, 0, 0, 0, 2727, 2727, 2727, 8181, 2727, 0, 8181, 2727, 5454, 0, 2727, 2727, 0, 2727, 0, 5454, 2727, 0, 0, 2727, 0, 5454, 5454, 0, 13635, 5454, 5454, 2727, 0, 0, 10908, 0, 0, 5454, 0, 0, 2727, 0, 0, 2727, 5454, 2727, 8181, 2727, 0, 0, 0, 2727, 0, 2727, 0, 2727, 0, 5454, 2727, 0, 5454, 2727, 2727, 0, 5454, 0];
+        let res: [u128; 1001] = [
+            0, 0, 2727, 0, 5454, 2727, 2727, 2727, 5454, 0, 0, 2727, 5454, 0, 2727, 0, 5454, 0,
+            5454, 5454, 2727, 5454, 0, 2727, 2727, 5454, 5454, 2727, 2727, 8181, 0, 2727, 2727,
+            2727, 5454, 2727, 2727, 2727, 0, 0, 5454, 0, 5454, 0, 0, 2727, 2727, 2727, 2727, 2727,
+            0, 0, 2727, 2727, 5454, 2727, 2727, 0, 8181, 0, 2727, 2727, 5454, 5454, 5454, 0, 5454,
+            0, 2727, 2727, 2727, 0, 5454, 5454, 5454, 2727, 2727, 2727, 8181, 5454, 2727, 0, 2727,
+            5454, 2727, 0, 0, 0, 8181, 10908, 0, 0, 2727, 5454, 2727, 2727, 0, 0, 2727, 2727, 5454,
+            5454, 8181, 2727, 2727, 0, 0, 5454, 2727, 0, 0, 0, 2727, 5454, 0, 5454, 5454, 5454,
+            2727, 2727, 2727, 2727, 8181, 0, 2727, 5454, 2727, 5454, 0, 0, 2727, 2727, 0, 2727, 0,
+            5454, 5454, 0, 8181, 8181, 5454, 0, 0, 5454, 0, 2727, 0, 5454, 5454, 2727, 2727, 8181,
+            0, 0, 5454, 0, 5454, 2727, 2727, 2727, 2727, 8181, 2727, 0, 2727, 0, 2727, 0, 0, 0,
+            2727, 0, 8181, 0, 2727, 5454, 2727, 0, 0, 2727, 5454, 5454, 5454, 2727, 0, 0, 2727, 0,
+            2727, 2727, 0, 5454, 5454, 2727, 2727, 0, 5454, 2727, 2727, 5454, 2727, 2727, 0, 0,
+            2727, 2727, 0, 2727, 2727, 2727, 2727, 0, 0, 5454, 5454, 0, 5454, 2727, 2727, 2727,
+            2727, 0, 2727, 0, 0, 2727, 0, 0, 2727, 2727, 2727, 8181, 2727, 0, 2727, 5454, 2727,
+            2727, 0, 0, 2727, 0, 8181, 2727, 10908, 0, 2727, 0, 8181, 0, 2727, 2727, 2727, 8181, 0,
+            0, 5454, 2727, 2727, 2727, 5454, 8181, 5454, 2727, 2727, 5454, 8181, 2727, 5454, 2727,
+            0, 0, 5454, 2727, 0, 0, 0, 0, 0, 0, 2727, 0, 0, 2727, 0, 2727, 0, 0, 2727, 8181, 5454,
+            0, 2727, 2727, 2727, 8181, 0, 2727, 2727, 2727, 0, 0, 5454, 0, 0, 0, 0, 2727, 5454,
+            5454, 5454, 8181, 5454, 2727, 5454, 0, 0, 2727, 2727, 0, 5454, 0, 0, 2727, 2727, 0,
+            2727, 2727, 2727, 2727, 2727, 0, 8181, 0, 0, 5454, 2727, 0, 2727, 0, 10908, 2727, 0, 0,
+            5454, 0, 2727, 0, 0, 2727, 2727, 2727, 5454, 2727, 2727, 0, 5454, 2727, 5454, 0, 0, 0,
+            5454, 2727, 2727, 0, 0, 0, 5454, 0, 0, 8181, 8181, 2727, 2727, 2727, 0, 0, 0, 2727, 0,
+            5454, 5454, 8181, 0, 5454, 0, 5454, 2727, 2727, 0, 0, 2727, 0, 0, 2727, 0, 8181, 0,
+            2727, 0, 0, 2727, 2727, 2727, 2727, 0, 8181, 5454, 5454, 0, 0, 5454, 0, 0, 8181, 2727,
+            5454, 0, 0, 0, 2727, 0, 0, 0, 2727, 2727, 5454, 0, 5454, 2727, 0, 0, 5454, 0, 8181,
+            2727, 0, 0, 8181, 0, 2727, 2727, 2727, 5454, 13635, 2727, 2727, 0, 5454, 0, 2727, 0,
+            5454, 0, 0, 5454, 0, 5454, 5454, 2727, 0, 2727, 2727, 2727, 5454, 2727, 2727, 0, 0,
+            2727, 2727, 0, 2727, 5454, 0, 2727, 2727, 2727, 2727, 0, 5454, 5454, 0, 2727, 2727,
+            2727, 2727, 2727, 5454, 2727, 2727, 8181, 2727, 5454, 5454, 0, 0, 0, 0, 9090909, 0, 0,
+            2727, 2727, 0, 0, 2727, 5454, 0, 0, 0, 0, 2727, 0, 0, 0, 0, 3639090, 2727, 5454, 2727,
+            2727, 2727, 0, 0, 0, 0, 2727, 5454, 2727, 5454, 2727, 0, 5454, 0, 2727, 5454, 8181, 0,
+            5454, 5454, 2727, 0, 5454, 2727, 2727, 0, 5454, 10908, 5454, 0, 2727, 0, 5454, 2727, 0,
+            2727, 5454, 2727, 5454, 2727, 2727, 5454, 8181, 0, 8181, 2727, 0, 0, 2727, 2727, 5454,
+            0, 2727, 0, 2727, 0, 0, 2727, 2727, 2727, 2727, 0, 2727, 5454, 0, 0, 5454, 8181, 0,
+            2727, 0, 0, 2727, 2727, 8181, 5454, 0, 5454, 5454, 2727, 10908, 2727, 2727, 2727, 0,
+            5454, 10908, 8181, 8181, 0, 8181, 5454, 5454, 0, 2727, 2727, 2727, 10908, 2727, 0,
+            5454, 5454, 2727, 2727, 0, 0, 0, 2727, 2727, 0, 2727, 2727, 0, 0, 8181, 5454, 0, 2727,
+            2727, 0, 2727, 2727, 2727, 8181, 2727, 0, 5454, 0, 2727, 8181, 2727, 0, 0, 5454, 2727,
+            2727, 0, 2727, 2727, 10908, 2727, 0, 5454, 0, 2727, 0, 2727, 5454, 2727, 0, 2727, 2727,
+            0, 5454, 0, 5454, 2727, 10908, 5454, 2727, 0, 2727272, 8181, 0, 0, 0, 2727, 2727, 0,
+            2727, 0, 0, 0, 0, 0, 5454, 0, 0, 0, 0, 2727, 2727, 2727, 5454, 8181, 0, 0, 8181, 10908,
+            0, 2727, 8181, 2727, 0, 0, 0, 0, 0, 0, 2727, 0, 2727, 0, 8181, 2727, 0, 2727, 2727, 0,
+            0, 5454, 0, 2727, 2727, 0, 2727, 0, 2727, 0, 0, 2727, 2727, 0, 2727, 2727, 0, 8181,
+            2727, 5454, 2727, 2727, 2727, 2727, 5454, 0, 2727, 0, 5454, 10908, 8181, 0, 0, 2727,
+            2727, 2727, 2727, 2727, 8181, 5454, 2727, 8181, 5454, 2727, 2727, 2727, 0, 10908, 0, 0,
+            2727, 5454, 5454, 8181, 0, 2727, 2727, 0, 2727, 8181, 0, 5454, 5454, 0, 0, 5454, 2727,
+            0, 5454, 2727, 0, 0, 5454, 2727, 2727, 2727, 0, 8181, 0, 0, 0, 0, 0, 2727, 5454, 2727,
+            2727, 2727, 5454, 5454, 2727, 8181, 2727, 2727, 5454, 0, 2727, 0, 0, 5454, 10908, 2727,
+            2727, 2727, 0, 0, 0, 2727, 0, 0, 0, 0, 0, 8181, 0, 0, 5454, 2727, 2727, 0, 0, 0, 2727,
+            0, 8181, 2727, 0, 5454, 5454, 2727, 8181, 0, 5454, 0, 0, 0, 5454, 10908, 5454, 0, 0, 0,
+            5454, 2727, 0, 0, 0, 0, 2727, 0, 10908, 0, 5454, 10908, 0, 2727, 0, 2727, 5454, 5454,
+            5454, 2727, 2727, 8181, 5454, 0, 0, 2727, 0, 2727, 5454, 5454, 2727, 5454, 2727, 2727,
+            2727, 5454, 0, 2727, 0, 2727, 0, 2727, 0, 2727, 0, 5454, 5454, 2727, 0, 2727, 0, 5454,
+            8181, 2727, 2727, 5454, 0, 2727, 0, 8181, 5454, 0, 2727, 0, 0, 0, 2727, 2727, 2727,
+            8181, 2727, 0, 8181, 2727, 5454, 0, 2727, 2727, 0, 2727, 0, 5454, 2727, 0, 0, 2727, 0,
+            5454, 5454, 0, 13635, 5454, 5454, 2727, 0, 0, 10908, 0, 0, 5454, 0, 0, 2727, 0, 0,
+            2727, 5454, 2727, 8181, 2727, 0, 0, 0, 2727, 0, 2727, 0, 2727, 0, 5454, 2727, 0, 5454,
+            2727, 2727, 0, 5454, 0,
+        ];
         assert_eq!(winnings_bucket_arr, res);
         assert_eq!(res.iter().sum::<u128>(), 18176090);
         assert_eq!(num_full_cycles, 497);
         assert!(sweepstakes.prize_amount > sweepstakes.prize_amount_settled);
-        assert_eq!(sweepstakes.prize_amount - sweepstakes.prize_amount_settled, 5728); // 0.03150400031% of reward was dust
-
-
+        assert_eq!(
+            sweepstakes.prize_amount - sweepstakes.prize_amount_settled,
+            5728
+        ); // 0.03150400031% of reward was dust
     }
 }

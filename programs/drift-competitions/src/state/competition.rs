@@ -1,5 +1,5 @@
 use crate::state::events::CompetitionRoundWinnerRecord;
-use crate::state::{Size, CompetitorSettledRecord};
+use crate::state::{CompetitorSettledRecord, Size};
 use crate::utils::{
     apply_rebase_to_competition_prize, apply_rebase_to_competitor_unclaimed_winnings,
 };
@@ -292,6 +292,8 @@ impl Competition {
         competitor: &mut Competitor,
         user_stats: &UserStats,
         now: i64,
+        competitor_pubkey: Pubkey,
+        competition_pubkey: Pubkey,
     ) -> CompetitionResult {
         let previous_snapshot_score_before = competitor.previous_snapshot_score;
         let bonus_score_before = competitor.bonus_score;
@@ -338,15 +340,17 @@ impl Competition {
 
         competitor.previous_snapshot_score = competitor.calculate_snapshot_score(&user_stats)?;
 
-
         emit!(CompetitorSettledRecord {
             round_number: self.round_number,
             status: competitor.status,
-            competitor: competitor.authority,
+            competitor: competitor_pubkey,
+            competition: competition_pubkey,
+            competitor_authority: competitor.authority,
             unclaimed_winnings: competitor.unclaimed_winnings,
             min_draw: competitor.min_draw,
             max_draw: competitor.max_draw,
-            bonus_score_before: competitor.bonus_score,
+            bonus_score_before: bonus_score_before,
+            bonus_score_after: competitor.bonus_score,
             previous_snapshot_score_before: previous_snapshot_score_before,
             snapshot_score: competitor.previous_snapshot_score,
             ts: now,
@@ -368,7 +372,6 @@ impl Competition {
         spot_market: &SpotMarket,
         vault_balance: u64,
     ) -> CompetitionResult<u64> {
-
         let protocol_owned_shares_remaining = spot_market
             .insurance_fund
             .total_shares
@@ -454,7 +457,7 @@ impl Competition {
         &mut self,
         spot_market: &SpotMarket,
         vault_balance: u64,
-    ) -> CompetitionResult<u128> {
+    ) -> CompetitionResult<(u128, u128, usize)> {
         let (prize_buckets, ratios) =
             self.calculate_prize_buckets_and_ratios(spot_market, vault_balance)?;
 
@@ -486,7 +489,7 @@ impl Competition {
                     vault_balance,
                 )?;
 
-                return Ok(prize_amount);
+                return Ok((prize_amount, ratios[i], i));
             }
         }
 
@@ -498,7 +501,8 @@ impl Competition {
         spot_market: &SpotMarket,
         vault_balance: u64,
     ) -> CompetitionResult {
-        self.prize_amount = self.calculate_prize_amount(spot_market, vault_balance)?;
+        let (prize_amount, _, _) = self.calculate_prize_amount(spot_market, vault_balance)?;
+        self.prize_amount = prize_amount;
         self.prize_base = spot_market.insurance_fund.shares_base;
 
         Ok(())
@@ -512,15 +516,22 @@ impl Competition {
             .safe_mul(
                 self.prize_randomness
                     .safe_mul(self.number_of_winners_settled.cast()?)?,
-            )?.saturating_add(17)
+            )?
+            .saturating_add(17)
             ^ (self.prize_randomness)
-            ^ (self.winner_randomness)
-            << 3; // Bitwise XOR and left shift for added unpredictability
+            ^ (self.winner_randomness) << 3; // Bitwise XOR and left shift for added unpredictability
 
-        let next_winner_randomness =
-            self.winner_randomness.saturating_add(winner_randomness_offset) % (self.total_score_settled.saturating_add(1));
+        let next_winner_randomness = self
+            .winner_randomness
+            .saturating_add(winner_randomness_offset)
+            % (self.total_score_settled.saturating_add(1));
 
-        msg!("winner_randomness: {} -> {} (offset={})", self.winner_randomness, next_winner_randomness, winner_randomness_offset);
+        msg!(
+            "winner_randomness: {} -> {} (offset={})",
+            self.winner_randomness,
+            next_winner_randomness,
+            winner_randomness_offset
+        );
 
         Ok(next_winner_randomness.max(1))
     }
@@ -571,6 +582,8 @@ impl Competition {
         spot_market: &SpotMarket,
         insurance_fund_vault_balance: u64,
         now: i64,
+        competitor_key: Pubkey,
+        competition_key: Pubkey,
     ) -> CompetitionResult {
         if self.number_of_winners == self.number_of_winners_settled {
             self.update_status(CompetitionRoundStatus::WinnerSettlementComplete)?;
@@ -589,15 +602,17 @@ impl Competition {
 
         let winner_prize_amount = self.calculate_next_winner_prize_amount()?;
 
-        let prize_value = if_shares_to_vault_amount(
-            winner_prize_amount, 
-            spot_market.insurance_fund.total_shares, 
-            insurance_fund_vault_balance
+        let winner_prize_value = if_shares_to_vault_amount(
+            winner_prize_amount,
+            spot_market.insurance_fund.total_shares,
+            insurance_fund_vault_balance,
         )?;
 
         emit!(CompetitionRoundWinnerRecord {
             round_number: self.round_number,
-            competitor: competitor.authority,
+            competition: competition_key,
+            competitor: competitor_key,
+            competitor_authority: competitor.authority,
             min_draw: competitor.min_draw,
             max_draw: competitor.max_draw,
             total_score_settled: self.total_score_settled,
@@ -605,7 +620,7 @@ impl Competition {
 
             prize_amount: winner_prize_amount,
             prize_base: self.prize_base,
-            prize_value: prize_value,
+            prize_value: winner_prize_value,
 
             winner_placement: self.number_of_winners_settled,
             number_of_winners: self.number_of_winners,

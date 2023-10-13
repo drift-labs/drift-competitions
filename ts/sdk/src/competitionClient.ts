@@ -395,6 +395,10 @@ export class CompetitionsClient {
 				this.driftClient.program.programId,
 				QUOTE_SPOT_MARKET_INDEX
 			);
+			const insuranceFundVault = await getInsuranceFundVaultPublicKey(
+				this.driftClient.program.programId,
+				QUOTE_SPOT_MARKET_INDEX
+			);
 
 			const competitorProgramAccounts =
 				await this.program.account.competitor.all();
@@ -412,6 +416,7 @@ export class CompetitionsClient {
 							competitor: competitor.publicKey,
 							driftUserStats: competitor.account.userStats,
 							spotMarket,
+							insuranceFundVault,
 						})
 						.rpc();
 					console.log(
@@ -481,7 +486,10 @@ export class CompetitionsClient {
 			this.driftClient.program.programId,
 			QUOTE_SPOT_MARKET_INDEX
 		);
-
+		const insuranceFundVault = await getInsuranceFundVaultPublicKey(
+			this.driftClient.program.programId,
+			QUOTE_SPOT_MARKET_INDEX
+		);
 		return await this.program.methods
 			.settleWinner()
 			.accounts({
@@ -489,6 +497,7 @@ export class CompetitionsClient {
 				competition: competition,
 				driftUserStats: userStats,
 				spotMarket,
+				insuranceFundVault: insuranceFundVault,
 			})
 			.rpc();
 	}
