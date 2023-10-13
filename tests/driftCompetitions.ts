@@ -21,7 +21,8 @@ import {
 	getInsuranceFundVaultPublicKey,
 	getSpotMarketPublicKey,
 	QUOTE_SPOT_MARKET_INDEX,
-	TWO, TEN,
+	TWO,
+	TEN,
 } from '@drift-labs/sdk';
 import { Keypair } from '@solana/web3.js';
 import { assert } from 'chai';
@@ -87,6 +88,7 @@ describe('drift competitions', () => {
 				maxEntriesPerCompetitor: ZERO,
 				minSponsorAmount: ZERO,
 				maxSponsorFraction: ZERO,
+				numberOfWinners: ONE,
 			})
 			.accounts({
 				competition: competitionAddress,
@@ -98,7 +100,9 @@ describe('drift competitions', () => {
 		);
 		assert(decodeName(competitionAccount.name) === name);
 		console.log(competitionAccount.sponsorInfo.sponsor.toString());
-		assert(competitionAccount.sponsorInfo.sponsor.equals(provider.wallet.publicKey));
+		assert(
+			competitionAccount.sponsorInfo.sponsor.equals(provider.wallet.publicKey)
+		);
 		assert(competitionAccount.sponsorInfo.maxSponsorFraction.eq(ZERO));
 		assert(competitionAccount.sponsorInfo.minSponsorAmount.eq(ZERO));
 		// assert(competitionAccount.sponsor.equals(provider.wallet.publicKey));
@@ -174,10 +178,6 @@ describe('drift competitions', () => {
 			encodedName
 		);
 
-		const userStatsKey = adminClient.getUserStatsAccountPublicKey();
-
-		await competitionClient.claimEntry(competitionAddress, userStatsKey);
-
 		const authority = provider.wallet.publicKey;
 
 		const competitorAddress = getCompetitorAddressSync(
@@ -185,9 +185,24 @@ describe('drift competitions', () => {
 			competitionAddress,
 			authority
 		);
+
 		let competitorAccount = await program.account.competitor.fetch(
 			competitorAddress
 		);
+		console.log('bonusScore:', competitorAccount.bonusScore.toString());
+		assert(competitorAccount.bonusScore.eq(ONE));
+
+		const userStatsKey = adminClient.getUserStatsAccountPublicKey();
+
+		await competitionClient.claimEntry(competitionAddress, userStatsKey);
+		function sleep(ms) {
+			return new Promise((resolve) => setTimeout(resolve, ms));
+		}
+		await sleep(2000);
+		competitorAccount = await program.account.competitor.fetch(
+			competitorAddress
+		);
+		console.log('bonusScore:', competitorAccount.bonusScore.toString());
 		assert(competitorAccount.bonusScore.eq(TWO));
 
 		// cannot batch them

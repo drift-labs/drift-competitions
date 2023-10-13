@@ -4,7 +4,7 @@ const driftCompetitionIdl = require('../idl/drift_competitions.json');
 
 let uiErrors = {
 	errorsList: {},
-	errorCodesMap: {}
+	errorCodesMap: {},
 };
 
 const DRIFT_ERRORS_PATH = path.resolve(

@@ -85,6 +85,28 @@ export type CompetitorAccountEvents =
 		competitorUpdate: (competitor: Competitor) => void;
 	};
 
+export type CompetitionRoundSummaryRecord = {
+	competition: PublicKey,
+	roundNumber: BN,
+	roundStartTs: BN,
+	roundEndTs: BN,
+	prizePlacement: BN,
+	prizeOddsNumerator: BN,
+	prizeRandomness: BN,
+	prizeRandomnessMax: BN,
+	maxPrizeBucketValue: BN,
+	prizeAmount: BN,
+	prizeValue: BN,
+	prizeBase: BN,
+	numberOfWinners: BN,
+	numberOfCompetitorsSettled: BN,
+	totalScoreSettled: BN,
+	insuranceVaultBalance: BN,
+	protocolIfShares: BN,
+	totalIfShares: BN,
+	ts: BN,	
+}
+
 export type CompetitionRoundWinnerRecord = {
 	roundNumber: BN;
 	competitor: PublicKey;
@@ -102,6 +124,7 @@ export type CompetitionRoundWinnerRecord = {
 
 export type CompetitionsEventMap = {
 	CompetitionRoundWinnerRecord: Event<CompetitionRoundWinnerRecord>;
+	CompetitionRoundSummaryRecord: Event<CompetitionRoundSummaryRecord>;
 };
 
 export type EventType = keyof CompetitionsEventMap;

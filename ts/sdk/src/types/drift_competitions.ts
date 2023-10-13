@@ -488,6 +488,11 @@ export type DriftCompetitions = {
 					name: 'spotMarket';
 					isMut: true;
 					isSigner: false;
+				},
+				{
+					name: 'insuranceFundVault';
+					isMut: false;
+					isSigner: false;
 				}
 			];
 			args: [];
@@ -832,6 +837,106 @@ export type DriftCompetitions = {
 	];
 	events: [
 		{
+			name: 'CompetitionRoundSummaryRecord';
+			fields: [
+				{
+					name: 'competition';
+					type: 'publicKey';
+					index: false;
+				},
+				{
+					name: 'roundNumber';
+					type: 'u64';
+					index: false;
+				},
+				{
+					name: 'roundStartTs';
+					type: 'i64';
+					index: false;
+				},
+				{
+					name: 'roundEndTs';
+					type: 'i64';
+					index: false;
+				},
+				{
+					name: 'prizePlacement';
+					type: 'u32';
+					index: false;
+				},
+				{
+					name: 'prizeOddsNumerator';
+					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'prizeRandomness';
+					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'prizeRandomnessMax';
+					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'maxPrizeBucketValue';
+					type: 'u64';
+					index: false;
+				},
+				{
+					name: 'prizeAmount';
+					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'prizeValue';
+					type: 'u64';
+					index: false;
+				},
+				{
+					name: 'prizeBase';
+					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'numberOfWinners';
+					type: 'u32';
+					index: false;
+				},
+				{
+					name: 'numberOfCompetitorsSettled';
+					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'totalScoreSettled';
+					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'insuranceVaultBalance';
+					type: 'u64';
+					index: false;
+				},
+				{
+					name: 'protocolIfShares';
+					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'totalIfShares';
+					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'ts';
+					type: 'i64';
+					index: false;
+				}
+			];
+		},
+		{
 			name: 'CompetitionRoundWinnerRecord';
 			fields: [
 				{
@@ -845,6 +950,16 @@ export type DriftCompetitions = {
 					index: false;
 				},
 				{
+					name: 'competition';
+					type: 'publicKey';
+					index: false;
+				},
+				{
+					name: 'competitorAuthority';
+					type: 'publicKey';
+					index: false;
+				},
+				{
 					name: 'minDraw';
 					type: 'u128';
 					index: false;
@@ -852,6 +967,16 @@ export type DriftCompetitions = {
 				{
 					name: 'maxDraw';
 					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'winnerPlacement';
+					type: 'u32';
+					index: false;
+				},
+				{
+					name: 'numberOfWinners';
+					type: 'u32';
 					index: false;
 				},
 				{
@@ -887,6 +1012,83 @@ export type DriftCompetitions = {
 				{
 					name: 'prizeBase';
 					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'prizeValue';
+					type: 'u64';
+					index: false;
+				},
+				{
+					name: 'ts';
+					type: 'i64';
+					index: false;
+				}
+			];
+		},
+		{
+			name: 'CompetitorSettledRecord';
+			fields: [
+				{
+					name: 'roundNumber';
+					type: 'u64';
+					index: false;
+				},
+				{
+					name: 'competitor';
+					type: 'publicKey';
+					index: false;
+				},
+				{
+					name: 'competition';
+					type: 'publicKey';
+					index: false;
+				},
+				{
+					name: 'competitorAuthority';
+					type: 'publicKey';
+					index: false;
+				},
+				{
+					name: 'status';
+					type: {
+						defined: 'CompetitorStatus';
+					};
+					index: false;
+				},
+				{
+					name: 'unclaimedWinnings';
+					type: 'u64';
+					index: false;
+				},
+				{
+					name: 'minDraw';
+					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'maxDraw';
+					type: 'u128';
+					index: false;
+				},
+				{
+					name: 'bonusScoreBefore';
+					type: 'u64';
+					index: false;
+				},
+				{
+					name: 'bonusScoreAfter';
+					type: 'u64';
+					index: false;
+				},
+				{
+					name: 'previousSnapshotScoreBefore';
+					type: 'u64';
+					index: false;
+				},
+				{
+					name: 'snapshotScore';
+					type: 'u64';
 					index: false;
 				},
 				{
@@ -1492,6 +1694,11 @@ export const IDL: DriftCompetitions = {
 					isMut: true,
 					isSigner: false,
 				},
+				{
+					name: 'insuranceFundVault',
+					isMut: false,
+					isSigner: false,
+				},
 			],
 			args: [],
 		},
@@ -1835,6 +2042,106 @@ export const IDL: DriftCompetitions = {
 	],
 	events: [
 		{
+			name: 'CompetitionRoundSummaryRecord',
+			fields: [
+				{
+					name: 'competition',
+					type: 'publicKey',
+					index: false,
+				},
+				{
+					name: 'roundNumber',
+					type: 'u64',
+					index: false,
+				},
+				{
+					name: 'roundStartTs',
+					type: 'i64',
+					index: false,
+				},
+				{
+					name: 'roundEndTs',
+					type: 'i64',
+					index: false,
+				},
+				{
+					name: 'prizePlacement',
+					type: 'u32',
+					index: false,
+				},
+				{
+					name: 'prizeOddsNumerator',
+					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'prizeRandomness',
+					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'prizeRandomnessMax',
+					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'maxPrizeBucketValue',
+					type: 'u64',
+					index: false,
+				},
+				{
+					name: 'prizeAmount',
+					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'prizeValue',
+					type: 'u64',
+					index: false,
+				},
+				{
+					name: 'prizeBase',
+					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'numberOfWinners',
+					type: 'u32',
+					index: false,
+				},
+				{
+					name: 'numberOfCompetitorsSettled',
+					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'totalScoreSettled',
+					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'insuranceVaultBalance',
+					type: 'u64',
+					index: false,
+				},
+				{
+					name: 'protocolIfShares',
+					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'totalIfShares',
+					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'ts',
+					type: 'i64',
+					index: false,
+				},
+			],
+		},
+		{
 			name: 'CompetitionRoundWinnerRecord',
 			fields: [
 				{
@@ -1848,6 +2155,16 @@ export const IDL: DriftCompetitions = {
 					index: false,
 				},
 				{
+					name: 'competition',
+					type: 'publicKey',
+					index: false,
+				},
+				{
+					name: 'competitorAuthority',
+					type: 'publicKey',
+					index: false,
+				},
+				{
 					name: 'minDraw',
 					type: 'u128',
 					index: false,
@@ -1855,6 +2172,16 @@ export const IDL: DriftCompetitions = {
 				{
 					name: 'maxDraw',
 					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'winnerPlacement',
+					type: 'u32',
+					index: false,
+				},
+				{
+					name: 'numberOfWinners',
+					type: 'u32',
 					index: false,
 				},
 				{
@@ -1890,6 +2217,83 @@ export const IDL: DriftCompetitions = {
 				{
 					name: 'prizeBase',
 					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'prizeValue',
+					type: 'u64',
+					index: false,
+				},
+				{
+					name: 'ts',
+					type: 'i64',
+					index: false,
+				},
+			],
+		},
+		{
+			name: 'CompetitorSettledRecord',
+			fields: [
+				{
+					name: 'roundNumber',
+					type: 'u64',
+					index: false,
+				},
+				{
+					name: 'competitor',
+					type: 'publicKey',
+					index: false,
+				},
+				{
+					name: 'competition',
+					type: 'publicKey',
+					index: false,
+				},
+				{
+					name: 'competitorAuthority',
+					type: 'publicKey',
+					index: false,
+				},
+				{
+					name: 'status',
+					type: {
+						defined: 'CompetitorStatus',
+					},
+					index: false,
+				},
+				{
+					name: 'unclaimedWinnings',
+					type: 'u64',
+					index: false,
+				},
+				{
+					name: 'minDraw',
+					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'maxDraw',
+					type: 'u128',
+					index: false,
+				},
+				{
+					name: 'bonusScoreBefore',
+					type: 'u64',
+					index: false,
+				},
+				{
+					name: 'bonusScoreAfter',
+					type: 'u64',
+					index: false,
+				},
+				{
+					name: 'previousSnapshotScoreBefore',
+					type: 'u64',
+					index: false,
+				},
+				{
+					name: 'snapshotScore',
+					type: 'u64',
 					index: false,
 				},
 				{
