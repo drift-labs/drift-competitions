@@ -178,10 +178,6 @@ describe('drift competitions', () => {
 			encodedName
 		);
 
-		const userStatsKey = adminClient.getUserStatsAccountPublicKey();
-
-		await competitionClient.claimEntry(competitionAddress, userStatsKey);
-
 		const authority = provider.wallet.publicKey;
 
 		const competitorAddress = getCompetitorAddressSync(
@@ -189,9 +185,24 @@ describe('drift competitions', () => {
 			competitionAddress,
 			authority
 		);
+
 		let competitorAccount = await program.account.competitor.fetch(
 			competitorAddress
 		);
+		console.log('bonusScore:', competitorAccount.bonusScore.toString());
+		assert(competitorAccount.bonusScore.eq(ONE));
+
+		const userStatsKey = adminClient.getUserStatsAccountPublicKey();
+
+		await competitionClient.claimEntry(competitionAddress, userStatsKey);
+		function sleep(ms) {
+			return new Promise((resolve) => setTimeout(resolve, ms));
+		}
+		await sleep(2000);
+		competitorAccount = await program.account.competitor.fetch(
+			competitorAddress
+		);
+		console.log('bonusScore:', competitorAccount.bonusScore.toString());
 		assert(competitorAccount.bonusScore.eq(TWO));
 
 		// cannot batch them
