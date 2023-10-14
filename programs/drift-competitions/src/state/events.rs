@@ -36,8 +36,8 @@ pub struct CompetitionRoundSummaryRecord {
 #[derive(Default)]
 pub struct CompetitionRoundWinnerRecord {
     pub round_number: u64, // count of rounds for this competition
-    pub competitor: Pubkey, // public key of cooreseponding competitor account
-    pub competition: Pubkey, // public key of cooreseponding competition account
+    pub competitor: Pubkey, // public key of corresponding competitor account
+    pub competition: Pubkey, // public key of corresponding competition account
     pub competitor_authority: Pubkey, // public key of authority of competitior
 
     pub min_draw: u128, // competitior lowest numbered entry (exclusive)
@@ -64,8 +64,8 @@ pub struct CompetitionRoundWinnerRecord {
 #[derive(Default)]
 pub struct CompetitorSettledRecord {
     pub round_number: u64, // count of rounds for this competition
-    pub competitor: Pubkey, // public key of cooreseponding competitor account
-    pub competition: Pubkey, // public key of cooreseponding competition account
+    pub competitor: Pubkey, // public key of corresponding competitor account
+    pub competition: Pubkey, // public key of corresponding competition account
     pub competitor_authority: Pubkey, // public key of authority of competitior
 
     pub status: CompetitorStatus, // status of whether the competitior is in good standing
@@ -73,10 +73,10 @@ pub struct CompetitorSettledRecord {
 
     pub min_draw: u128, // competitior lowest numbered entry (exclusive)
     pub max_draw: u128, // competitior highest numbered entry
-    pub bonus_score_before: u64, // bonus score after settlement
+    pub bonus_score_before: u64, // bonus score before settlement
     pub bonus_score_after: u64, // bonus score after settlement
-    pub previous_snapshot_score_before: u64, // previous score derived from user stats snapshot
-    pub snapshot_score: u64, // current score
+    pub previous_snapshot_score_before: u64, // previous round's score derived from user stats snapshot
+    pub snapshot_score: u64, // current score derived from user stats snapshot
 
     pub ts: i64,
 }
