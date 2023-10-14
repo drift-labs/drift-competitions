@@ -109,16 +109,21 @@ export type CompetitionRoundSummaryRecord = {
 
 export type CompetitionRoundWinnerRecord = {
 	roundNumber: BN;
-	competitor: PublicKey;
-	minDraw: BN;
-	maxDraw: BN;
-	numberOfCompetitorsSettled: BN;
-	winnerRandomness: BN;
-	totalScoreSettled: BN;
-	prizeRandomness: BN;
+	competitor: PublicKey; // Authority for this competitor
+	competition: PublicKey; // Pubkey for the competition account
+	competitorAuthority: PublicKey; // Authority for the competitor
+	minDraw: BN; // Competitors min ticket number
+	maxDraw: BN; // Competitors max ticket number
+	winnerPlacement: number; // The Competitors rank in the winners
+	numberOfWinners: number; // Number of people who won a prize
+	numberOfCompetitorsSettled: BN; // Total number of competitors
+	winnerRandomness: BN; // drawn number that is in the min-maxDraw range for that user
+	totalScoreSettled: BN; // Total number of tickets in the competition
+	prizeRandomness: BN; // The ticket number selected for the prize (between 0, prizeRandomnessMax) to decide which prize bucket
 	prizeRandomnessMax: BN;
-	prizeAmount: BN;
+	prizeAmount: BN; // Amount of IF Shares won
 	prizeBase: BN;
+	prizeValue: BN; // USDC Value of the prizeAmount (if shares)
 	ts: BN;
 };
 
