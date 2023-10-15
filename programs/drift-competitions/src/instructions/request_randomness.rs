@@ -1,9 +1,11 @@
+use crate::error::ErrorCode;
 use crate::signer_seeds::get_competition_authority_seeds;
-use crate::state::Competition;
+use crate::state::{Competition, CompetitionRoundStatus};
 use anchor_lang::prelude::*;
 use anchor_spl::token::TokenAccount;
 use drift::math::constants::QUOTE_SPOT_MARKET_INDEX;
 use drift::state::spot_market::SpotMarket;
+use drift::validate;
 use switchboard_solana::prelude::*;
 
 pub fn request_randomness<'info>(
@@ -22,7 +24,14 @@ pub fn request_randomness<'info>(
     let spot_market = ctx.accounts.spot_market.load()?;
     let vault_balance = ctx.accounts.insurance_fund_vault.amount;
 
-    competition.request_winner_and_prize_randomness(&spot_market, vault_balance)?;
+    if competition.status == CompetitionRoundStatus::Active {
+        competition.request_winner_and_prize_randomness(&spot_market, vault_balance)?;
+    }
+
+    validate!(
+        competition.status == CompetitionRoundStatus::WinnerAndPrizeRandomnessRequested,
+        ErrorCode::InvalidStatusUpdateDetected
+    )?;
 
     let winner_min = 1;
     let winner_max = competition.total_score_settled;
