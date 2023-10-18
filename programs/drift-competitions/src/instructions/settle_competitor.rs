@@ -1,8 +1,10 @@
 use anchor_lang::prelude::*;
 
 use super::constraints::*;
+use crate::error::ErrorCode;
 use crate::state::{Competition, Competitor};
 use drift::state::user::UserStats;
+use drift::validate;
 
 pub fn settle_competitor<'info>(
     ctx: Context<'_, '_, '_, 'info, SettleCompetitor<'info>>,
@@ -23,6 +25,13 @@ pub fn settle_competitor<'info>(
         now,
         competitor_pubkey,
         competition_pubkey,
+    )?;
+
+    validate!(
+        competition.total_score_settled == 0
+            && competition.number_of_competitors == competition.number_of_competitors_settled,
+        ErrorCode::InvalidRoundSettlementDetected,
+        "total_score_settled is 0 after settling all competitors, round cannot end until competitors have one entry"
     )?;
 
     Ok(())

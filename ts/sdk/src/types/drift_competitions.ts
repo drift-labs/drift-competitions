@@ -773,6 +773,12 @@ export type DriftCompetitions = {
 						type: {
 							option: 'u32';
 						};
+					},
+					{
+						name: 'resetRoundState';
+						type: {
+							option: 'bool';
+						};
 					}
 				];
 			};
@@ -1977,6 +1983,12 @@ export const IDL: DriftCompetitions = {
 						name: 'numberOfWinners',
 						type: {
 							option: 'u32',
+						},
+					},
+					{
+						name: 'resetRoundState',
+						type: {
+							option: 'bool',
 						},
 					},
 				],
