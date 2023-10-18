@@ -36,6 +36,11 @@ pub fn request_randomness<'info>(
     let winner_min = 1;
     let winner_max = competition.total_score_settled;
 
+    validate!(
+        winner_min <= winner_max,
+        ErrorCode::InvalidStatusUpdateDetected
+    )?;
+
     let prize_min = 0;
     let prize_max = competition.prize_randomness_max;
 

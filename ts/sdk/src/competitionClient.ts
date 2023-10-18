@@ -368,22 +368,49 @@ export class CompetitionsClient {
 			.rpc();
 	}
 
-	public async settleAllCompetitors(competition: PublicKey): Promise<void> {
+	public async settleAllCompetitors(
+		competition: PublicKey,
+		roundNumber: BN,
+		chunkSize = 10
+	): Promise<void> {
 		const competitorProgramAccounts =
 			await this.program.account.competitor.all();
+		let instructions = [];
 
 		for (const competitor of competitorProgramAccounts) {
 			if (competitor.account.competition.equals(competition)) {
-				const txSig = await this.settleCompetitor(
-					competition,
-					competitor.publicKey,
-					competitor.account.userStats
-				);
-				console.log(
-					`Settled authority ${competitor.account.authority.toBase58()}:`,
-					txSig
-				);
+				if (roundNumber && !competitor.account.roundNumber.eq(roundNumber)) {
+					continue;
+				}
+				const initCompetitorIx = this.program.instruction.settleCompetitor({
+					accounts: {
+						competition: competitor.account.competition,
+						competitor: competitor.publicKey,
+						driftUserStats: competitor.account.userStats,
+						keeper: this.program.provider.publicKey,
+					},
+				});
+				instructions.push(initCompetitorIx);
+				if (instructions.length >= chunkSize) {
+					// no need to await
+					this.createAndSendTxn(instructions, {
+						computeUnitParams: {
+							units: 1_400_000,
+						},
+					});
+					instructions = [];
+				}
 			}
+		}
+
+		if (instructions.length) {
+			// send remainder
+			this.createAndSendTxn(instructions, {
+				computeUnitParams: {
+					units: 1_400_000,
+				},
+			});
+			instructions = [];
 		}
 	}
 
@@ -597,8 +624,7 @@ export class CompetitionsClient {
 	 * NOTE: THIS IS A TEMPORARY SOLUTION AND WILL BE VERY HEAVY ONCE THERE HAVE BEEN A LOT OF HISTORICAL EVENTS EMITTED.
 	 */
 	async getAllCompetitionEvents() {
-
-		let logs : Awaited<ReturnType<typeof fetchLogs>>['transactionLogs'] = [];
+		let logs: Awaited<ReturnType<typeof fetchLogs>>['transactionLogs'] = [];
 		let fetchedAllLogs = false;
 		let oldestFetchedTx: string;
 
@@ -614,7 +640,7 @@ export class CompetitionsClient {
 				fetchedAllLogs = true;
 				break;
 			}
-			
+
 			oldestFetchedTx = response.earliestTx;
 
 			const newLogs = response.transactionLogs;

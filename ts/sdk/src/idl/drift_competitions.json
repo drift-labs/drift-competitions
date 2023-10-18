@@ -795,6 +795,12 @@
             "type": {
               "option": "u32"
             }
+          },
+          {
+            "name": "resetRoundState",
+            "type": {
+              "option": "bool"
+            }
           }
         ]
       }
@@ -1222,8 +1228,5 @@
       "name": "CompetitionInvariantIssue",
       "msg": "CompetitionInvariantIssue"
     }
-  ],
-  "metadata": {
-    "address": "DraWMeQX9LfzQQSYoeBwHAgM5JcqFkgrX7GbTfjzVMVL"
-  }
+  ]
 }
