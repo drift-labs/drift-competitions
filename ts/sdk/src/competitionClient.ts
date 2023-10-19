@@ -252,13 +252,17 @@ export class CompetitionsClient {
 
 	public async claimEntry(
 		competition: PublicKey,
+		competitor?: PublicKey,
 		userStatsKey?: PublicKey
 	): Promise<TransactionSignature> {
-		const competitor = getCompetitorAddressSync(
-			this.program.programId,
-			competition,
-			this.program.provider.publicKey
-		);
+		
+		if(!competitor) {
+			competitor = getCompetitorAddressSync(
+				this.program.programId,
+				competition,
+				this.program.provider.publicKey
+			);
+		}
 
 		if (!userStatsKey) {
 			userStatsKey = this.driftClient.getUserStatsAccountPublicKey();
@@ -374,16 +378,24 @@ export class CompetitionsClient {
 	public async settleAllCompetitors(
 		competition: PublicKey,
 		roundNumber: BN,
-		chunkSize = 10
+		chunkSize = 1,
+		claimEntryMax = 1,
 	): Promise<void> {
 		const competitorProgramAccounts =
 			await this.program.account.competitor.all();
 		let instructions = [];
 
+		let claimEntryCount = 0;
 		for (const competitor of competitorProgramAccounts) {
 			if (competitor.account.competition.equals(competition)) {
-				if (roundNumber && !competitor.account.roundNumber.eq(roundNumber)) {
+				if (roundNumber && !competitor.account.competitionRoundNumber.eq(roundNumber)) {
 					continue;
+				} 
+				console.log(competitor.account.authority.toString());
+
+				if (claimEntryCount < claimEntryMax && competitor.account.bonusScore.eq(ZERO) && competitor.account.unclaimedWinnings.eq(ZERO)) {
+					await this.claimEntry(competition, competitor.publicKey, competitor.account.userStats)
+					claimEntryCount+=1;
 				}
 				const initCompetitorIx = this.program.instruction.settleCompetitor({
 					accounts: {
@@ -413,7 +425,6 @@ export class CompetitionsClient {
 					units: 1_400_000,
 				},
 			});
-			instructions = [];
 		}
 	}
 
