@@ -90,6 +90,7 @@ async function settleSweepstakesCompetition(provider) {
 		competitionAccount = await program.account.competition.fetch(
 		competitionKey
 		);
+		console.log(competitionAccount.status,)
 		isReadyForSettlement = isVariant(
 			competitionAccount.status,
 			'winnerAndPrizeRandomnessComplete'
