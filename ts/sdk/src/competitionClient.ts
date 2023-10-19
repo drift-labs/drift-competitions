@@ -115,6 +115,7 @@ export class CompetitionsClient {
 			minSponsorAmount = null,
 			maxSponsorFraction = null,
 			numberOfWinners = null,
+			resetRoundState = null,
 		}: {
 			nextRoundExpiryTs?: BN | null;
 			competitionExpiryTs?: BN | null;
@@ -123,6 +124,7 @@ export class CompetitionsClient {
 			minSponsorAmount?: BN | null;
 			maxSponsorFraction?: BN | null;
 			numberOfWinners?: number | null;
+			resetRoundState?: boolean | null;
 		}
 	): Promise<TransactionSignature> {
 		return await this.program.methods
@@ -134,6 +136,7 @@ export class CompetitionsClient {
 				minSponsorAmount,
 				maxSponsorFraction,
 				numberOfWinners,
+				resetRoundState,
 			})
 			.accounts({
 				competition: competition,
