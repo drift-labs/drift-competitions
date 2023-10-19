@@ -27,12 +27,13 @@ pub fn settle_competitor<'info>(
         competition_pubkey,
     )?;
 
-    validate!(
-        competition.total_score_settled == 0
-            && competition.number_of_competitors == competition.number_of_competitors_settled,
-        ErrorCode::InvalidRoundSettlementDetected,
-        "total_score_settled is 0 after settling all competitors, round cannot end until competitors have one entry"
-    )?;
+    if competition.number_of_competitors == competition.number_of_competitors_settled {
+        validate!(
+            competition.total_score_settled != 0,
+            ErrorCode::InvalidRoundSettlementDetected,
+            "total_score_settled is 0 after settling all competitors, round cannot end until competitors have one entry"
+        )?;
+    }
 
     Ok(())
 }
