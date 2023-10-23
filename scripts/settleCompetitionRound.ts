@@ -5,10 +5,15 @@ import {
 	CompetitionsClient,
 } from '../ts/sdk/src';
 import { DriftClient, isVariant } from '@drift-labs/sdk';
+import dotenv from "dotenv";
+
+dotenv.config();
 
 function sleep(ms) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+const RPC_ENDPOINT = process.env.RPC_OVERRIDE ?? 'https://api.devnet.solana.com';
 
 async function settleSweepstakesCompetition(provider) {
 	// Configure client to use the provider.
@@ -87,7 +92,7 @@ async function settleSweepstakesCompetition(provider) {
 		competitionAccount = await program.account.competition.fetch(
 		competitionKey
 		);
-		console.log(competitionAccount.status,)
+		console.log(competitionAccount.status);
 		isReadyForSettlement = isVariant(
 			competitionAccount.status,
 			'winnerAndPrizeRandomnessComplete'
@@ -121,7 +126,7 @@ try {
 	}
 	settleSweepstakesCompetition(
 		anchor.AnchorProvider.local(
-			'https://api.devnet.solana.com',
+			RPC_ENDPOINT,
 			{
 				preflightCommitment: 'confirmed',
 				skipPreflight: true,
