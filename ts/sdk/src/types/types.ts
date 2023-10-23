@@ -1,5 +1,5 @@
-import { BN, DataAndSlot, Event } from '@drift-labs/sdk';
-import { PublicKey } from '@solana/web3.js';
+import { BN, DataAndSlot, Event, EventSubscriptionOrderBy, EventSubscriptionOrderDirection, LogProviderConfig } from '@drift-labs/sdk';
+import { Commitment, PublicKey, TransactionSignature } from '@solana/web3.js';
 import { EventEmitter } from 'events';
 import StrictEventEmitter from 'strict-event-emitter-types';
 
@@ -8,6 +8,11 @@ export type SponsorInfo = {
 	minSponsorAmount: BN;
 	maxSponsorFraction: BN;
 };
+
+export type SortFn = (
+	currentRecord: CompetitionsEventMap[EventType],
+	newRecord: CompetitionsEventMap[EventType]
+) => 'less than' | 'greater than';
 
 export class CompetitionStatus {
 	static readonly ACTIVE = { active: {} };
@@ -27,6 +32,33 @@ export class CompetitorStatus {
 	static readonly ACTIVE = { active: {} };
 	static readonly DISQUALIFIED = { disqualified: {} };
 }
+
+export type EventSubscriptionOptions = {
+    address?: PublicKey;
+    eventTypes?: EventType[];
+    maxEventsPerType?: number;
+    orderBy?: EventSubscriptionOrderBy;
+    orderDir?: EventSubscriptionOrderDirection;
+    commitment?: Commitment;
+    maxTx?: number;
+    logProviderConfig?: LogProviderConfig;
+    untilTx?: TransactionSignature;
+};
+
+export const DefaultEventSubscriptionOptions: EventSubscriptionOptions = {
+	eventTypes: [
+		'CompetitionRoundSummaryRecord',
+		'CompetitionRoundWinnerRecord'
+	],
+	maxEventsPerType: 4096,
+	orderBy: 'blockchain',
+	orderDir: 'asc',
+	commitment: 'confirmed',
+	maxTx: 4096,
+	logProviderConfig: {
+		type: 'websocket',
+	},
+};
 
 export type Competition = {
 	name: number[];
@@ -138,6 +170,10 @@ export type WrappedEvent<Type extends EventType> =
 		eventType: Type;
 	};
 export type WrappedEvents = WrappedEvent<EventType>[];
+
+export interface EventSubscriberEvents {
+	newEvent: (event: WrappedEvent<EventType>) => void;
+}
 
 /** Account Subscribers */
 

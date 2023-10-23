@@ -6,3 +6,4 @@ export * from './accounts';
 export * from './accountSubscribers';
 export * from './constants';
 export * from './parsers';
+export * from './events/eventSubscriber';
