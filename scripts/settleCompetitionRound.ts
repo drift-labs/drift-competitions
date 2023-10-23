@@ -1,6 +1,6 @@
 import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
-import { DriftCompetitions } from '../target/types/drift_competitions';
+import { DriftCompetitions } from '../ts/sdk/src/types/drift_competitions';
 import {
 	CompetitionsClient,
 } from '../ts/sdk/src';
@@ -17,10 +17,6 @@ async function settleSweepstakesCompetition(provider) {
 	const payer = (provider.wallet as anchor.Wallet).payer;
 	console.log(`PAYER: ${payer.publicKey}`);
 
-	const program = anchor.workspace
-		.DriftCompetitions as Program<DriftCompetitions>;
-
-	console.log('program.programId:', program.programId.toString());
 	const driftClient = new DriftClient({
 		connection: provider.connection,
 		env: 'devnet',
@@ -28,9 +24,10 @@ async function settleSweepstakesCompetition(provider) {
 	});
 
 	const competitionClient = new CompetitionsClient({
-		program,
 		driftClient,
 	});
+
+	const program = competitionClient.program as Program<DriftCompetitions>;
 
 	const name = 'sweepstakes';
 	const competitionKey = competitionClient.getCompetitionPublicKey(name);
