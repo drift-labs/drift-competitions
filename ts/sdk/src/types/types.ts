@@ -48,7 +48,8 @@ export type EventSubscriptionOptions = {
 export const DefaultEventSubscriptionOptions: EventSubscriptionOptions = {
 	eventTypes: [
 		'CompetitionRoundSummaryRecord',
-		'CompetitionRoundWinnerRecord'
+		'CompetitionRoundWinnerRecord',
+		'CompetitorSettledRecord'
 	],
 	maxEventsPerType: 4096,
 	orderBy: 'blockchain',
