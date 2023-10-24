@@ -10,6 +10,7 @@ import { LogProvider, fetchLogs } from '@drift-labs/sdk';
 import { WebSocketLogProvider } from '@drift-labs/sdk';
 import { PollingLogProvider } from '@drift-labs/sdk';
 import { TxEventCache } from './txEventCache';
+import { LogParser } from '../parsers';
 
 export class EventSubscriber {
 	private address: PublicKey;
@@ -18,6 +19,7 @@ export class EventSubscriber {
 	private awaitTxPromises = new Map<string, Promise<void>>();
 	private awaitTxResolver = new Map<string, () => void>();
 	private logProvider: LogProvider;
+	private logParser: LogParser;
 	public eventEmitter: StrictEventEmitter<EventEmitter, EventSubscriberEvents>;
 	private lastSeenSlot: number;
 	private lastSeenBlockTime: number | undefined;
@@ -32,6 +34,7 @@ export class EventSubscriber {
 		this.address = this.options.address ?? program.programId;
 		this.txEventCache = new TxEventCache(this.options.maxTx);
 		this.eventListMap = new Map<EventType, EventList<EventType>>();
+		this.logParser = new LogParser(program);
 		for (const eventType of this.options.eventTypes) {
 			this.eventListMap.set(
 				eventType,
@@ -158,23 +161,11 @@ export class EventSubscriber {
 		slot: number,
 		logs: string[]
 	): WrappedEvents {
-		const records = [];
-		// @ts-ignore
-		const events = parseLogs(this.program, slot, logs);
-		let runningEventIndex = 0;
-		for (const event of events) {
-			// @ts-ignore
-			const expectRecordType = this.eventListMap.has(event.name);
-			if (expectRecordType) {
-				event.data.txSig = txSig;
-				event.data.slot = slot;
-				event.data.eventType = event.name;
-				event.data.txSigIndex = runningEventIndex;
-				records.push(event.data);
-			}
-			runningEventIndex++;
-		}
-		return records;
+		const eventLog = {txSig, slot, logs};
+		
+		const events = this.logParser.parseEventsFromLogs(eventLog);
+		
+		return events;
 	}
 
 	public awaitTx(txSig: TransactionSignature): Promise<void> {

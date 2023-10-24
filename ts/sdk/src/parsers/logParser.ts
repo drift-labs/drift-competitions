@@ -2,25 +2,25 @@ import { Program } from '@coral-xyz/anchor';
 import { TransactionSignature } from '@solana/web3.js';
 import { WrappedEvents } from '../types/types';
 
-type Log = { txSig: TransactionSignature; slot: number; logs: string[] };
+export type EventLog = { txSig: TransactionSignature; slot: number; logs: string[] };
 
 export class LogParser {
 	constructor(private program: Program) {}
 
-	public parseEventsFromLogs(event: Log): WrappedEvents {
+	public parseEventsFromLogs(eventLogs: EventLog): WrappedEvents {
 		const records: WrappedEvents = [];
 
-		if (!event.logs) return records;
+		if (!eventLogs.logs) return records;
 
 		// @ts-ignore
 		const eventGenerator = this.program._events._eventParser.parseLogs(
-			event.logs,
+			eventLogs.logs,
 			false
 		);
 
 		for (const eventLog of eventGenerator) {
-			eventLog.data.txSig = event.txSig;
-			eventLog.data.slot = event.slot;
+			eventLog.data.txSig = eventLogs.txSig;
+			eventLog.data.slot = eventLogs.slot;
 			eventLog.data.eventType = eventLog.name;
 			records.push(eventLog.data);
 		}
