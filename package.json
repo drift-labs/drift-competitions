@@ -4,7 +4,8 @@
         "prettify": "prettier */*.js \"*/**/*{.ts}\" --check",
         "update-types": "cp target/types/drift_competitions.ts ts/sdk/src/types/drift_competitions.ts && prettier --write ts/sdk/src/types/drift_competitions.ts",
         "update-idl": "cp target/idl/drift_competitions.json ts/sdk/src/idl/drift_competitions.json",
-        "settle-competition": "ts-node -T scripts/settleCompetitionRound.ts"
+        "settle-competition": "ts-node -T scripts/settleCompetitionRound.ts",
+        "mine-entries": "ts-node -T scripts/mineAdditionalEntries.ts"
     },
     "dependencies": {
         "@coral-xyz/anchor": "^0.26.0",
