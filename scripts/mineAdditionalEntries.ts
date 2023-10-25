@@ -14,15 +14,15 @@ function sleep(ms) {
 }
 const ENV = 'mainnet-beta';
 
-const RPC_ENDPOINT =
-	process.env.RPC_OVERRIDE ?? 'https://api.' + ENV + '.solana.com';
+const RPC_ENDPOINT = process.env.RPC_OVERRIDE ?? 'https://api.' + ENV + '.solana.com';
 
-async function mineEntries(provider, authority: PublicKey, n = 10000) {
+async function mineEntries(provider, authority: PublicKey, n: number) {
 	// Configure client to use the provider.
 	anchor.setProvider(provider);
 
 	const payer = (provider.wallet as anchor.Wallet).payer;
-	console.log(`PAYER: ${payer.publicKey}`);
+	console.log(`Payer: ${payer.publicKey}`);
+	console.log(`Recipient: ${authority}`);
 
 	const driftClient = new DriftClient({
 		connection: provider.connection,
@@ -55,10 +55,13 @@ async function mineEntries(provider, authority: PublicKey, n = 10000) {
 			authority
 		);
 
+		const competitorAccount = await program.account.competitor.fetch(
+			competitorKey
+		);
 		const userStatsKey = driftClient.getUserStatsAccountPublicKey();
-
+		console.log('current bonusScore =', competitorAccount.bonusScore.toNumber());
 		for (let i = 1; i <= n; i++) {
-			console.log('claiming! entry:', i);
+			console.log('claiming! entry:', i, '/', n);
 			try {
 				competitionClient.claimEntry(
 					competitionKey,
@@ -75,6 +78,8 @@ async function mineEntries(provider, authority: PublicKey, n = 10000) {
 			'competition is under resolution. cannot mine additional entries.'
 		);
 	}
+
+	console.log('DONE!');
 }
 
 if (!process.env.ANCHOR_WALLET) {
@@ -90,6 +95,7 @@ program
 	.parse();
 const opts = program.opts();
 
+console.log('RPC:', RPC_ENDPOINT);
 mineEntries(
 	anchor.AnchorProvider.local(RPC_ENDPOINT, {
 		preflightCommitment: 'confirmed',
@@ -97,5 +103,5 @@ mineEntries(
 		commitment: 'confirmed',
 	}),
 	new PublicKey(opts.authority),
-	opts.n ?? 1
+	opts.n ?? 5
 );
