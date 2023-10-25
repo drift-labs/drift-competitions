@@ -9,5 +9,5 @@ a sybil-resistant randomized onchain giveaway program
 yarn
 export ANCHOR_WALLET=<PATH_TO_WALLET>
 export RPC_OVERRIDE=<URL>
-ts-node -T scripts/mineAdditionalEntries.ts --authority=<PUBLIC_KEY_OF_AUTHORIY> --n=<NUMBER_OF_ENTRIES>
+yarn mine-entries --authority=<PUBLIC_KEY_OF_AUTHORIY> --n=<NUMBER_OF_ENTRIES>
 ```
