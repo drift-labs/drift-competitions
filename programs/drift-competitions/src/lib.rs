@@ -6,7 +6,7 @@ use switchboard_solana::prelude::*;
 mod error;
 mod instructions;
 mod signer_seeds;
-mod state;
+pub mod state;
 mod utils;
 
 #[cfg(test)]
