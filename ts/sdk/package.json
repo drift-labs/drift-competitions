@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.26.0",
-    "@drift-labs/sdk": "2.40.0-beta.12",
+    "@drift-labs/sdk": "file:../../../drift-common/protocol/sdk",
     "@solana/web3.js": "1.73.2",
     "@switchboard-xyz/solana.js": "^2.7.1",
     "dotenv": "^16.3.1",
