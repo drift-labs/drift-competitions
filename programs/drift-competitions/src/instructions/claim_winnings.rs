@@ -32,6 +32,10 @@ pub fn claim_winnings<'info>(
 
     let spot_market = ctx.accounts.spot_market.load()?;
     let insurance_fund_stake = ctx.accounts.insurance_fund_stake.load()?;
+    validate!(
+        insurance_fund_stake.last_withdraw_request_value == 0,
+        ErrorCode::CompetitorHasPendingInsuranceWithdraw
+    )?;
 
     let shares_before = insurance_fund_stake.checked_if_shares(&spot_market)?;
     let shares_to_claim = competitor.claim_winnings(

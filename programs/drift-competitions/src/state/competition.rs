@@ -314,7 +314,7 @@ impl Competition {
                 round_score
             };
 
-            // carry over half of capped round score as bonus
+            // carry-over half of capped round score as bonus
             competitor.bonus_score = round_score_capped.safe_div(2)?;
 
             let new_total_score_settled = self
@@ -328,6 +328,9 @@ impl Competition {
         } else {
             competitor.min_draw = self.total_score_settled;
             competitor.max_draw = self.total_score_settled;
+
+            // carry-over half of current bonus to next round
+            competitor.bonus_score = competitor.bonus_score.safe_div(2)?;
         }
 
         validate!(

@@ -47,6 +47,8 @@ pub enum ErrorCode {
     CompetitorUpdateInvalid,
     #[msg("CompetitionInvariantIssue")]
     CompetitionInvariantIssue,
+    #[msg("CompetitorHasPendingInsuranceWithdraw")]
+    CompetitorHasPendingInsuranceWithdraw,
 }
 
 impl From<DriftErrorCode> for ErrorCode {
