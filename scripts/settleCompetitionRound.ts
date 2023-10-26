@@ -73,6 +73,7 @@ async function settleSweepstakesCompetition(provider) {
 			);
 			console.log(txSig);
 		}
+		await sleep(2000);
 
 		const txSig2 = await competitionClient.requestRandomness(
 			competitionClient.getCompetitionPublicKey(name)
