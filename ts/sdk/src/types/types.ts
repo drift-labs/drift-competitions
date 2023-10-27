@@ -48,7 +48,8 @@ export type EventSubscriptionOptions = {
 export const DefaultEventSubscriptionOptions: EventSubscriptionOptions = {
 	eventTypes: [
 		'CompetitionRoundSummaryRecord',
-		'CompetitionRoundWinnerRecord'
+		'CompetitionRoundWinnerRecord',
+		'CompetitorSettledRecord'
 	],
 	maxEventsPerType: 4096,
 	orderBy: 'blockchain',
@@ -159,9 +160,26 @@ export type CompetitionRoundWinnerRecord = {
 	ts: BN;
 };
 
+export type CompetitorSettledRecord = {
+    roundNumber: BN;            // count of rounds for this competition
+    competitor: PublicKey;           // public key of corresponding competitor account
+    competition: PublicKey;          // public key of corresponding competition account
+    competitorAuthority: PublicKey; // public key of authority of competitior
+    status: CompetitorStatus, // status of whether the competitior is in good standing
+    unclaimedWinnings: BN; // competitors current unclaimed winnings (they won't be considered for this draw if non-zero)
+    minDraw: BN;          // competitior lowest numbered entry (exclusive)
+    maxDraw: BN;          // competitior highest numbered entry
+    bonusScoreBefore: BN; // bonus score before settlement
+    bonusScoreAfter: BN;  // bonus score after settlement
+    previousSnapshotScoreBefore: BN; // previous round's score derived from user stats snapshot
+    snapshotScore: BN;                 // current score derived from user stats snapshot
+    ts: BN;
+}
+
 export type CompetitionsEventMap = {
 	CompetitionRoundWinnerRecord: Event<CompetitionRoundWinnerRecord>;
 	CompetitionRoundSummaryRecord: Event<CompetitionRoundSummaryRecord>;
+	CompetitorSettledRecord: Event<CompetitorSettledRecord>;
 };
 
 export type EventType = keyof CompetitionsEventMap;

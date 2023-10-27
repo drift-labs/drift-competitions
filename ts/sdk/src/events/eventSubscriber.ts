@@ -161,10 +161,7 @@ export class EventSubscriber {
 		slot: number,
 		logs: string[]
 	): WrappedEvents {
-		const eventLog = {txSig, slot, logs};
-		
-		const events = this.logParser.parseEventsFromLogs(eventLog);
-		
+		const events = this.logParser.parseEventsFromLogs({txSig, slot, logs}).filter(event => this.eventListMap.has(event.eventType));
 		return events;
 	}
 

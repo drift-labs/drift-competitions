@@ -394,7 +394,7 @@ export class CompetitionsClient {
 				console.log(competitor.account.authority.toString());
 
 				if (claimEntryCount < claimEntryMax && competitor.account.bonusScore.eq(ZERO) && competitor.account.unclaimedWinnings.eq(ZERO)) {
-					await this.claimEntry(competition, competitor.publicKey, competitor.account.userStats)
+					await this.claimEntry(competition, competitor.publicKey, competitor.account.userStats);
 					claimEntryCount+=1;
 				}
 				const initCompetitorIx = this.program.instruction.settleCompetitor({
