@@ -24,7 +24,9 @@ async function settleSweepstakesCompetition(provider) {
 
 	const driftClient = new DriftClient({
 		connection: provider.connection,
+		// env: 'mainnet-beta',
 		env: 'devnet',
+
 		wallet: provider.wallet,
 	});
 
@@ -64,10 +66,14 @@ async function settleSweepstakesCompetition(provider) {
 		) {
 			const txSig = await competitionClient.settleAllCompetitors(
 				competitionKey,
-				competitionAccount.roundNumber
+				competitionAccount.roundNumber,
+				3,
+				3
+
 			);
 			console.log(txSig);
 		}
+		await sleep(2000);
 
 		const txSig2 = await competitionClient.requestRandomness(
 			competitionClient.getCompetitionPublicKey(name)
