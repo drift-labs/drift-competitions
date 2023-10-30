@@ -194,7 +194,11 @@ describe('drift competitions', () => {
 
 		const userStatsKey = adminClient.getUserStatsAccountPublicKey();
 
-		await competitionClient.claimEntry(competitionAddress, undefined, userStatsKey);
+		await competitionClient.claimEntry(
+			competitionAddress,
+			undefined,
+			userStatsKey
+		);
 		function sleep(ms) {
 			return new Promise((resolve) => setTimeout(resolve, ms));
 		}
@@ -276,7 +280,11 @@ describe('drift competitions', () => {
 
 		const userStatsKey = adminClient.getUserStatsAccountPublicKey();
 
-		await competitionClient.claimEntry(competitionAddress, undefined, userStatsKey);
+		await competitionClient.claimEntry(
+			competitionAddress,
+			undefined,
+			userStatsKey
+		);
 		const authority = provider.wallet.publicKey;
 
 		const competitorAddress = getCompetitorAddressSync(

@@ -1,5 +1,5 @@
 import { EventSubscriptionOrderDirection } from '@drift-labs/sdk';
-import {CompetitionsEventMap, EventType, SortFn} from '../types/types';
+import { CompetitionsEventMap, EventType, SortFn } from '../types/types';
 
 class Node<Type extends EventType, Event extends CompetitionsEventMap[Type]> {
 	constructor(

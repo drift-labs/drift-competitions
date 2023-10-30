@@ -2,7 +2,11 @@ import { Program } from '@coral-xyz/anchor';
 import { TransactionSignature } from '@solana/web3.js';
 import { WrappedEvents } from '../types/types';
 
-export type EventLog = { txSig: TransactionSignature; slot: number; logs: string[] };
+export type EventLog = {
+	txSig: TransactionSignature;
+	slot: number;
+	logs: string[];
+};
 
 export class LogParser {
 	constructor(private program: Program) {}

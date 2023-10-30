@@ -14,7 +14,8 @@ function sleep(ms) {
 }
 const ENV = 'mainnet-beta';
 
-const RPC_ENDPOINT = process.env.RPC_OVERRIDE ?? 'https://api.' + ENV + '.solana.com';
+const RPC_ENDPOINT =
+	process.env.RPC_OVERRIDE ?? 'https://api.' + ENV + '.solana.com';
 
 async function mineEntries(provider, authority: PublicKey, n: number) {
 	// Configure client to use the provider.
@@ -59,7 +60,10 @@ async function mineEntries(provider, authority: PublicKey, n: number) {
 			competitorKey
 		);
 		const userStatsKey = driftClient.getUserStatsAccountPublicKey();
-		console.log('current bonusScore =', competitorAccount.bonusScore.toNumber());
+		console.log(
+			'current bonusScore =',
+			competitorAccount.bonusScore.toNumber()
+		);
 		for (let i = 1; i <= n; i++) {
 			console.log('claiming! entry:', i, '/', n);
 			try {

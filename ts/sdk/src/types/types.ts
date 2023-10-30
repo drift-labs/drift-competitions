@@ -1,4 +1,11 @@
-import { BN, DataAndSlot, Event, EventSubscriptionOrderBy, EventSubscriptionOrderDirection, LogProviderConfig } from '@drift-labs/sdk';
+import {
+	BN,
+	DataAndSlot,
+	Event,
+	EventSubscriptionOrderBy,
+	EventSubscriptionOrderDirection,
+	LogProviderConfig,
+} from '@drift-labs/sdk';
 import { Commitment, PublicKey, TransactionSignature } from '@solana/web3.js';
 import { EventEmitter } from 'events';
 import StrictEventEmitter from 'strict-event-emitter-types';
@@ -34,22 +41,22 @@ export class CompetitorStatus {
 }
 
 export type EventSubscriptionOptions = {
-    address?: PublicKey;
-    eventTypes?: EventType[];
-    maxEventsPerType?: number;
-    orderBy?: EventSubscriptionOrderBy;
-    orderDir?: EventSubscriptionOrderDirection;
-    commitment?: Commitment;
-    maxTx?: number;
-    logProviderConfig?: LogProviderConfig;
-    untilTx?: TransactionSignature;
+	address?: PublicKey;
+	eventTypes?: EventType[];
+	maxEventsPerType?: number;
+	orderBy?: EventSubscriptionOrderBy;
+	orderDir?: EventSubscriptionOrderDirection;
+	commitment?: Commitment;
+	maxTx?: number;
+	logProviderConfig?: LogProviderConfig;
+	untilTx?: TransactionSignature;
 };
 
 export const DefaultEventSubscriptionOptions: EventSubscriptionOptions = {
 	eventTypes: [
 		'CompetitionRoundSummaryRecord',
 		'CompetitionRoundWinnerRecord',
-		'CompetitorSettledRecord'
+		'CompetitorSettledRecord',
 	],
 	maxEventsPerType: 4096,
 	orderBy: 'blockchain',
@@ -119,26 +126,26 @@ export type CompetitorAccountEvents =
 	};
 
 export type CompetitionRoundSummaryRecord = {
-	competition: PublicKey,
-	roundNumber: BN,
-	roundStartTs: BN,
-	roundEndTs: BN,
-	prizePlacement: BN,
-	prizeOddsNumerator: BN,
-	prizeRandomness: BN,
-	prizeRandomnessMax: BN,
-	maxPrizeBucketValue: BN,
-	prizeAmount: BN,
-	prizeValue: BN,
-	prizeBase: BN,
-	numberOfWinners: BN,
-	numberOfCompetitorsSettled: BN,
-	totalScoreSettled: BN,
-	insuranceVaultBalance: BN,
-	protocolIfShares: BN,
-	totalIfShares: BN,
-	ts: BN,	
-}
+	competition: PublicKey;
+	roundNumber: BN;
+	roundStartTs: BN;
+	roundEndTs: BN;
+	prizePlacement: BN;
+	prizeOddsNumerator: BN;
+	prizeRandomness: BN;
+	prizeRandomnessMax: BN;
+	maxPrizeBucketValue: BN;
+	prizeAmount: BN;
+	prizeValue: BN;
+	prizeBase: BN;
+	numberOfWinners: BN;
+	numberOfCompetitorsSettled: BN;
+	totalScoreSettled: BN;
+	insuranceVaultBalance: BN;
+	protocolIfShares: BN;
+	totalIfShares: BN;
+	ts: BN;
+};
 
 export type CompetitionRoundWinnerRecord = {
 	roundNumber: BN;
@@ -161,20 +168,20 @@ export type CompetitionRoundWinnerRecord = {
 };
 
 export type CompetitorSettledRecord = {
-    roundNumber: BN;            // count of rounds for this competition
-    competitor: PublicKey;           // public key of corresponding competitor account
-    competition: PublicKey;          // public key of corresponding competition account
-    competitorAuthority: PublicKey; // public key of authority of competitior
-    status: CompetitorStatus, // status of whether the competitior is in good standing
-    unclaimedWinnings: BN; // competitors current unclaimed winnings (they won't be considered for this draw if non-zero)
-    minDraw: BN;          // competitior lowest numbered entry (exclusive)
-    maxDraw: BN;          // competitior highest numbered entry
-    bonusScoreBefore: BN; // bonus score before settlement
-    bonusScoreAfter: BN;  // bonus score after settlement
-    previousSnapshotScoreBefore: BN; // previous round's score derived from user stats snapshot
-    snapshotScore: BN;                 // current score derived from user stats snapshot
-    ts: BN;
-}
+	roundNumber: BN; // count of rounds for this competition
+	competitor: PublicKey; // public key of corresponding competitor account
+	competition: PublicKey; // public key of corresponding competition account
+	competitorAuthority: PublicKey; // public key of authority of competitior
+	status: CompetitorStatus; // status of whether the competitior is in good standing
+	unclaimedWinnings: BN; // competitors current unclaimed winnings (they won't be considered for this draw if non-zero)
+	minDraw: BN; // competitior lowest numbered entry (exclusive)
+	maxDraw: BN; // competitior highest numbered entry
+	bonusScoreBefore: BN; // bonus score before settlement
+	bonusScoreAfter: BN; // bonus score after settlement
+	previousSnapshotScoreBefore: BN; // previous round's score derived from user stats snapshot
+	snapshotScore: BN; // current score derived from user stats snapshot
+	ts: BN;
+};
 
 export type CompetitionsEventMap = {
 	CompetitionRoundWinnerRecord: Event<CompetitionRoundWinnerRecord>;

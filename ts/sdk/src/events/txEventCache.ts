@@ -1,4 +1,4 @@
-import { EventType, WrappedEvent } from "../types/types";
+import { EventType, WrappedEvent } from '../types/types';
 
 class Node {
 	constructor(

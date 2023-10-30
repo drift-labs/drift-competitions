@@ -3,7 +3,14 @@ import { Program } from '@coral-xyz/anchor';
 
 import StrictEventEmitter from 'strict-event-emitter-types';
 import EventEmitter from 'events';
-import { CompetitionsEventMap, DefaultEventSubscriptionOptions, EventSubscriberEvents, EventSubscriptionOptions, EventType, WrappedEvents } from '../types/types';
+import {
+	CompetitionsEventMap,
+	DefaultEventSubscriptionOptions,
+	EventSubscriberEvents,
+	EventSubscriptionOptions,
+	EventType,
+	WrappedEvents,
+} from '../types/types';
 import { EventList } from './eventList';
 import { getSortFn } from './sort';
 import { LogProvider, fetchLogs } from '@drift-labs/sdk';
@@ -161,7 +168,9 @@ export class EventSubscriber {
 		slot: number,
 		logs: string[]
 	): WrappedEvents {
-		const events = this.logParser.parseEventsFromLogs({txSig, slot, logs}).filter(event => this.eventListMap.has(event.eventType));
+		const events = this.logParser
+			.parseEventsFromLogs({ txSig, slot, logs })
+			.filter((event) => this.eventListMap.has(event.eventType));
 		return events;
 	}
 
@@ -196,7 +205,9 @@ export class EventSubscriber {
 	public getEventsArray<Type extends EventType>(
 		eventType: Type
 	): CompetitionsEventMap[Type][] {
-		return this.eventListMap.get(eventType).toArray() as CompetitionsEventMap[Type][];
+		return this.eventListMap
+			.get(eventType)
+			.toArray() as CompetitionsEventMap[Type][];
 	}
 
 	public getEventsByTx(txSig: TransactionSignature): WrappedEvents | undefined {

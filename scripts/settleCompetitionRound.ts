@@ -1,11 +1,9 @@
 import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
 import { DriftCompetitions } from '../ts/sdk/src/types/drift_competitions';
-import {
-	CompetitionsClient,
-} from '../ts/sdk/src';
+import { CompetitionsClient } from '../ts/sdk/src';
 import { DriftClient, isVariant } from '@drift-labs/sdk';
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
 
 dotenv.config();
 
@@ -13,7 +11,8 @@ function sleep(ms) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-const RPC_ENDPOINT = process.env.RPC_OVERRIDE ?? 'https://api.devnet.solana.com';
+const RPC_ENDPOINT =
+	process.env.RPC_OVERRIDE ?? 'https://api.devnet.solana.com';
 
 async function settleSweepstakesCompetition(provider) {
 	// Configure client to use the provider.
@@ -71,7 +70,6 @@ async function settleSweepstakesCompetition(provider) {
 				competitionAccount.roundNumber,
 				3,
 				3
-
 			);
 			console.log(txSig);
 		}
@@ -82,7 +80,9 @@ async function settleSweepstakesCompetition(provider) {
 		);
 		console.log(txSig2);
 		await sleep(2000);
-	} else if (isVariant(competitionAccount.status, 'winnerAndPrizeRandomnessRequested')) {
+	} else if (
+		isVariant(competitionAccount.status, 'winnerAndPrizeRandomnessRequested')
+	) {
 		const txSig2 = await competitionClient.requestRandomness(
 			competitionClient.getCompetitionPublicKey(name)
 		);
@@ -95,10 +95,10 @@ async function settleSweepstakesCompetition(provider) {
 		'winnerAndPrizeRandomnessComplete'
 	);
 
-	while(!isReadyForSettlement){
+	while (!isReadyForSettlement) {
 		await sleep(1000);
 		competitionAccount = await program.account.competition.fetch(
-		competitionKey
+			competitionKey
 		);
 		console.log(competitionAccount.status);
 		isReadyForSettlement = isVariant(
@@ -106,7 +106,6 @@ async function settleSweepstakesCompetition(provider) {
 			'winnerAndPrizeRandomnessComplete'
 		);
 	}
-	
 
 	if (isReadyForSettlement) {
 		while (isReadyForSettlement) {
@@ -133,14 +132,11 @@ try {
 		throw new Error('ANCHOR_WALLET must be set.');
 	}
 	settleSweepstakesCompetition(
-		anchor.AnchorProvider.local(
-			RPC_ENDPOINT,
-			{
-				preflightCommitment: 'confirmed',
-				skipPreflight: true,
-				commitment: 'confirmed',
-			}
-		)
+		anchor.AnchorProvider.local(RPC_ENDPOINT, {
+			preflightCommitment: 'confirmed',
+			skipPreflight: true,
+			commitment: 'confirmed',
+		})
 	);
 } catch (e) {
 	console.error(e);

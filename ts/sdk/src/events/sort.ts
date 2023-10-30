@@ -1,5 +1,8 @@
-import { EventSubscriptionOrderBy, EventSubscriptionOrderDirection } from "@drift-labs/sdk";
-import { CompetitionsEventMap, EventType, SortFn } from "..//types/types";
+import {
+	EventSubscriptionOrderBy,
+	EventSubscriptionOrderDirection,
+} from '@drift-labs/sdk';
+import { CompetitionsEventMap, EventType, SortFn } from '..//types/types';
 
 function clientSortAscFn(): 'less than' {
 	return 'less than';
@@ -18,11 +21,11 @@ function defaultBlockchainSortFn(
 
 export function getSortFn(
 	orderBy: EventSubscriptionOrderBy,
-	orderDir: EventSubscriptionOrderDirection,
+	orderDir: EventSubscriptionOrderDirection
 ): SortFn {
 	if (orderBy === 'client') {
 		return orderDir === 'asc' ? clientSortAscFn : clientSortDescFn;
 	}
 
-    return defaultBlockchainSortFn;
+	return defaultBlockchainSortFn;
 }
