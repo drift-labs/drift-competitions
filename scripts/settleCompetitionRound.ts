@@ -21,6 +21,8 @@ async function settleSweepstakesCompetition(provider) {
 
 	const payer = (provider.wallet as anchor.Wallet).payer;
 	console.log(`PAYER: ${payer.publicKey}`);
+	console.log(`ENDPOINT: ${RPC_ENDPOINT}`);
+	console.log(``);
 
 	const driftClient = new DriftClient({
 		connection: provider.connection,
