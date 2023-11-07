@@ -418,7 +418,7 @@ export class CompetitionsClient {
 				instructions.push(initCompetitorIx);
 				if (instructions.length >= chunkSize) {
 					// no need to await
-					this.createAndSendTxn(instructions, {
+					await this.createAndSendTxn(instructions, {
 						computeUnitParams: {
 							units: 1_400_000,
 						},
@@ -607,10 +607,23 @@ export class CompetitionsClient {
 			maxPrize,
 		];
 
+		let prizePoolTotal = new BN(0); // Start with a sum of 0
+		prizePools.forEach((prize) => {
+			prizePoolTotal = prizePoolTotal.add(prize); // Add each prize to the sum
+		});
+
+		const prizePoolOddsNumerators = [
+			prizePoolTotal.div(prizePools[0]),
+			prizePoolTotal.div(prizePools[1]),
+			new BN(1),
+		];
+
 		return {
 			roundNumber: competitionAccount.roundNumber,
 			roundEndTs: competitionAccount.nextRoundExpiryTs,
 			prizePools: prizePools,
+			prizePoolOddsNumerator: prizePoolOddsNumerators,
+			prizePoolOddsDenominator: prizePoolTotal,
 		};
 	}
 	/**
@@ -655,7 +668,6 @@ export class CompetitionsClient {
 		let earliestPulledSlot = Number.MAX_SAFE_INTEGER;
 
 		while (!fetchedAllLogs) {
-
 			const response = await fetchLogs(
 				this.driftClient.connection,
 				this.program.programId,
@@ -663,7 +675,11 @@ export class CompetitionsClient {
 				oldestFetchedTx
 			);
 
-			if (!response?.transactionLogs || response.transactionLogs.length === 0 || response?.earliestSlot >= earliestPulledSlot) {
+			if (
+				!response?.transactionLogs ||
+				response.transactionLogs.length === 0 ||
+				response?.earliestSlot >= earliestPulledSlot
+			) {
 				fetchedAllLogs = true;
 				break;
 			}
