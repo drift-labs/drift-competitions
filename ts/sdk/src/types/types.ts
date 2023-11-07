@@ -196,6 +196,10 @@ export type WrappedEvent<Type extends EventType> =
 	};
 export type WrappedEvents = WrappedEvent<EventType>[];
 
+export type DriftSweepstakesEvent = CompetitionsEventMap['CompetitionRoundSummaryRecord'] | 
+CompetitionsEventMap['CompetitionRoundWinnerRecord'] | 
+CompetitionsEventMap['CompetitorSettledRecord']
+
 export interface EventSubscriberEvents {
 	newEvent: (event: WrappedEvent<EventType>) => void;
 }
