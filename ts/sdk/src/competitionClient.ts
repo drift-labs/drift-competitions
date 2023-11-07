@@ -652,7 +652,10 @@ export class CompetitionsClient {
 		let fetchedAllLogs = false;
 		let oldestFetchedTx: string;
 
+		let earliestPulledSlot = Number.MAX_SAFE_INTEGER;
+
 		while (!fetchedAllLogs) {
+
 			const response = await fetchLogs(
 				this.driftClient.connection,
 				this.program.programId,
@@ -660,7 +663,7 @@ export class CompetitionsClient {
 				oldestFetchedTx
 			);
 
-			if (!response?.transactionLogs || response.transactionLogs.length === 0) {
+			if (!response?.transactionLogs || response.transactionLogs.length === 0 || response?.earliestSlot >= earliestPulledSlot) {
 				fetchedAllLogs = true;
 				break;
 			}
@@ -668,7 +671,10 @@ export class CompetitionsClient {
 			oldestFetchedTx = response.earliestTx;
 
 			const newLogs = response.transactionLogs;
+
 			logs = logs.concat(newLogs);
+
+			earliestPulledSlot = response.earliestSlot;
 		}
 
 		const logParser = new LogParser(this.program);
