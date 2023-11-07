@@ -68,8 +68,8 @@ async function settleSweepstakesCompetition(provider) {
 			const txSig = await competitionClient.settleAllCompetitors(
 				competitionKey,
 				competitionAccount.roundNumber,
-				3,
-				3
+				11,
+				1
 			);
 			console.log(txSig);
 		}
@@ -105,6 +105,20 @@ async function settleSweepstakesCompetition(provider) {
 			competitionAccount.status,
 			'winnerAndPrizeRandomnessComplete'
 		);
+
+		if (
+			competitionAccount.prizeRandomness.eq(
+				competitionAccount.prizeRandomnessMax
+			)
+		) {
+			console.log('PRIZE BUCKET #1 selected!');
+		} else if (
+			competitionAccount.prizeRandomness.lte(details.prizePoolOddsNumerator[0])
+		) {
+			console.log('PRIZE BUCKET #3 selected!');
+		} else {
+			console.log('PRIZE BUCKET #2 selected!');
+		}
 	}
 
 	if (isReadyForSettlement) {
@@ -115,7 +129,7 @@ async function settleSweepstakesCompetition(provider) {
 
 			console.log(txSig);
 
-			await sleep(1000);
+			await sleep(2000);
 			competitionAccount = await program.account.competition.fetch(
 				competitionKey
 			);
@@ -125,6 +139,8 @@ async function settleSweepstakesCompetition(provider) {
 			);
 		}
 	}
+
+	console.log('COMPLETE!');
 }
 
 try {
