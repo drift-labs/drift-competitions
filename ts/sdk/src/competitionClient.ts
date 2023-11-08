@@ -660,7 +660,10 @@ export class CompetitionsClient {
 				this.driftClient.connection,
 				this.program.programId,
 				'confirmed',
-				oldestFetchedTx
+				oldestFetchedTx,
+				undefined,
+				undefined,
+				250
 			);
 
 			if (!response?.transactionLogs || response.transactionLogs.length === 0 || response?.earliestSlot >= earliestPulledSlot) {
