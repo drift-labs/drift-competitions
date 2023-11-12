@@ -241,6 +241,67 @@ export type DriftCompetitions = {
 			args: [];
 		},
 		{
+			name: 'claimMultipleEntries';
+			accounts: [
+				{
+					name: 'authority';
+					isMut: true;
+					isSigner: true;
+				},
+				{
+					name: 'competitor';
+					isMut: true;
+					isSigner: false;
+				},
+				{
+					name: 'competition';
+					isMut: true;
+					isSigner: false;
+				},
+				{
+					name: 'driftUserStats';
+					isMut: false;
+					isSigner: false;
+				},
+				{
+					name: 'driftState';
+					isMut: false;
+					isSigner: false;
+				},
+				{
+					name: 'spotMarket';
+					isMut: true;
+					isSigner: false;
+				},
+				{
+					name: 'spotMarketVault';
+					isMut: true;
+					isSigner: false;
+				},
+				{
+					name: 'userTokenAccount';
+					isMut: true;
+					isSigner: false;
+				},
+				{
+					name: 'tokenProgram';
+					isMut: false;
+					isSigner: false;
+				},
+				{
+					name: 'driftProgram';
+					isMut: false;
+					isSigner: false;
+				}
+			];
+			args: [
+				{
+					name: 'entries';
+					type: 'u64';
+				}
+			];
+		},
+		{
 			name: 'claimWinnings';
 			accounts: [
 				{
@@ -1205,6 +1266,11 @@ export type DriftCompetitions = {
 			code: 6019;
 			name: 'CompetitionInvariantIssue';
 			msg: 'CompetitionInvariantIssue';
+		},
+		{
+			code: 6020;
+			name: 'CompetitorHasPendingInsuranceWithdraw';
+			msg: 'CompetitorHasPendingInsuranceWithdraw';
 		}
 	];
 };
@@ -1450,6 +1516,67 @@ export const IDL: DriftCompetitions = {
 				},
 			],
 			args: [],
+		},
+		{
+			name: 'claimMultipleEntries',
+			accounts: [
+				{
+					name: 'authority',
+					isMut: true,
+					isSigner: true,
+				},
+				{
+					name: 'competitor',
+					isMut: true,
+					isSigner: false,
+				},
+				{
+					name: 'competition',
+					isMut: true,
+					isSigner: false,
+				},
+				{
+					name: 'driftUserStats',
+					isMut: false,
+					isSigner: false,
+				},
+				{
+					name: 'driftState',
+					isMut: false,
+					isSigner: false,
+				},
+				{
+					name: 'spotMarket',
+					isMut: true,
+					isSigner: false,
+				},
+				{
+					name: 'spotMarketVault',
+					isMut: true,
+					isSigner: false,
+				},
+				{
+					name: 'userTokenAccount',
+					isMut: true,
+					isSigner: false,
+				},
+				{
+					name: 'tokenProgram',
+					isMut: false,
+					isSigner: false,
+				},
+				{
+					name: 'driftProgram',
+					isMut: false,
+					isSigner: false,
+				},
+			],
+			args: [
+				{
+					name: 'entries',
+					type: 'u64',
+				},
+			],
 		},
 		{
 			name: 'claimWinnings',
@@ -2416,6 +2543,11 @@ export const IDL: DriftCompetitions = {
 			code: 6019,
 			name: 'CompetitionInvariantIssue',
 			msg: 'CompetitionInvariantIssue',
+		},
+		{
+			code: 6020,
+			name: 'CompetitorHasPendingInsuranceWithdraw',
+			msg: 'CompetitorHasPendingInsuranceWithdraw',
 		},
 	],
 };

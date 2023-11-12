@@ -1,4 +1,5 @@
 pub use claim_entry::*;
+pub use claim_multiple_entries::*;
 pub use claim_winnings::*;
 pub use initialize_competition::*;
 pub use initialize_competitor::*;
@@ -11,6 +12,7 @@ pub use update_competitor_status::*;
 pub use update_switchboard_function::*;
 
 mod claim_entry;
+mod claim_multiple_entries;
 mod claim_winnings;
 mod constraints;
 mod initialize_competition;

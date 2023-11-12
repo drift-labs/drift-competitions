@@ -23,6 +23,8 @@ import {
 	QUOTE_SPOT_MARKET_INDEX,
 	TWO,
 	TEN,
+	getTokenAmount,
+	SpotBalanceType,
 } from '@drift-labs/sdk';
 import { Keypair } from '@solana/web3.js';
 import { assert } from 'chai';
@@ -330,5 +332,62 @@ describe('drift competitions', () => {
 		assert(competitionAccount.totalScoreSettled.eq(new BN(3)));
 
 		// await competitionClient.requestRandomness(competitionAddress);
+	});
+
+	it('competitor claimMultipleEntries', async () => {
+		const competitionClient = new CompetitionsClient({
+			driftClient: adminClient,
+			program: program,
+		});
+
+		const name = 'sweepstakes';
+		const encodedName = encodeName(name);
+
+		const competitionAddress = getCompetitionAddressSync(
+			program.programId,
+			encodedName
+		);
+
+		const authority = provider.wallet.publicKey;
+
+		const competitorAddress = getCompetitorAddressSync(
+			program.programId,
+			competitionAddress,
+			authority
+		);
+
+		let competitorAccount = await program.account.competitor.fetch(
+			competitorAddress
+		);
+		console.log('bonusScore:', competitorAccount.bonusScore.toString());
+		assert(competitorAccount.bonusScore.eq(ONE));
+
+		const userStatsKey = adminClient.getUserStatsAccountPublicKey();
+
+		await competitionClient.claimMultipleEntries(
+			new BN(1000),
+			userUSDCAccount.publicKey,
+			competitionAddress,
+			undefined,
+			userStatsKey
+		);
+		function sleep(ms) {
+			return new Promise((resolve) => setTimeout(resolve, ms));
+		}
+		await sleep(2000);
+		competitorAccount = await program.account.competitor.fetch(
+			competitorAddress
+		);
+		console.log('bonusScore:', competitorAccount.bonusScore.toString());
+		assert(competitorAccount.bonusScore.eq(new BN(1001)));
+
+		const spotMarket = adminClient.getSpotMarketAccount(0);
+		const revenuePoolAmount = getTokenAmount(
+			spotMarket.revenuePool.scaledBalance,
+			spotMarket,
+			SpotBalanceType.DEPOSIT
+		);
+
+		assert(revenuePoolAmount.eq(new BN(10)));
 	});
 });
