@@ -7,3 +7,4 @@ export * from './accountSubscribers';
 export * from './constants';
 export * from './parsers';
 export * from './events/eventSubscriber';
+export * from './serializer/serializer';
