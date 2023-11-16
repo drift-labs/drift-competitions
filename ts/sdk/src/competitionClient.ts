@@ -681,7 +681,8 @@ export class CompetitionsClient {
 		}
 
 		const logParser = new LogParser(this.program);
-		const events = logs.map((log) => logParser.parseEventsFromLogs(log)).flat();
+		const logEvents = logs.map((log) => logParser.parseEventsFromLogs(log));
+		const events = logEvents.flat();
 
 		return events;
 	}
