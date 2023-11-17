@@ -12,7 +12,6 @@ import {
 	QUOTE_PRECISION,
 	PERCENTAGE_PRECISION,
 	fetchLogs,
-	sleep,
 } from '@drift-labs/sdk';
 import { Program } from '@coral-xyz/anchor';
 import { DriftCompetitions, IDL } from './types/drift_competitions';
@@ -40,6 +39,7 @@ import {
 import * as anchor from '@coral-xyz/anchor';
 import { DRIFT_COMPETITION_PROGRAM_ID } from './constants';
 import { LogParser } from './parsers';
+import { sleep } from '@drift/common';
 
 export class CompetitionsClient {
 	driftClient: DriftClient;
