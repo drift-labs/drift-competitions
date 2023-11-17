@@ -12,6 +12,7 @@ import {
 	QUOTE_PRECISION,
 	PERCENTAGE_PRECISION,
 	fetchLogs,
+	sleep,
 } from '@drift-labs/sdk';
 import { Program } from '@coral-xyz/anchor';
 import { DriftCompetitions, IDL } from './types/drift_competitions';
@@ -656,28 +657,39 @@ export class CompetitionsClient {
 
 		while (!fetchedAllLogs) {
 
-			const response = await fetchLogs(
-				this.driftClient.connection,
-				this.program.programId,
-				'confirmed',
-				oldestFetchedTx,
-				undefined,
-				undefined,
-				250
-			);
-
-			if (!response?.transactionLogs || response.transactionLogs.length === 0 || response?.earliestSlot >= earliestPulledSlot) {
-				fetchedAllLogs = true;
-				break;
+			try {
+	
+				const response = await fetchLogs(
+					this.driftClient.connection,
+					this.program.programId,
+					'confirmed',
+					oldestFetchedTx,
+					undefined,
+					undefined,
+					250,
+					2,
+				);
+	
+				if (!response?.transactionLogs || response.transactionLogs.length === 0 || response?.earliestSlot >= earliestPulledSlot) {
+					fetchedAllLogs = true;
+					break;
+				}
+	
+				oldestFetchedTx = response.earliestTx;
+	
+				const newLogs = response.transactionLogs;
+	
+				logs = logs.concat(newLogs);
+	
+				earliestPulledSlot = response.earliestSlot;
+			} catch (e) {
+				if (e?.includes?.('timed out') || e?.message?.includes?.('timed out')) {
+					console.log('Handling timeout');
+					await sleep(2000);
+				} else {
+					throw e;
+				}
 			}
-
-			oldestFetchedTx = response.earliestTx;
-
-			const newLogs = response.transactionLogs;
-
-			logs = logs.concat(newLogs);
-
-			earliestPulledSlot = response.earliestSlot;
 		}
 
 		const logParser = new LogParser(this.program);
