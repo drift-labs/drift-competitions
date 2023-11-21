@@ -654,8 +654,12 @@ export class CompetitionsClient {
 
 		let earliestPulledSlot = Number.MAX_SAFE_INTEGER;
 
-		while (!fetchedAllLogs) {
+		let loopCount = 0;
+		// REMOVE LATER : luke/sweepstakes-rpc-patch
+		const maxLoopCount = 20;
 
+		while (!fetchedAllLogs && loopCount < maxLoopCount) {
+			loopCount++;
 			const response = await fetchLogs(
 				this.driftClient.connection,
 				this.program.programId,
