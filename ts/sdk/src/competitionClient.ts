@@ -662,10 +662,6 @@ export class CompetitionsClient {
 					this.program.programId,
 					'confirmed',
 					oldestFetchedTx,
-					undefined,
-					undefined,
-					250,
-					2,
 				);
 	
 				if (!response?.transactionLogs || response.transactionLogs.length === 0 || response?.earliestSlot >= earliestPulledSlot) {
