@@ -656,9 +656,7 @@ export class CompetitionsClient {
 		let earliestPulledSlot = Number.MAX_SAFE_INTEGER;
 
 		while (!fetchedAllLogs) {
-
 			try {
-	
 				const response = await fetchLogs(
 					this.driftClient.connection,
 					this.program.programId,
