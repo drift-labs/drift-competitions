@@ -662,7 +662,11 @@ export class CompetitionsClient {
 					this.program.programId,
 					'confirmed',
 					oldestFetchedTx,
+					undefined,
+					100
 				);
+
+				await sleep(500);
 	
 				if (!response?.transactionLogs || response.transactionLogs.length === 0 || response?.earliestSlot >= earliestPulledSlot) {
 					fetchedAllLogs = true;
