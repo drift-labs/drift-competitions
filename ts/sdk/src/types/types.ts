@@ -1,5 +1,6 @@
 import {
 	BN,
+	BigNum,
 	DataAndSlot,
 	Event,
 	EventSubscriptionOrderBy,
@@ -231,3 +232,19 @@ export type CompetitorAccountSubscriber =
 		Competitor,
 		CompetitorAccountEvents
 	>;
+
+export type CompetitionResult = {
+		startTs: number;
+		endTs: number;
+		roundNumber: number;
+		competitors: BN;
+		totalTickets: BN;
+		summaryEvent: Event<CompetitionRoundSummaryRecord>;
+		winners: {
+			authority: PublicKey;
+			prize: BigNum;
+			tickets: BN;
+			placement: number;
+			winnerEvent: Event<CompetitionRoundWinnerRecord>;
+		}[];
+	};

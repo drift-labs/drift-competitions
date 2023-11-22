@@ -1,5 +1,5 @@
 import { Program } from '@coral-xyz/anchor';
-import { TransactionSignature } from '@solana/web3.js';
+import { TransactionResponse, TransactionSignature, VersionedTransactionResponse } from '@solana/web3.js';
 import { WrappedEvents } from '../types/types';
 
 export type EventLog = {
@@ -7,6 +7,16 @@ export type EventLog = {
 	slot: number;
 	logs: string[];
 };
+
+function mapTransactionResponseToLog(
+	transaction: TransactionResponse | VersionedTransactionResponse
+): EventLog {
+	return {
+		txSig: transaction.transaction.signatures[0],
+		slot: transaction.slot,
+		logs: transaction.meta.logMessages,
+	};
+}
 
 export class LogParser {
 	constructor(private program: Program) {}
@@ -30,5 +40,13 @@ export class LogParser {
 		}
 
 		return records;
+	}
+
+	public parseEventsFromTransaction(
+		transaction: TransactionResponse
+	): WrappedEvents {
+		const transactionLogObject = mapTransactionResponseToLog(transaction);
+
+		return this.parseEventsFromLogs(transactionLogObject);
 	}
 }
