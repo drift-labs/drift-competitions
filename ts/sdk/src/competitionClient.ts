@@ -39,7 +39,7 @@ import {
 import * as anchor from '@coral-xyz/anchor';
 import { DRIFT_COMPETITION_PROGRAM_ID } from './constants';
 import { LogParser } from './parsers';
-import { sleep } from '@drift/common';
+import { sleep } from './utils';
 
 export class CompetitionsClient {
 	driftClient: DriftClient;
