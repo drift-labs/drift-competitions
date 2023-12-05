@@ -24,6 +24,7 @@ use crate::state::CompetitionRoundStatus;
 pub enum CompetitorStatus {
     Active,
     Disqualified,
+    RequestedSpinRandomness,
 }
 
 impl Default for CompetitorStatus {
@@ -55,7 +56,9 @@ pub struct Competitor {
     pub bonus_score: u64, // this can be used to claim raffle w/o purchase
 
     pub status: CompetitorStatus,
-    pub padding: [u8; 31],
+    pub padding1: u64,
+    pub last_action_ts: i64,
+    pub padding: [u8; 15],
 }
 
 impl Size for Competitor {
@@ -120,6 +123,44 @@ impl Competitor {
 
     pub fn claim_entry(&mut self) -> CompetitionResult {
         self.bonus_score = self.bonus_score.saturating_add(1);
+
+        Ok(())
+    }
+
+    pub fn claim_entry_spinner_request(&mut self) -> CompetitionResult {
+        validate!(
+            self.status == CompetitorStatus::Active,
+            ErrorCode::CompetitorUpdateInvalid
+        )?;
+        self.status = CompetitorStatus::RequestedSpinRandomness;
+
+        Ok(())
+    }
+
+    pub fn claim_entry_spinner_response(&mut self, random_number: u64, now: i64) -> CompetitionResult {
+        let entry_bonus: u64 = if random_number <= 5000 {
+            if random_number >= 4_999 {
+                5_000_000
+            } else if random_number >= 4_950 {
+                1_000_000
+            } else if random_number >= 4_900 {
+                500_000
+            } else if random_number >= 4_000 {
+                1_000
+            } else if random_number >= 2_500 {
+                500
+            } else if random_number >= 1_000 {
+                250
+            } else {
+                10
+            };
+        } else {
+            1 // invalid configuration
+        };
+
+        self.bonus_score = self.bonus_score.saturating_add(entry_bonus);
+        self.status = CompetitorStatus::Active;
+        self.last_action_ts = now;
 
         Ok(())
     }
