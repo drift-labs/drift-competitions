@@ -1,22 +1,35 @@
 use anchor_lang::prelude::*;
 
 use super::constraints::*;
+use crate::error::ErrorCode;
 use crate::state::{Competition, Competitor};
-use drift::state::user::UserStats;
+use crate::utils::calculate_revenue_pool_deposit_tokens_from_entries;
 use anchor_spl::token::{Token, TokenAccount};
-use drift::math::safe_math::SafeMath;
-use drift::state::spot_market::SpotMarket;
-use drift::program::Drift;
 use drift::cpi::accounts::RevenuePoolDeposit;
+use drift::program::Drift;
+use drift::state::spot_market::SpotMarket;
+use drift::state::user::UserStats;
+use drift::validate;
 
-pub fn claim_multiple_entries<'info>(ctx: Context<'_, '_, '_, 'info, ClaimMultipleEntries<'info>>, entries: u64) -> Result<()> {
+pub fn claim_multiple_entries<'info>(
+    ctx: Context<'_, '_, '_, 'info, ClaimMultipleEntries<'info>>,
+    entries: u64,
+) -> Result<()> {
+    validate!(
+        entries <= 5000000,
+        ErrorCode::CompetitorHasInvalidClaim,
+        "Max is 5M per single claim"
+    )?;
+
     let mut competitor = ctx.accounts.competitor.load_mut()?;
 
     competitor.claim_multiple_entries(entries)?;
 
     drop(competitor);
 
-    let deposit = entries.safe_div_ceil(100)?; // TODO what formula?
+    let spot_market = ctx.accounts.spot_market.load()?;
+    let deposit = calculate_revenue_pool_deposit_tokens_from_entries(entries, &spot_market)?;
+    drop(spot_market);
 
     let cpi_program = ctx.accounts.drift_program.to_account_info().clone();
     let cpi_accounts = RevenuePoolDeposit {
@@ -28,11 +41,7 @@ pub fn claim_multiple_entries<'info>(ctx: Context<'_, '_, '_, 'info, ClaimMultip
         token_program: ctx.accounts.token_program.clone().to_account_info(),
     };
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-    drift::cpi::deposit_into_spot_market_revenue_pool(
-        cpi_context,
-        deposit,
-    )?;
-
+    drift::cpi::deposit_into_spot_market_revenue_pool(cpi_context, deposit)?;
 
     Ok(())
 }

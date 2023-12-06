@@ -384,7 +384,7 @@ mod competition_fcn {
     use crate::state::{
         Competition, CompetitionRoundStatus, Competitor, CompetitorStatus, SponsorInfo,
     };
-    use crate::utils::get_test_sample_draw;
+    use crate::utils::{self, get_test_sample_draw};
     use anchor_lang::prelude::Pubkey;
     use drift::{
         math::{
@@ -398,6 +398,42 @@ mod competition_fcn {
             insurance_fund_stake::InsuranceFundStake, spot_market::SpotMarket, user::UserStats,
         },
     };
+
+    #[test]
+    fn test_multi_entries() {
+        let mut spot_market = SpotMarket::default();
+        spot_market.decimals = 6;
+        spot_market.historical_oracle_data.last_oracle_price = 64 * 10000000;
+        spot_market
+            .historical_oracle_data
+            .last_oracle_price_twap_5min = 65 * 10000000;
+
+        let result =
+            utils::calculate_revenue_pool_deposit_tokens_from_entries(0, &spot_market).unwrap();
+        assert_eq!(result, 0);
+
+        let result1 =
+            utils::calculate_revenue_pool_deposit_tokens_from_entries(1000, &spot_market).unwrap();
+
+        spot_market.decimals = 9;
+        let result2 =
+            utils::calculate_revenue_pool_deposit_tokens_from_entries(1000, &spot_market).unwrap();
+        assert_eq!(result1, result2 / 1000 + 1);
+        assert_eq!(result2, 78125);
+
+        // 1M
+        let result2 =
+            utils::calculate_revenue_pool_deposit_tokens_from_entries(1000000, &spot_market)
+                .unwrap();
+        assert_eq!(result2, 78125000);
+
+        // 100 M
+        let result2 =
+            utils::calculate_revenue_pool_deposit_tokens_from_entries(100000000, &spot_market)
+                .unwrap();
+        assert_eq!(result2, 7812500000);
+    }
+
     #[test]
     fn test_competition_settlement() {
         let mut now = 168000000;

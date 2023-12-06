@@ -41,6 +41,7 @@ import * as anchor from '@coral-xyz/anchor';
 import { DRIFT_COMPETITION_PROGRAM_ID } from './constants';
 import { LogParser } from './parsers';
 import { getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { sleep } from './utils';
 
 export class CompetitionsClient {
 	driftClient: DriftClient;
@@ -709,27 +710,46 @@ export class CompetitionsClient {
 		let fetchedAllLogs = false;
 		let oldestFetchedTx: string;
 
+		let earliestPulledSlot = Number.MAX_SAFE_INTEGER;
+
 		while (!fetchedAllLogs) {
-			const response = await fetchLogs(
-				this.driftClient.connection,
-				this.program.programId,
-				'confirmed',
-				oldestFetchedTx
-			);
+			try {
+				const response = await fetchLogs(
+					this.driftClient.connection,
+					this.program.programId,
+					'confirmed',
+					oldestFetchedTx,
+					undefined,
+					100
+				);
 
-			if (!response?.transactionLogs || response.transactionLogs.length === 0) {
-				fetchedAllLogs = true;
-				break;
+				await sleep(500);
+	
+				if (!response?.transactionLogs || response.transactionLogs.length === 0 || response?.earliestSlot >= earliestPulledSlot) {
+					fetchedAllLogs = true;
+					break;
+				}
+	
+				oldestFetchedTx = response.earliestTx;
+	
+				const newLogs = response.transactionLogs;
+	
+				logs = logs.concat(newLogs);
+	
+				earliestPulledSlot = response.earliestSlot;
+			} catch (e) {
+				if (e?.includes?.('timed out') || e?.message?.includes?.('timed out')) {
+					console.log('Handling timeout');
+					await sleep(2000);
+				} else {
+					throw e;
+				}
 			}
-
-			oldestFetchedTx = response.earliestTx;
-
-			const newLogs = response.transactionLogs;
-			logs = logs.concat(newLogs);
 		}
 
 		const logParser = new LogParser(this.program);
-		const events = logs.map((log) => logParser.parseEventsFromLogs(log)).flat();
+		const logEvents = logs.map((log) => logParser.parseEventsFromLogs(log));
+		const events = logEvents.flat();
 
 		return events;
 	}

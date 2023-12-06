@@ -1,5 +1,6 @@
 import {
 	BN,
+	BigNum,
 	DataAndSlot,
 	Event,
 	EventSubscriptionOrderBy,
@@ -196,6 +197,10 @@ export type WrappedEvent<Type extends EventType> =
 	};
 export type WrappedEvents = WrappedEvent<EventType>[];
 
+export type DriftSweepstakesEvent = CompetitionsEventMap['CompetitionRoundSummaryRecord'] | 
+CompetitionsEventMap['CompetitionRoundWinnerRecord'] | 
+CompetitionsEventMap['CompetitorSettledRecord']
+
 export interface EventSubscriberEvents {
 	newEvent: (event: WrappedEvent<EventType>) => void;
 }
@@ -227,3 +232,19 @@ export type CompetitorAccountSubscriber =
 		Competitor,
 		CompetitorAccountEvents
 	>;
+
+export type CompetitionResult = {
+		startTs: number;
+		endTs: number;
+		roundNumber: number;
+		competitors: BN;
+		totalTickets: BN;
+		summaryEvent: Event<CompetitionRoundSummaryRecord>;
+		winners: {
+			authority: PublicKey;
+			prize: BigNum;
+			tickets: BN;
+			placement: number;
+			winnerEvent: Event<CompetitionRoundWinnerRecord>;
+		}[];
+	};

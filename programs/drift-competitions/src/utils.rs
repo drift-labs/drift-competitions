@@ -1,3 +1,4 @@
+use drift::math::constants::PRICE_PRECISION;
 use drift::state::spot_market::SpotMarket;
 
 use crate::error::{CompetitionResult, ErrorCode};
@@ -90,4 +91,26 @@ pub fn apply_rebase_to_competitor_unclaimed_winnings(
     }
 
     Ok(())
+}
+
+pub fn calculate_revenue_pool_deposit_tokens_from_entries(
+    entries: u64,
+    spot_market: &SpotMarket,
+) -> CompetitionResult<u64> {
+    let quote_divisor = 20000; // this is .00005 quote
+
+    let strict_price = spot_market
+        .historical_oracle_data
+        .last_oracle_price_twap_5min
+        .min(spot_market.historical_oracle_data.last_oracle_price)
+        .max(1)
+        .cast::<u128>()?;
+    let deposit_tokens = entries
+        .cast::<u128>()?
+        .safe_mul(PRICE_PRECISION)?
+        .safe_mul(10_u128.pow(spot_market.decimals))?
+        .safe_div_ceil(strict_price)?
+        .safe_div_ceil(quote_divisor)?;
+
+    Ok(deposit_tokens.cast()?)
 }
