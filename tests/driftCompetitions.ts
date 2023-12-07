@@ -388,6 +388,6 @@ describe('drift competitions', () => {
 			SpotBalanceType.DEPOSIT
 		);
 
-		assert(revenuePoolAmount.eq(new BN(10)));
+		assert(revenuePoolAmount.eq(new BN(50000)));
 	});
 });
