@@ -124,6 +124,12 @@ impl Competitor {
         Ok(())
     }
 
+    pub fn claim_multiple_entries(&mut self, entries: u64) -> CompetitionResult {
+        self.bonus_score = self.bonus_score.saturating_add(entries);
+
+        Ok(())
+    }
+
     pub fn claim_winnings(
         &mut self,
         competition: &mut Competition,

@@ -12,6 +12,7 @@ import {
 	QUOTE_PRECISION,
 	PERCENTAGE_PRECISION,
 	fetchLogs,
+	getSpotMarketVaultPublicKey,
 } from '@drift-labs/sdk';
 import { Program } from '@coral-xyz/anchor';
 import { DriftCompetitions, IDL } from './types/drift_competitions';
@@ -39,6 +40,7 @@ import {
 import * as anchor from '@coral-xyz/anchor';
 import { DRIFT_COMPETITION_PROGRAM_ID } from './constants';
 import { LogParser } from './parsers';
+import { getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { sleep } from './utils';
 
 export class CompetitionsClient {
@@ -281,6 +283,61 @@ export class CompetitionsClient {
 				authority: this.program.provider.publicKey,
 			},
 		});
+		return await this.createAndSendTxn([claimEntryIx], {
+			noComputeBudgetIx: true, // claim entry needs to be a standalone ix in a tx
+		});
+	}
+
+	public async claimMultipleEntries(
+		entries: BN,
+		tokenAccount: PublicKey,
+		competition: PublicKey,
+		competitor?: PublicKey,
+		userStatsKey?: PublicKey
+	): Promise<TransactionSignature> {
+		if (!competitor) {
+			competitor = getCompetitorAddressSync(
+				this.program.programId,
+				competition,
+				this.program.provider.publicKey
+			);
+		}
+
+		if (!userStatsKey) {
+			userStatsKey = this.driftClient.getUserStatsAccountPublicKey();
+		}
+
+		const spotMarket = await getSpotMarketPublicKey(
+			this.driftClient.program.programId,
+			QUOTE_SPOT_MARKET_INDEX
+		);
+
+		const spotMarketVault = await getSpotMarketVaultPublicKey(
+			this.driftClient.program.programId,
+			QUOTE_SPOT_MARKET_INDEX
+		);
+
+		const accounts = {
+			competitor,
+			competition: competition,
+			driftUserStats: userStatsKey,
+			driftState: await this.driftClient.getStatePublicKey(),
+			spotMarket,
+			spotMarketVault,
+			userTokenAccount: tokenAccount,
+			tokenProgram: TOKEN_PROGRAM_ID,
+			driftProgram: this.driftClient.program.programId,
+		};
+
+		const claimEntryIx = this.program.instruction.claimMultipleEntries(
+			entries,
+			{
+				accounts: {
+					...accounts,
+					authority: this.program.provider.publicKey,
+				},
+			}
+		);
 		return await this.createAndSendTxn([claimEntryIx], {
 			noComputeBudgetIx: true, // claim entry needs to be a standalone ix in a tx
 		});

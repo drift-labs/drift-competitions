@@ -58,6 +58,13 @@ pub mod drift_competitions {
         instructions::claim_entry(ctx)
     }
 
+    pub fn claim_multiple_entries<'info>(
+        ctx: Context<'_, '_, '_, 'info, ClaimMultipleEntries<'info>>,
+        entries: u64,
+    ) -> Result<()> {
+        instructions::claim_multiple_entries(ctx, entries)
+    }
+
     pub fn claim_winnings<'info>(
         ctx: Context<'_, '_, '_, 'info, ClaimWinnings<'info>>,
         n_shares: Option<u64>,
