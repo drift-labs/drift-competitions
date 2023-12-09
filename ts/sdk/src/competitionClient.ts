@@ -1,12 +1,10 @@
 import {
 	BN,
-	DEFAULT_USER_NAME,
 	DriftClient,
 	getInsuranceFundStakeAccountPublicKey,
 	getInsuranceFundVaultPublicKey,
 	getSpotMarketPublicKey,
 	QUOTE_SPOT_MARKET_INDEX,
-	ReferrerInfo,
 	ZERO,
 	unstakeSharesToAmount,
 	QUOTE_PRECISION,
@@ -40,7 +38,7 @@ import {
 import * as anchor from '@coral-xyz/anchor';
 import { DRIFT_COMPETITION_PROGRAM_ID } from './constants';
 import { LogParser } from './parsers';
-import { getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { sleep } from './utils';
 
 export class CompetitionsClient {
@@ -203,11 +201,9 @@ export class CompetitionsClient {
 	public async initializeCompetitor({
 		competition,
 		initDriftUser,
-		referrerInfo,
 	}: {
 		competition: PublicKey;
 		initDriftUser?: boolean;
-		referrerInfo?: ReferrerInfo;
 	}): Promise<TransactionSignature> {
 		const competitor = getCompetitorAddressSync(
 			this.program.programId,
@@ -225,14 +221,7 @@ export class CompetitionsClient {
 
 		if (initDriftUser) {
 			const initUserStatsIx = await this.driftClient.getInitializeUserStatsIx();
-			const [_userAccountPublicKey, initializeUserAccountIx] =
-				await this.driftClient.getInitializeUserInstructions(
-					0,
-					DEFAULT_USER_NAME,
-					referrerInfo
-				);
 			instructions.push(initUserStatsIx);
-			instructions.push(initializeUserAccountIx);
 		}
 
 		const initCompetitorIx = this.program.instruction.initializeCompetitor({
