@@ -743,7 +743,7 @@ export class CompetitionsClient {
 		return events;
 	}
 
-	oublic getEntriesForDonation(tokenAmount: BN, spotMarket: SpotMarketAccount) {
+	public getEntriesForDonation(tokenAmount: BN, spotMarket: SpotMarketAccount) {
 		const strictPrice = BN.min(spotMarket.historicalOracleData.lastOraclePriceTwap5Min, spotMarket.historicalOracleData.lastOraclePrice);
 
 		return tokenAmount.mul(strictPrice).mul(20000).div(PRICE_PRECISION).div(new BN(10 ** spotMarket.decimals));
