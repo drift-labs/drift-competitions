@@ -1294,5 +1294,8 @@
       "name": "CompetitorHasPendingInsuranceWithdraw",
       "msg": "CompetitorHasPendingInsuranceWithdraw"
     }
-  ]
+  ],
+  "metadata": {
+    "address": "DraWMeQX9LfzQQSYoeBwHAgM5JcqFkgrX7GbTfjzVMVL"
+  }
 }

@@ -10,7 +10,7 @@ import {
 	QUOTE_PRECISION,
 	PERCENTAGE_PRECISION,
 	fetchLogs,
-	getSpotMarketVaultPublicKey,
+	getSpotMarketVaultPublicKey, SpotMarketAccount, PRICE_PRECISION,
 } from '@drift-labs/sdk';
 import { Program } from '@coral-xyz/anchor';
 import { DriftCompetitions, IDL } from './types/drift_competitions';
@@ -741,5 +741,11 @@ export class CompetitionsClient {
 		const events = logEvents.flat();
 
 		return events;
+	}
+
+	public getEntriesForDonation(tokenAmount: BN, spotMarket: SpotMarketAccount) {
+		const strictPrice = BN.min(spotMarket.historicalOracleData.lastOraclePriceTwap5Min, spotMarket.historicalOracleData.lastOraclePrice);
+
+		return tokenAmount.mul(strictPrice).muln(20000).div(PRICE_PRECISION).divn(10 ** spotMarket.decimals);
 	}
 }
