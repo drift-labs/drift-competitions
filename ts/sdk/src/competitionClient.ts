@@ -746,6 +746,6 @@ export class CompetitionsClient {
 	public getEntriesForDonation(tokenAmount: BN, spotMarket: SpotMarketAccount) {
 		const strictPrice = BN.min(spotMarket.historicalOracleData.lastOraclePriceTwap5Min, spotMarket.historicalOracleData.lastOraclePrice);
 
-		return tokenAmount.mul(strictPrice).mul(20000).div(PRICE_PRECISION).div(new BN(10 ** spotMarket.decimals));
+		return tokenAmount.mul(strictPrice).muln(20000).div(PRICE_PRECISION).divn(10 ** spotMarket.decimals);
 	}
 }
