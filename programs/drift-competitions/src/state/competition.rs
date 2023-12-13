@@ -419,7 +419,7 @@ impl Competition {
             ]
         } else {
             [
-                (max_prize / 33).clamp(ONEK, FIFTYK),
+                (max_prize / 33).clamp(ONEK, TENK),
                 (max_prize / 20).clamp(FIVEK, FIFTYK),
                 max_prize,
             ]

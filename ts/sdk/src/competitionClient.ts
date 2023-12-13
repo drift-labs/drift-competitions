@@ -663,7 +663,7 @@ export class CompetitionsClient {
 					maxPrize,
 			  ]
 			: [
-					BN.max(ONEK, BN.min(maxPrize.divn(33), FIFTYK)),
+					BN.max(ONEK, BN.min(maxPrize.divn(33), TENK)),
 					BN.max(FIVEK, BN.min(maxPrize.divn(20), FIFTYK)),
 					maxPrize,
 			  ];
