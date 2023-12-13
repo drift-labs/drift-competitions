@@ -10,7 +10,9 @@ import {
 	QUOTE_PRECISION,
 	PERCENTAGE_PRECISION,
 	fetchLogs,
-	getSpotMarketVaultPublicKey, SpotMarketAccount, PRICE_PRECISION,
+	getSpotMarketVaultPublicKey,
+	SpotMarketAccount,
+	PRICE_PRECISION,
 } from '@drift-labs/sdk';
 import { Program } from '@coral-xyz/anchor';
 import { DriftCompetitions, IDL } from './types/drift_competitions';
@@ -648,11 +650,23 @@ export class CompetitionsClient {
 			.mul(competitionAccount.sponsorInfo.maxSponsorFraction)
 			.div(PERCENTAGE_PRECISION);
 
-		const prizePools = [
-			BN.min(new BN(1000).mul(QUOTE_PRECISION), maxPrize.div(new BN(10))),
-			BN.min(new BN(5000).mul(QUOTE_PRECISION), maxPrize.div(new BN(2))),
-			maxPrize,
-		];
+		const ONEK = new BN(1000).mul(QUOTE_PRECISION);
+		const FIVEK = new BN(5000).mul(QUOTE_PRECISION);
+		const TENK = new BN(10000).mul(QUOTE_PRECISION);
+		const FIFTYK = new BN(50000).mul(QUOTE_PRECISION);
+
+		// Assuming maxPrize is a BN as well
+		let prizePools: BN[] = maxPrize.gt(TENK)
+			? [
+					BN.min(ONEK, maxPrize.divn(10)),
+					BN.min(FIVEK, maxPrize.divn(2)),
+					maxPrize,
+			  ]
+			: [
+					BN.max(ONEK, BN.min(maxPrize.divn(33), FIFTYK)),
+					BN.max(FIVEK, BN.min(maxPrize.divn(20), FIFTYK)),
+					maxPrize,
+			  ];
 
 		return {
 			roundNumber: competitionAccount.roundNumber,
@@ -713,18 +727,22 @@ export class CompetitionsClient {
 				);
 
 				await sleep(500);
-	
-				if (!response?.transactionLogs || response.transactionLogs.length === 0 || response?.earliestSlot >= earliestPulledSlot) {
+
+				if (
+					!response?.transactionLogs ||
+					response.transactionLogs.length === 0 ||
+					response?.earliestSlot >= earliestPulledSlot
+				) {
 					fetchedAllLogs = true;
 					break;
 				}
-	
+
 				oldestFetchedTx = response.earliestTx;
-	
+
 				const newLogs = response.transactionLogs;
-	
+
 				logs = logs.concat(newLogs);
-	
+
 				earliestPulledSlot = response.earliestSlot;
 			} catch (e) {
 				if (e?.includes?.('timed out') || e?.message?.includes?.('timed out')) {
@@ -744,8 +762,15 @@ export class CompetitionsClient {
 	}
 
 	public getEntriesForDonation(tokenAmount: BN, spotMarket: SpotMarketAccount) {
-		const strictPrice = BN.min(spotMarket.historicalOracleData.lastOraclePriceTwap5Min, spotMarket.historicalOracleData.lastOraclePrice);
+		const strictPrice = BN.min(
+			spotMarket.historicalOracleData.lastOraclePriceTwap5Min,
+			spotMarket.historicalOracleData.lastOraclePrice
+		);
 
-		return tokenAmount.mul(strictPrice).muln(20000).div(PRICE_PRECISION).divn(10 ** spotMarket.decimals);
+		return tokenAmount
+			.mul(strictPrice)
+			.muln(20000)
+			.div(PRICE_PRECISION)
+			.divn(10 ** spotMarket.decimals);
 	}
 }
