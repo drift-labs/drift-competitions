@@ -63,10 +63,7 @@ pub struct ClaimMultipleEntries<'info> {
     pub drift_user_stats: AccountLoader<'info, UserStats>,
     /// CHECK: checked in cpi
     pub drift_state: AccountInfo<'info>,
-    #[account(
-        mut,
-        constraint = spot_market.load()?.market_index == 0
-    )]
+    #[account(mut)]
     pub spot_market: AccountLoader<'info, SpotMarket>,
     #[account(mut)]
     /// CHECK: checked in cpi
