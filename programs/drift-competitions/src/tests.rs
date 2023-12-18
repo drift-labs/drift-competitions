@@ -64,7 +64,7 @@ mod competition_helpers {
 
         let mut spot_market = SpotMarket::default();
         spot_market.decimals = 6;
-        spot_market.insurance_fund.total_shares = 100;
+        spot_market.insurance_fund.total_shares = 10000000000;
         spot_market.insurance_fund.user_shares = 0;
 
         // 10k max
@@ -93,9 +93,9 @@ mod competition_helpers {
             .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
             .unwrap();
 
-        assert_eq!(prize_buckets, [1000000000, 5000000000, 100000000000]);
-        assert_eq!(ratios, [106, 22, 1]);
-        assert!(ratios[0] / 100 >= ratios[2]);
+        assert_eq!(prize_buckets, [4000000000, 8333333333, 100000000000]);
+        assert_eq!(ratios, [29, 14, 1]);
+        assert!(ratios[0] / 25 >= ratios[2]);
 
         let total = ratios.iter().sum();
         let mut cnt = 0;
@@ -128,9 +128,9 @@ mod competition_helpers {
             vault_balance,
         )
         .unwrap() as u128;
-        assert_eq!(prize_shares, spot_market.insurance_fund.total_shares / 20);
+        assert_eq!(prize_shares, spot_market.insurance_fund.total_shares / 12);
 
-        assert_eq!(prize_quote, prize_buckets[1]);
+        assert_eq!(prize_quote, prize_buckets[1] - 3); // 1/3 rounded last spot
 
         sweepstakes.prize_randomness = total;
         let prize_shares = sweepstakes
@@ -168,8 +168,8 @@ mod competition_helpers {
             .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
             .unwrap();
 
-        assert_eq!(prize_buckets, [1000000000, 5000000000, 3954552595151]);
-        assert_eq!(ratios, [3961, 793, 1]);
+        assert_eq!(prize_buckets, [10000000000, 50000000000, 3954552595151]);
+        assert_eq!(ratios, [402, 81, 1]);
         assert!(ratios[0] / 10 >= ratios[2]);
 
         // 10.1k max
@@ -282,8 +282,8 @@ mod competition_helpers {
             .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
             .unwrap();
 
-        assert_eq!(prize_buckets, [1000000000, 5000000000, 3954552595151]);
-        assert_eq!(ratios, [3961, 793, 1]);
+        assert_eq!(prize_buckets, [10000000000, 50000000000, 3954552595151]);
+        assert_eq!(ratios, [402, 81, 1]);
         assert!(ratios[0] / 10 >= ratios[2]);
 
         let total: u128 = ratios.iter().sum();
@@ -333,7 +333,7 @@ mod competition_helpers {
             }
             cnt += 1;
         }
-        assert_eq!(min_prize_times, [49141, 7923, 8]); // only when cnt = max prize draw
+        assert_eq!(min_prize_times, [5007, 804, 9]); // only when cnt = max prize draw
         assert!(min_prize_times[2] < if_deltas.len());
     }
 
@@ -740,8 +740,8 @@ mod competition_fcn {
             .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
             .unwrap();
 
-        assert_eq!(prize_buckets, [1000000000, 5000000000, 71818181818]);
-        assert_eq!(ratios, [78, 16, 1]);
+        assert_eq!(prize_buckets, [2872727272, 5984848484, 71818181818]);
+        assert_eq!(ratios, [29, 14, 1]);
 
         sweepstakes
             .resolve_prize_amount(&spot_market, vault_balance)
@@ -751,7 +751,7 @@ mod competition_fcn {
             CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
         );
         assert!(sweepstakes.prize_amount > 0);
-        assert_eq!(sweepstakes.prize_amount, 696202); // if shares
+        assert_eq!(sweepstakes.prize_amount, 1999999); // if shares
         assert_eq!(spot_market.insurance_fund.total_shares, 1100000000);
 
         let prize_amount_quote = if_shares_to_vault_amount(
@@ -762,10 +762,10 @@ mod competition_fcn {
         .unwrap();
 
         assert!(prize_amount_quote as u128 <= prize_buckets[0]);
-        assert_eq!(prize_amount_quote, 999999236); // slightly less from IF share rounding
+        assert_eq!(prize_amount_quote, 2872725836); // slightly less from IF share rounding
 
         spot_market.insurance_fund.shares_base = 4;
-        assert_eq!(sweepstakes.prize_amount, 696202);
+        assert_eq!(sweepstakes.prize_amount, 1999999);
 
         assert!(sweepstakes.reset_round(now).is_err());
         spot_market.insurance_fund.shares_base = 5;
@@ -782,7 +782,7 @@ mod competition_fcn {
             )
             .is_err());
 
-        assert_eq!(sweepstakes.prize_amount, 696202);
+        assert_eq!(sweepstakes.prize_amount, 1999999);
         assert_eq!(sweepstakes.prize_base, 1);
 
         sweepstakes
@@ -801,8 +801,8 @@ mod competition_fcn {
         );
 
         assert_eq!(comp2.unclaimed_winnings_base, 5);
-        assert_eq!(comp2.unclaimed_winnings, 69);
-        assert_eq!(sweepstakes.prize_amount, 69); //rebased by 4 zeros
+        assert_eq!(comp2.unclaimed_winnings, 199);
+        assert_eq!(sweepstakes.prize_amount, 199); //rebased by 4 zeros
 
         assert!(sweepstakes
             .settle_winner(
@@ -823,7 +823,7 @@ mod competition_fcn {
         assert_eq!(comp2.competition_round_number, 1); // already on next round
         assert_eq!(comp2.unclaimed_winnings_base, 5);
 
-        assert_eq!(comp2.unclaimed_winnings, 69);
+        assert_eq!(comp2.unclaimed_winnings, 199);
 
         let expected_sweepstakes = &mut Competition {
             round_number: 0,
@@ -836,11 +836,11 @@ mod competition_fcn {
             total_score_settled: 4,
             round_duration: 60,
             prize_base: 5,
-            prize_amount: 69,
-            prize_amount_settled: 69,
-            prize_randomness: 47,
-            prize_randomness_max: 95,
-            outstanding_unclaimed_winnings: 69,
+            prize_amount: 199,
+            prize_amount_settled: 199,
+            prize_randomness: 22,
+            prize_randomness_max: 44,
+            outstanding_unclaimed_winnings: 199,
 
             winner_randomness: 2,
             sponsor_info: SponsorInfo {
@@ -879,12 +879,12 @@ mod competition_fcn {
                 now
             )
             .is_err()); // still insurance_fund_stake base mismatch w/ spot_market
-        assert_eq!(comp2.unclaimed_winnings, 69);
+        assert_eq!(comp2.unclaimed_winnings, 199);
         assert!(comp2.unclaimed_winnings > 0);
 
         insurance_fund_stake.if_base = 6; // match spot_market
 
-        assert_eq!(comp2.unclaimed_winnings, 69);
+        assert_eq!(comp2.unclaimed_winnings, 199);
         assert_eq!(comp2.unclaimed_winnings_base, 5);
         assert!(comp2
             .claim_winnings(
@@ -897,7 +897,7 @@ mod competition_fcn {
             .is_err());
 
         // rebased (depsite failure). deployed contract wouldnt do this
-        assert_eq!(comp2.unclaimed_winnings, 6);
+        assert_eq!(comp2.unclaimed_winnings, 19);
         assert_eq!(comp2.unclaimed_winnings_base, 6);
 
         let share_to_claim_1 = comp2
@@ -910,7 +910,7 @@ mod competition_fcn {
             )
             .unwrap();
         assert_eq!(share_to_claim_1, 1);
-        assert_eq!(comp2.unclaimed_winnings, 5);
+        assert_eq!(comp2.unclaimed_winnings, 18);
         assert_eq!(comp2.unclaimed_winnings_base, 6);
         let share_to_claim_2 = comp2
             .claim_winnings(
@@ -921,13 +921,13 @@ mod competition_fcn {
                 now,
             )
             .unwrap();
-        assert_eq!(share_to_claim_2, 5);
+        assert_eq!(share_to_claim_2, 18);
 
         assert_eq!(comp2.unclaimed_winnings, 0);
         assert_eq!(comp2.unclaimed_winnings_base, 6);
 
         // rebased by 1 zero
-        assert_eq!(share_to_claim_1 + share_to_claim_2, 6);
+        assert_eq!(share_to_claim_1 + share_to_claim_2, 19);
     }
 
     #[test]
@@ -1007,11 +1007,11 @@ mod competition_fcn {
             total_score_settled: 1,
             round_duration: 60,
             prize_base: 1,
-            prize_amount: 696202,
-            outstanding_unclaimed_winnings: 696202,
-            prize_amount_settled: 696202,
-            prize_randomness: 478,
-            prize_randomness_max: 957,
+            prize_amount: 6962025,
+            outstanding_unclaimed_winnings: 6962025,
+            prize_amount_settled: 6962025,
+            prize_randomness: 51,
+            prize_randomness_max: 103,
             winner_randomness: 1,
             sponsor_info: SponsorInfo {
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
@@ -1032,11 +1032,12 @@ mod competition_fcn {
             round_duration: 60,
             prize_base: 1,
             prize_amount: 0,
-            outstanding_unclaimed_winnings: 696202,
+            outstanding_unclaimed_winnings: 6962025,
             prize_randomness: 0,
             prize_randomness_max: 0,
             winner_randomness: 0,
             sponsor_info: SponsorInfo {
+                min_sponsor_amount: 6962025,
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
                 ..SponsorInfo::default()
             },
@@ -1103,13 +1104,14 @@ mod competition_fcn {
             total_score_settled: 1,
             round_duration: 60,
             prize_base: 1,
-            prize_amount: 549151898,
-            outstanding_unclaimed_winnings: 549848100,
-            prize_amount_settled: 549151898,
-            prize_randomness: 955,
-            prize_randomness_max: 955,
+            prize_amount: 546016564,
+            outstanding_unclaimed_winnings: 552978589,
+            prize_amount_settled: 546016564,
+            prize_randomness: 103,
+            prize_randomness_max: 103,
             winner_randomness: 1,
             sponsor_info: SponsorInfo {
+                min_sponsor_amount: 6962025,
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
                 ..SponsorInfo::default()
             },
@@ -1130,7 +1132,7 @@ mod competition_fcn {
         expected_sweepstakes2.prize_randomness_max = 0;
         expected_sweepstakes2.prize_amount_settled = 0;
         expected_sweepstakes2.number_of_winners_settled = 0;
-
+        expected_sweepstakes2.sponsor_info.min_sponsor_amount = 552978589;
         assert_eq!(expected_sweepstakes2, sweepstakes);
         // todo do another assert for
         // assert_eq!(expected_sweepstakes2, sweepstakes);
@@ -1220,8 +1222,8 @@ mod competition_fcn {
             .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
             .unwrap();
 
-        assert_eq!(prize_buckets, [1000000000, 5000000000, 71818181818]);
-        assert_eq!(ratios, [78, 16, 1]);
+        assert_eq!(prize_buckets, [2872727272, 5984848484, 71818181818]);
+        assert_eq!(ratios, [29, 14, 1]);
 
         sweepstakes
             .resolve_prize_amount(&spot_market, vault_balance)
@@ -1231,7 +1233,7 @@ mod competition_fcn {
             CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
         );
         assert!(sweepstakes.prize_amount > 0);
-        assert_eq!(sweepstakes.prize_amount, 696202); // if shares
+        assert_eq!(sweepstakes.prize_amount, 1999999); // if shares
         assert_eq!(spot_market.insurance_fund.total_shares, 1100000000);
 
         let prize_amount_quote = if_shares_to_vault_amount(
@@ -1242,10 +1244,10 @@ mod competition_fcn {
         .unwrap();
 
         assert!(prize_amount_quote as u128 <= prize_buckets[0]);
-        assert_eq!(prize_amount_quote, 999999236); // slightly less from IF share rounding
+        assert_eq!(prize_amount_quote, 2872725836); // slightly less from IF share rounding
 
         spot_market.insurance_fund.shares_base = 4;
-        assert_eq!(sweepstakes.prize_amount, 696202);
+        assert_eq!(sweepstakes.prize_amount, 1999999);
 
         assert!(sweepstakes.reset_round(now).is_err());
         spot_market.insurance_fund.shares_base = 5;
@@ -1262,7 +1264,7 @@ mod competition_fcn {
             )
             .is_err());
 
-        assert_eq!(sweepstakes.prize_amount, 696202);
+        assert_eq!(sweepstakes.prize_amount, 1999999);
         assert_eq!(sweepstakes.prize_base, 1);
 
         sweepstakes
@@ -1281,8 +1283,8 @@ mod competition_fcn {
         );
 
         assert_eq!(comp2.unclaimed_winnings_base, 5);
-        assert_eq!(comp2.unclaimed_winnings, 69);
-        assert_eq!(sweepstakes.prize_amount, 69); //rebased by 4 zeros
+        assert_eq!(comp2.unclaimed_winnings, 199);
+        assert_eq!(sweepstakes.prize_amount, 199); //rebased by 4 zeros
 
         assert!(sweepstakes
             .settle_winner(
@@ -1303,7 +1305,7 @@ mod competition_fcn {
         assert_eq!(comp2.competition_round_number, 1); // already on next round
         assert_eq!(comp2.unclaimed_winnings_base, 5);
 
-        assert_eq!(comp2.unclaimed_winnings, 69);
+        assert_eq!(comp2.unclaimed_winnings, 199);
 
         let expected_sweepstakes = &mut Competition {
             round_number: 0,
@@ -1316,13 +1318,14 @@ mod competition_fcn {
             total_score_settled: 4,
             round_duration: 60,
             prize_base: 5,
-            prize_amount: 69,
-            prize_amount_settled: 69,
-            outstanding_unclaimed_winnings: 69,
-            prize_randomness_max: 95,
-            prize_randomness: 47,
+            prize_amount: 199,
+            prize_amount_settled: 199,
+            outstanding_unclaimed_winnings: 199,
+            prize_randomness_max: 44,
+            prize_randomness: 22,
             winner_randomness: 2,
             sponsor_info: SponsorInfo {
+                min_sponsor_amount: 0,
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
                 ..SponsorInfo::default()
             },
@@ -1344,6 +1347,7 @@ mod competition_fcn {
         expected_sweepstakes.prize_randomness_max = 0;
         expected_sweepstakes.number_of_winners_settled = 0;
         expected_sweepstakes.prize_amount_settled = 0;
+        expected_sweepstakes.sponsor_info.min_sponsor_amount += 199;
         assert_eq!(expected_sweepstakes, sweepstakes);
 
         assert_eq!(sweepstakes.round_number, 1);
@@ -1373,7 +1377,7 @@ mod competition_fcn {
                 now
             )
             .is_err()); // still insurance_fund_stake base mismatch w/ spot_market
-        assert_eq!(comp2.unclaimed_winnings, 69);
+        assert_eq!(comp2.unclaimed_winnings, 199);
         assert!(comp2.unclaimed_winnings > 0);
 
         insurance_fund_stake.if_base = 6; // match spot_market
@@ -1424,8 +1428,8 @@ mod competition_fcn {
             .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
             .unwrap();
 
-        assert_eq!(prize_buckets, [1000000000, 5000000000, 71818132263]);
-        assert_eq!(ratios, [78, 16, 1]);
+        assert_eq!(prize_buckets, [2872721552, 5984836566, 71818038800]);
+        assert_eq!(ratios, [29, 14, 1]);
 
         sweepstakes
             .resolve_prize_amount(&spot_market, vault_balance)
@@ -1435,7 +1439,7 @@ mod competition_fcn {
             CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
         );
         assert!(sweepstakes.prize_amount > 0);
-        assert_eq!(sweepstakes.prize_amount, 696202); // if shares
+        assert_eq!(sweepstakes.prize_amount, 1999996); // if shares
         assert_eq!(spot_market.insurance_fund.total_shares, 1100000000);
 
         let prize_amount_quote = if_shares_to_vault_amount(
@@ -1446,9 +1450,9 @@ mod competition_fcn {
         .unwrap();
 
         assert!(prize_amount_quote as u128 <= prize_buckets[0]);
-        assert_eq!(prize_amount_quote, 999999236); // slightly less from IF share rounding
+        assert_eq!(prize_amount_quote, 2872721527); // slightly less from IF share rounding
 
-        assert_eq!(sweepstakes.prize_amount, 696202);
+        assert_eq!(sweepstakes.prize_amount, 1999996);
 
         assert!(sweepstakes.reset_round(now).is_err());
         assert_eq!(sweepstakes.winner_randomness, 1);
@@ -1457,7 +1461,7 @@ mod competition_fcn {
         assert_eq!(comp1.unclaimed_winnings as u128, 0);
 
         // unchanged
-        assert_eq!(comp2.unclaimed_winnings as u128, 69);
+        assert_eq!(comp2.unclaimed_winnings as u128, 199);
         assert!(sweepstakes
             .settle_winner(
                 comp2,
@@ -1468,7 +1472,7 @@ mod competition_fcn {
                 Pubkey::default()
             )
             .is_err());
-        assert_eq!(comp2.unclaimed_winnings as u128, 69);
+        assert_eq!(comp2.unclaimed_winnings as u128, 199);
 
         sweepstakes
             .settle_winner(
@@ -1501,7 +1505,7 @@ mod competition_fcn {
                 now,
             )
             .unwrap();
-        assert_eq!(share_to_claim, 696202);
+        assert_eq!(share_to_claim, 1999996);
 
         let share_to_claim_2 = comp2
             .claim_winnings(
@@ -1512,7 +1516,7 @@ mod competition_fcn {
                 now,
             )
             .unwrap();
-        assert_eq!(share_to_claim_2, 6);
+        assert_eq!(share_to_claim_2, 19);
 
         assert_eq!(comp1.competition_round_number, 2);
         assert_eq!(comp2.competition_round_number, 2);
@@ -1574,8 +1578,8 @@ mod competition_fcn {
             .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
             .unwrap();
 
-        assert_eq!(prize_buckets, [1000000000, 5000000000, 71818136572]);
-        assert_eq!(ratios, [78, 16, 1]);
+        assert_eq!(prize_buckets, [2872682097, 5984754370, 71817052447]);
+        assert_eq!(ratios, [29, 14, 1]);
 
         sweepstakes
             .resolve_prize_amount(&spot_market, vault_balance)
@@ -1585,7 +1589,7 @@ mod competition_fcn {
             CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
         );
         assert!(sweepstakes.prize_amount > 0);
-        assert_eq!(sweepstakes.prize_amount, 696202); // if shares
+        assert_eq!(sweepstakes.prize_amount, 1999968); // if shares
         assert_eq!(spot_market.insurance_fund.total_shares, 1100000000);
 
         let prize_amount_quote = if_shares_to_vault_amount(
@@ -1596,9 +1600,9 @@ mod competition_fcn {
         .unwrap();
 
         assert!(prize_amount_quote as u128 <= prize_buckets[0]);
-        assert_eq!(prize_amount_quote, 999999236); // slightly less from IF share rounding
+        assert_eq!(prize_amount_quote, 2872681309); // slightly less from IF share rounding
 
-        assert_eq!(sweepstakes.prize_amount, 696202);
+        assert_eq!(sweepstakes.prize_amount, 1999968);
 
         assert!(sweepstakes.reset_round(now).is_err());
         assert_eq!(sweepstakes.winner_randomness, 6);
@@ -1647,7 +1651,7 @@ mod competition_fcn {
             .is_err());
         assert_eq!(
             share_to_claim_3,
-            1392410 - 696208 // delta of would-be insurance fund stake
+            1999968
         );
     }
 
@@ -1987,24 +1991,27 @@ mod competition_multiple_winners {
             get_test_sample_draw(0, sweepstakes.prize_randomness_max).unwrap();
         sweepstakes.winner_randomness =
             get_test_sample_draw(1, sweepstakes.total_score_settled).unwrap();
+        let max_prize = sweepstakes
+            .calculate_sponsor_max_prize(&spot_market, vault_balance)
+            .unwrap();
+        assert_eq!(max_prize, 27500000000);
 
         assert_eq!(
             sweepstakes
                 .calculate_prize_amount(&spot_market, vault_balance)
-                .unwrap()
-                .0,
-            18181818
+                .unwrap(),
+            (20000000, 31, 0) // 1.1k
         );
 
         sweepstakes
             .resolve_winner_and_prize_randomness(&spot_market, vault_balance)
             .unwrap();
 
-        assert_eq!(sweepstakes.prize_amount, 18181818);
+        assert_eq!(sweepstakes.prize_amount, 20000000);
         assert_eq!(sweepstakes.prize_base, 0);
 
-        assert_eq!(sweepstakes.prize_randomness, 21);
-        assert_eq!(sweepstakes.prize_randomness_max, 42);
+        assert_eq!(sweepstakes.prize_randomness, 19);
+        assert_eq!(sweepstakes.prize_randomness_max, 39);
         assert_eq!(sweepstakes.number_of_winners, 1001);
         assert_eq!(sweepstakes.number_of_winners_settled, 0);
 
@@ -2029,72 +2036,71 @@ mod competition_multiple_winners {
         }
 
         let res: [u128; 1001] = [
-            0, 0, 2727, 0, 5454, 2727, 2727, 2727, 5454, 0, 0, 2727, 5454, 0, 2727, 0, 5454, 0,
-            5454, 5454, 2727, 5454, 0, 2727, 2727, 5454, 5454, 2727, 2727, 8181, 0, 2727, 2727,
-            2727, 5454, 2727, 2727, 2727, 0, 0, 5454, 0, 5454, 0, 0, 2727, 2727, 2727, 2727, 2727,
-            0, 0, 2727, 2727, 5454, 2727, 2727, 0, 8181, 0, 2727, 2727, 5454, 5454, 5454, 0, 5454,
-            0, 2727, 2727, 2727, 0, 5454, 5454, 5454, 2727, 2727, 2727, 8181, 5454, 2727, 0, 2727,
-            5454, 2727, 0, 0, 0, 8181, 10908, 0, 0, 2727, 5454, 2727, 2727, 0, 0, 2727, 2727, 5454,
-            5454, 8181, 2727, 2727, 0, 0, 5454, 2727, 0, 0, 0, 2727, 5454, 0, 5454, 5454, 5454,
-            2727, 2727, 2727, 2727, 8181, 0, 2727, 5454, 2727, 5454, 0, 0, 2727, 2727, 0, 2727, 0,
-            5454, 5454, 0, 8181, 8181, 5454, 0, 0, 5454, 0, 2727, 0, 5454, 5454, 2727, 2727, 8181,
-            0, 0, 5454, 0, 5454, 2727, 2727, 2727, 2727, 8181, 2727, 0, 2727, 0, 2727, 0, 0, 0,
-            2727, 0, 8181, 0, 2727, 5454, 2727, 0, 0, 2727, 5454, 5454, 5454, 2727, 0, 0, 2727, 0,
-            2727, 2727, 0, 5454, 5454, 2727, 2727, 0, 5454, 2727, 2727, 5454, 2727, 2727, 0, 0,
-            2727, 2727, 0, 2727, 2727, 2727, 2727, 0, 0, 5454, 5454, 0, 5454, 2727, 2727, 2727,
-            2727, 0, 2727, 0, 0, 2727, 0, 0, 2727, 2727, 2727, 8181, 2727, 0, 2727, 5454, 2727,
-            2727, 0, 0, 2727, 0, 8181, 2727, 10908, 0, 2727, 0, 8181, 0, 2727, 2727, 2727, 8181, 0,
-            0, 5454, 2727, 2727, 2727, 5454, 8181, 5454, 2727, 2727, 5454, 8181, 2727, 5454, 2727,
-            0, 0, 5454, 2727, 0, 0, 0, 0, 0, 0, 2727, 0, 0, 2727, 0, 2727, 0, 0, 2727, 8181, 5454,
-            0, 2727, 2727, 2727, 8181, 0, 2727, 2727, 2727, 0, 0, 5454, 0, 0, 0, 0, 2727, 5454,
-            5454, 5454, 8181, 5454, 2727, 5454, 0, 0, 2727, 2727, 0, 5454, 0, 0, 2727, 2727, 0,
-            2727, 2727, 2727, 2727, 2727, 0, 8181, 0, 0, 5454, 2727, 0, 2727, 0, 10908, 2727, 0, 0,
-            5454, 0, 2727, 0, 0, 2727, 2727, 2727, 5454, 2727, 2727, 0, 5454, 2727, 5454, 0, 0, 0,
-            5454, 2727, 2727, 0, 0, 0, 5454, 0, 0, 8181, 8181, 2727, 2727, 2727, 0, 0, 0, 2727, 0,
-            5454, 5454, 8181, 0, 5454, 0, 5454, 2727, 2727, 0, 0, 2727, 0, 0, 2727, 0, 8181, 0,
-            2727, 0, 0, 2727, 2727, 2727, 2727, 0, 8181, 5454, 5454, 0, 0, 5454, 0, 0, 8181, 2727,
-            5454, 0, 0, 0, 2727, 0, 0, 0, 2727, 2727, 5454, 0, 5454, 2727, 0, 0, 5454, 0, 8181,
-            2727, 0, 0, 8181, 0, 2727, 2727, 2727, 5454, 13635, 2727, 2727, 0, 5454, 0, 2727, 0,
-            5454, 0, 0, 5454, 0, 5454, 5454, 2727, 0, 2727, 2727, 2727, 5454, 2727, 2727, 0, 0,
-            2727, 2727, 0, 2727, 5454, 0, 2727, 2727, 2727, 2727, 0, 5454, 5454, 0, 2727, 2727,
-            2727, 2727, 2727, 5454, 2727, 2727, 8181, 2727, 5454, 5454, 0, 0, 0, 0, 9090909, 0, 0,
-            2727, 2727, 0, 0, 2727, 5454, 0, 0, 0, 0, 2727, 0, 0, 0, 0, 3639090, 2727, 5454, 2727,
-            2727, 2727, 0, 0, 0, 0, 2727, 5454, 2727, 5454, 2727, 0, 5454, 0, 2727, 5454, 8181, 0,
-            5454, 5454, 2727, 0, 5454, 2727, 2727, 0, 5454, 10908, 5454, 0, 2727, 0, 5454, 2727, 0,
-            2727, 5454, 2727, 5454, 2727, 2727, 5454, 8181, 0, 8181, 2727, 0, 0, 2727, 2727, 5454,
-            0, 2727, 0, 2727, 0, 0, 2727, 2727, 2727, 2727, 0, 2727, 5454, 0, 0, 5454, 8181, 0,
-            2727, 0, 0, 2727, 2727, 8181, 5454, 0, 5454, 5454, 2727, 10908, 2727, 2727, 2727, 0,
-            5454, 10908, 8181, 8181, 0, 8181, 5454, 5454, 0, 2727, 2727, 2727, 10908, 2727, 0,
-            5454, 5454, 2727, 2727, 0, 0, 0, 2727, 2727, 0, 2727, 2727, 0, 0, 8181, 5454, 0, 2727,
-            2727, 0, 2727, 2727, 2727, 8181, 2727, 0, 5454, 0, 2727, 8181, 2727, 0, 0, 5454, 2727,
-            2727, 0, 2727, 2727, 10908, 2727, 0, 5454, 0, 2727, 0, 2727, 5454, 2727, 0, 2727, 2727,
-            0, 5454, 0, 5454, 2727, 10908, 5454, 2727, 0, 2727272, 8181, 0, 0, 0, 2727, 2727, 0,
-            2727, 0, 0, 0, 0, 0, 5454, 0, 0, 0, 0, 2727, 2727, 2727, 5454, 8181, 0, 0, 8181, 10908,
-            0, 2727, 8181, 2727, 0, 0, 0, 0, 0, 0, 2727, 0, 2727, 0, 8181, 2727, 0, 2727, 2727, 0,
-            0, 5454, 0, 2727, 2727, 0, 2727, 0, 2727, 0, 0, 2727, 2727, 0, 2727, 2727, 0, 8181,
-            2727, 5454, 2727, 2727, 2727, 2727, 5454, 0, 2727, 0, 5454, 10908, 8181, 0, 0, 2727,
-            2727, 2727, 2727, 2727, 8181, 5454, 2727, 8181, 5454, 2727, 2727, 2727, 0, 10908, 0, 0,
-            2727, 5454, 5454, 8181, 0, 2727, 2727, 0, 2727, 8181, 0, 5454, 5454, 0, 0, 5454, 2727,
-            0, 5454, 2727, 0, 0, 5454, 2727, 2727, 2727, 0, 8181, 0, 0, 0, 0, 0, 2727, 5454, 2727,
-            2727, 2727, 5454, 5454, 2727, 8181, 2727, 2727, 5454, 0, 2727, 0, 0, 5454, 10908, 2727,
-            2727, 2727, 0, 0, 0, 2727, 0, 0, 0, 0, 0, 8181, 0, 0, 5454, 2727, 2727, 0, 0, 0, 2727,
-            0, 8181, 2727, 0, 5454, 5454, 2727, 8181, 0, 5454, 0, 0, 0, 5454, 10908, 5454, 0, 0, 0,
-            5454, 2727, 0, 0, 0, 0, 2727, 0, 10908, 0, 5454, 10908, 0, 2727, 0, 2727, 5454, 5454,
-            5454, 2727, 2727, 8181, 5454, 0, 0, 2727, 0, 2727, 5454, 5454, 2727, 5454, 2727, 2727,
-            2727, 5454, 0, 2727, 0, 2727, 0, 2727, 0, 2727, 0, 5454, 5454, 2727, 0, 2727, 0, 5454,
-            8181, 2727, 2727, 5454, 0, 2727, 0, 8181, 5454, 0, 2727, 0, 0, 0, 2727, 2727, 2727,
-            8181, 2727, 0, 8181, 2727, 5454, 0, 2727, 2727, 0, 2727, 0, 5454, 2727, 0, 0, 2727, 0,
-            5454, 5454, 0, 13635, 5454, 5454, 2727, 0, 0, 10908, 0, 0, 5454, 0, 0, 2727, 0, 0,
-            2727, 5454, 2727, 8181, 2727, 0, 0, 0, 2727, 0, 2727, 0, 2727, 0, 5454, 2727, 0, 5454,
-            2727, 2727, 0, 5454, 0,
+            6000, 3000, 3000, 0, 3000, 0, 3000, 3000, 0, 12000, 6000, 0, 0, 3000, 3000, 3000, 6000,
+            9000, 3000, 0, 0, 0, 3000, 3000, 0, 0, 3000, 0, 6000, 3000, 0, 3000, 3000, 0, 3000,
+            3000, 3000, 0, 3000, 3000, 6000, 0, 0, 0, 6000, 3000, 6000, 0, 0, 3000, 6000, 3000, 0,
+            12000, 0, 0, 6000, 3000, 3000, 6000, 3000, 0, 6000, 0, 6000, 3000, 3000, 0, 6000, 3000,
+            9000, 0, 3000, 0, 3000, 0, 0, 0, 3000, 0, 0, 6000, 3000, 6000, 3000, 9000, 6000, 0,
+            3000, 0, 0, 6000, 6000, 6000, 6000, 6000, 0, 12000, 0, 6000, 0, 0, 0, 3000, 0, 6000,
+            3000, 0, 6000, 3000, 3000, 3000, 9000, 6000, 6000, 9000, 6000, 0, 0, 9000, 3000, 3000,
+            3000, 3000, 3000, 0, 0, 0, 3000, 3000, 9000, 3000, 0, 6000, 0, 0, 3000, 0, 0, 3000, 0,
+            0, 3000, 3000, 0, 0, 3000, 0, 9000, 6000, 3000, 0, 6000, 0, 3000, 0, 6000, 6000, 0, 0,
+            3000, 0, 3000, 9000, 3000, 3000, 3000, 0, 9000, 0, 0, 3000, 6000, 0, 0, 9000, 6000, 0,
+            9000, 15000, 3000, 3000, 3000, 6000, 3000, 0, 3000, 6000, 3000, 0, 0, 3000, 12000,
+            3000, 3000, 0, 0, 3000, 0, 3000, 0, 6000, 3000, 3000, 0, 3000, 0, 3000, 3000, 3000,
+            3000, 6000, 6000, 9000, 0, 3000, 3000, 0, 0, 3000, 9000, 3000, 6000, 0, 9000, 0, 0, 0,
+            0, 3000, 9000, 3000, 0, 0, 6000, 3000, 6000, 0, 3000, 6000, 6000, 0, 0, 3000, 0, 3000,
+            9000, 3000, 0, 3000, 0, 0, 6000, 3000, 0, 9000, 9000, 0, 3000, 3000, 0, 3000, 0, 6000,
+            9000, 0, 3000, 6000, 6000, 12000, 0, 9000, 6000, 0, 0, 0, 6000, 0, 0, 0, 3000, 6000, 0,
+            3000, 0, 0, 3000, 12000, 3000, 6000, 3000, 12000, 6000, 0, 9000, 6000, 6000, 6000,
+            3000, 0, 0, 9000, 6000, 3000, 3000, 6000, 3000, 0, 3000, 3000, 0, 6000, 0, 6000, 6000,
+            0, 9000, 3000, 3000, 0, 3000, 0, 6000, 6000, 3000, 0, 0, 6000, 0, 3000, 0, 0, 6000,
+            3000, 0, 0, 9000, 6000, 0, 3000, 0, 6000, 3000, 0, 0, 3000, 9000, 9000, 3000, 0, 6000,
+            0, 3000, 6000, 0, 0, 0, 0, 3000, 3000, 0, 6000, 3000, 0, 0, 6000, 0, 3000, 0, 0, 0,
+            3000, 3000, 0, 0, 3000, 6000, 6000, 3000, 6000, 0, 3000, 0, 3000, 3000, 6000, 3000, 0,
+            3000, 0, 9000, 3000, 6000, 3000, 6000, 0, 0, 0, 3000, 3000, 0, 3000, 3000, 6000, 6000,
+            9000, 0, 3000, 3000, 0, 9000, 6000, 6000, 6000, 0, 3000, 3000, 0, 0, 0, 6000, 0, 3000,
+            0, 3000, 3000, 3000, 0, 6000, 3000, 0, 6000, 0, 0, 3000, 0, 9000, 0, 6000, 0, 0, 3000,
+            0, 6000, 0, 6000, 0, 6000, 9000, 0, 6000, 0, 3000, 3000, 0, 3000, 0, 6000, 3000, 0, 0,
+            0, 0, 0, 3000, 0, 3000, 3000, 3000, 6000, 0, 6000, 0, 6000, 3000, 0, 0, 0, 0, 3000,
+            6000, 6000, 0, 6000, 12000, 0, 3000, 0, 3000, 0, 0, 3000, 3000, 6000, 0, 3000, 6000, 0,
+            0, 9000, 10003000, 9000, 0, 3000, 6000, 6000, 0, 3000, 3000, 0, 3000, 6000, 3000, 3000,
+            0, 0, 4003000, 6000, 9000, 12000, 6000, 0, 3000, 0, 0, 0, 3000, 6000, 6000, 6000, 0,
+            3000, 9000, 6000, 3000, 6000, 6000, 3000, 3000, 3000, 6000, 0, 3000, 9000, 6000, 6000,
+            0, 3000, 0, 3000, 0, 6000, 3000, 3000, 6000, 6000, 6000, 9000, 0, 3000, 0, 6000, 0, 0,
+            3000, 3000, 3000, 9000, 0, 0, 6000, 3000, 3000, 3000, 3000, 0, 6000, 0, 0, 3000, 0,
+            6000, 3000, 3000, 0, 3000, 3000, 6000, 6000, 0, 6000, 0, 0, 0, 9000, 9000, 3000, 3000,
+            3000, 12000, 3000, 12000, 3006000, 3000, 3000, 0, 3000, 9000, 0, 0, 3000, 0, 6000,
+            3000, 3000, 0, 3000, 0, 6000, 0, 3000, 3000, 0, 3000, 0, 6000, 15000, 0, 6000, 0, 0, 0,
+            3000, 0, 9000, 3000, 0, 3000, 0, 6000, 0, 0, 0, 0, 0, 0, 3000, 9000, 3000, 9000, 3000,
+            3000, 0, 3000, 6000, 3000, 0, 0, 0, 0, 3000, 0, 0, 3000, 12000, 6000, 3000, 0, 3000,
+            3000, 6000, 0, 6000, 0, 0, 6000, 0, 0, 3000, 3000, 0, 3000, 6000, 3000, 0, 3000, 3000,
+            0, 3000, 3000, 0, 0, 9000, 3000, 0, 3000, 3000, 0, 0, 3000, 6000, 0, 6000, 0, 3000, 0,
+            0, 0, 6000, 3000, 0, 3000, 3000, 6000, 0, 3000, 9000, 6000, 3000, 0, 0, 3000, 6000,
+            3000, 3000, 0, 0, 3000, 3000, 3000, 9000, 6000, 3000, 0, 0, 9000, 3000, 3000, 0, 3000,
+            3000, 0, 6000, 6000, 0, 3000, 3000, 9000, 0, 0, 0, 0, 0, 6000, 3000, 3000, 12000, 3000,
+            3000, 3000, 0, 0, 0, 3000, 9000, 0, 0, 0, 3000, 0, 3000, 3000, 9000, 9000, 0, 3000, 0,
+            6000, 3000, 3000, 3000, 0, 0, 0, 3000, 9000, 0, 0, 3000, 3000, 9000, 0, 6000, 3000,
+            6000, 0, 6000, 0, 0, 3000, 3000, 3000, 3000, 0, 0, 0, 3000, 3000, 0, 0, 0, 3000, 6000,
+            0, 9000, 3000, 6000, 6000, 0, 6000, 9000, 9000, 0, 0, 3000, 0, 6000, 6000, 3000, 6000,
+            3000, 0, 9000, 6000, 0, 3000, 0, 3000, 0, 0, 0, 9000, 3000, 3000, 3000, 3000, 3000, 0,
+            0, 3000, 0, 3000, 3000, 6000, 0, 3000, 3000, 0, 3000, 6000, 0, 0, 6000, 3000, 3000,
+            9000, 0, 0, 3000, 3000, 0, 3000, 0, 3000, 0, 6000, 3000, 0, 9000, 3000, 3000, 0, 0,
+            6000, 6000, 0, 9000, 0, 0, 6000, 0, 3000, 6000, 3000, 0, 3000, 3000, 3000, 6000, 0,
+            3000, 0, 0, 0, 3000, 0, 0, 0, 3000, 3000, 6000, 3000, 9000, 9000, 3000, 9000, 9000, 0,
+            0, 6000, 3000, 15000, 12000, 0, 3000, 3000, 6000, 6000, 3000, 0, 3000, 0, 3000, 0, 0,
+            3000, 0, 6000, 9000, 9000, 6000, 0, 3000, 6000, 0, 0, 3000, 0, 6000, 0, 6000, 0, 0, 0,
+            0, 0, 3000, 6000, 3000, 9000, 0, 6000, 0, 0, 0, 0, 0, 9000, 0, 6000, 6000, 3000, 3000,
+            0, 0, 6000, 3000, 0, 9000, 0, 3000, 6000, 6000, 9000, 0, 3000, 3000, 0, 0, 0, 0, 6000,
+            3000, 0, 3000, 0, 9000, 0, 0, 3000, 3000,
         ];
         assert_eq!(winnings_bucket_arr, res);
-        assert_eq!(res.iter().sum::<u128>(), 18176090);
-        assert_eq!(num_full_cycles, 497);
+        assert_eq!(res.iter().sum::<u128>(), 19994000);
+        assert_eq!(num_full_cycles, 503);
         assert!(sweepstakes.prize_amount > sweepstakes.prize_amount_settled);
         assert_eq!(
             sweepstakes.prize_amount - sweepstakes.prize_amount_settled,
-            5728
+            6000
         ); // 0.03150400031% of reward was dust
     }
 }

@@ -656,15 +656,9 @@ export class CompetitionsClient {
 		const FIFTYK = new BN(50000).mul(QUOTE_PRECISION);
 
 		// Assuming maxPrize is a BN as well
-		let prizePools: BN[] = maxPrize.lte(TENK)
-			? [
-					BN.min(ONEK, maxPrize.divn(10)),
-					BN.min(FIVEK, maxPrize.divn(2)),
-					maxPrize,
-			  ]
-			: [
-					BN.max(ONEK, BN.min(maxPrize.divn(25), TENK)),
-					BN.max(FIVEK, BN.min(maxPrize.divn(12), FIFTYK)),
+		let prizePools: BN[] = [
+					BN.max(BN.min(ONEK, maxPrize.divn(10)), BN.min(maxPrize.divn(25), TENK)),
+					BN.max(BN.min(FIVEK, maxPrize.divn(2)), BN.min(maxPrize.divn(12), FIFTYK)),
 					maxPrize,
 			  ];
 
