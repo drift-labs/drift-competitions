@@ -411,7 +411,7 @@ impl Competition {
 
         // prize ratios match [$1k, $5k, >= $10k] ratios, but lower prizes never exceed 1k, 5k
         // as max_prize grows, never let min buckets pass 50k
-        let prize_buckets = if max_prize > TENK {
+        let prize_buckets = if max_prize <= TENK {
             [
                 ONEK.min(max_prize / 10),
                 FIVEK.min(max_prize / 2),
@@ -419,8 +419,8 @@ impl Competition {
             ]
         } else {
             [
-                (max_prize / 33).clamp(ONEK, TENK),
-                (max_prize / 20).clamp(FIVEK, FIFTYK),
+                (max_prize / 25).clamp(ONEK, TENK),
+                (max_prize / 12).clamp(FIVEK, FIFTYK),
                 max_prize,
             ]
         };
