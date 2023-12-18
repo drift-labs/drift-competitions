@@ -99,6 +99,33 @@ impl Competitor {
         Ok(self.status == CompetitorStatus::Active)
     }
 
+    pub fn validate_deletion(
+        &self,
+        competition: &Competition,
+        user_stats: &UserStats,
+        now: i64,
+    ) -> CompetitionResult {
+        competition.validate_round_is_active(now)?;
+
+        let round_score = self.calculate_round_score(&user_stats)?;
+
+        validate!(
+            round_score == 0,
+            ErrorCode::CompetitorCannotBeDeleted,
+            "competitor has non-zero round_score={}",
+            round_score
+        )?;
+
+        validate!(
+            self.unclaimed_winnings == 0,
+            ErrorCode::CompetitorCannotBeDeleted,
+            "competitor has non-zero unclaimed_winnings={}",
+            self.unclaimed_winnings
+        )?;
+
+        Ok(())
+    }
+
     pub fn calculate_snapshot_score(&self, user_stats: &UserStats) -> DriftResult<u64> {
         // 10 cents of taker volume (entry tier of 10 bps) => 1 ticket
         let taker_fee = user_stats

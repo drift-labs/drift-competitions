@@ -54,6 +54,13 @@ pub mod drift_competitions {
         instructions::initialize_competitor(ctx)
     }
 
+    // competitor ix
+    pub fn close_competitor<'info>(
+        ctx: Context<'_, '_, '_, 'info, CloseCompetitor<'info>>,
+    ) -> Result<()> {
+        instructions::close_competitor(ctx)
+    }
+
     pub fn claim_entry<'info>(ctx: Context<'_, '_, '_, 'info, ClaimEntry<'info>>) -> Result<()> {
         instructions::claim_entry(ctx)
     }
