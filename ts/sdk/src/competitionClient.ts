@@ -465,11 +465,15 @@ export class CompetitionsClient {
 				instructions.push(initCompetitorIx);
 				if (instructions.length >= chunkSize) {
 					// no need to await
-					this.createAndSendTxn(instructions, {
-						computeUnitParams: {
-							units: 1_400_000,
-						},
-					});
+					try {
+						this.createAndSendTxn(instructions, {
+							computeUnitParams: {
+								units: 1_400_000,
+							},
+						});
+					} catch {
+						console.log('couldnt createAndSendTxn');
+					}
 					instructions = [];
 				}
 			}

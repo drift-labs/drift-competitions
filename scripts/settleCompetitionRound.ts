@@ -68,8 +68,8 @@ async function settleSweepstakesCompetition(provider) {
 			const txSig = await competitionClient.settleAllCompetitors(
 				competitionKey,
 				competitionAccount.roundNumber,
-				3,
-				3
+				10,
+				1
 			);
 			console.log(txSig);
 		}
@@ -115,7 +115,7 @@ async function settleSweepstakesCompetition(provider) {
 
 			console.log(txSig);
 
-			await sleep(1000);
+			await sleep(3000);
 			competitionAccount = await program.account.competition.fetch(
 				competitionKey
 			);
