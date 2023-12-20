@@ -95,10 +95,10 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@drift-labs/sdk@2.52.0-beta.7":
-  version "2.52.0-beta.7"
-  resolved "https://registry.yarnpkg.com/@drift-labs/sdk/-/sdk-2.52.0-beta.7.tgz#9fb2cb24d140e0d66b27e6bd24ae2268a6d8a3b5"
-  integrity sha512-12I84O5EGU78fPWza+DMfqD23Zo2xMtsJbwyz6nrSKd840rGvI8KCVGnK7hv18dI/3uVmvdp79Mlg60LHieK0g==
+"@drift-labs/sdk@2.52.0-beta.12":
+  version "2.52.0-beta.12"
+  resolved "https://registry.yarnpkg.com/@drift-labs/sdk/-/sdk-2.52.0-beta.12.tgz#6de5485dde47709080d4f72ac06b6f1a8a83d763"
+  integrity sha512-4mkQYW+G7mtfjwNDT19PlGTWXwRkCEh8vIfKrRgyL0XoBvIUuFb6l2PwqT+MnH0FTVpaL5XeDzbcUdr6TRkDKg==
   dependencies:
     "@coral-xyz/anchor" "0.28.1-beta.2"
     "@ellipsis-labs/phoenix-sdk" "^1.4.2"
