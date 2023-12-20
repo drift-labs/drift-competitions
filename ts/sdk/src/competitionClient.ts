@@ -718,7 +718,7 @@ export class CompetitionsClient {
 
 				await sleep(500);
 	
-				if (!response?.transactionLogs || response.transactionLogs.length === 0 || response?.earliestSlot >= earliestPulledSlot) {
+				if (!response || response?.earliestSlot >= earliestPulledSlot) {
 					fetchedAllLogs = true;
 					break;
 				}
