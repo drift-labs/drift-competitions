@@ -10,7 +10,7 @@ import {
     autoserializeAsArray,
     autoserializeUsing
 } from 'cerializr';
-import { CompetitionResult, CompetitionRoundSummaryRecord, CompetitionRoundWinnerRecord } from '../types/types';
+import { CompetitionResult, CompetitionRoundSummaryRecord, CompetitionRoundWinnerRecord, LiveCompetitionInfo } from '../types/types';
 
 
 const BNSerializationFn = (target: BN) =>
@@ -201,11 +201,27 @@ export class SerializableCompetitionResult implements CompetitionResult {
     @autoserializeAsArray(SerializableCompetitionRoundWinner) winners: SerializableCompetitionRoundWinner[];
 }
 
+class SerializableTopCompetitor {
+	@autoserializeUsing(SERIALIZATION_UTILS.PublicKeySerializeAndDeserializeFns) authority: PublicKey;
+	@autoserializeUsing(SERIALIZATION_UTILS.BNSerializeAndDeserializeFns) ticketCount: BN;
+}
+
+export class SerializableLiveCompetitionInfo implements LiveCompetitionInfo {
+	@autoserializeAs(Number) lastFetchedTs: number;
+	@autoserializeAs(Number) roundNumber: number;
+	@autoserializeAs(Number) startTs: number;
+	@autoserializeAs(Number) endTs: number;
+	@autoserializeAs(Number) totalCompetitors: number;
+	@autoserializeUsing(SERIALIZATION_UTILS.BNSerializeAndDeserializeFns) totalTickets: BN;
+	@autoserializeAsArray(SerializableTopCompetitor) topCompetitors;
+}
+
 export const Serializer = {
 	Serialize: {
 		SerializableSummaryEvent: (cls: SerializableSummaryEvent) => Serialize(cls, SerializableSummaryEvent),
 		SerializableCompetitionRoundWinner: (cls: SerializableCompetitionRoundWinner) => Serialize(cls, SerializableCompetitionRoundWinner),
 		SerializableCompetitionResult: (cls: SerializableCompetitionResult) => Serialize(cls, SerializableCompetitionResult),
+		SerializableLiveCompetitionInfo: (cls: SerializableLiveCompetitionInfo) => Serialize(cls, SerializableLiveCompetitionInfo),
 	},
 	Deserialize: {
 		SerializableSummaryEvent: (cls: Record<string, unknown>) =>
@@ -217,6 +233,9 @@ export const Serializer = {
 		SerializableCompetitionResult: (cls: Record<string, unknown>) =>
             // @ts-ignore
 			Deserialize(cls as JsonObject, SerializableCompetitionResult) as SerializableCompetitionResult,
+		SerializableLiveCompetitionInfo: (cls: Record<string, unknown>) =>
+            // @ts-ignore
+			Deserialize(cls as JsonObject, SerializableLiveCompetitionInfo) as SerializableLiveCompetitionInfo,
 	},
 	setDeserializeFromSnakeCase: () => {
 		SetDeserializeKeyTransform(SnakeCase);
