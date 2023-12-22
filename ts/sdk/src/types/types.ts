@@ -252,7 +252,6 @@ export type CompetitionResult = {
 export type LiveCompetitionInfo = {
 	lastFetchedTs: number;
 	roundNumber: number;
-	startTs: number;
 	endTs: number;
 	totalCompetitors: number;
 	totalTickets: BN;

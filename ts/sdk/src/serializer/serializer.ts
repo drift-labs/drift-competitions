@@ -209,7 +209,6 @@ class SerializableTopCompetitor {
 export class SerializableLiveCompetitionInfo implements LiveCompetitionInfo {
 	@autoserializeAs(Number) lastFetchedTs: number;
 	@autoserializeAs(Number) roundNumber: number;
-	@autoserializeAs(Number) startTs: number;
 	@autoserializeAs(Number) endTs: number;
 	@autoserializeAs(Number) totalCompetitors: number;
 	@autoserializeUsing(SERIALIZATION_UTILS.BNSerializeAndDeserializeFns) totalTickets: BN;
