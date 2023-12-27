@@ -31,12 +31,6 @@ import {
 	getCompetitionAuthorityAddressSync,
 	getCompetitorAddressSync,
 } from './addresses';
-import {
-	DEVNET_GENESIS_HASH,
-	FunctionRequestAccount,
-	MAINNET_GENESIS_HASH,
-	SwitchboardProgram,
-} from '@switchboard-xyz/solana.js';
 import * as anchor from '@coral-xyz/anchor';
 import { DRIFT_COMPETITION_PROGRAM_ID } from './constants';
 import { LogParser } from './parsers';
@@ -144,59 +138,6 @@ export class CompetitionsClient {
 			.accounts({
 				competition: competition,
 			})
-			.rpc();
-	}
-
-	public async updateSwitchboardFunction(
-		competition: PublicKey,
-		switchboardFunction: PublicKey
-	): Promise<TransactionSignature> {
-		const switchboardProgram = await SwitchboardProgram.fromProvider(
-			// @ts-ignore
-			this.program.provider
-		);
-
-		const genesisHash =
-			await switchboardProgram.provider.connection.getGenesisHash();
-		const attestationQueueAddress =
-			genesisHash === MAINNET_GENESIS_HASH
-				? new PublicKey('2ie3JZfKcvsRLsJaP5fSo43gUo1vsurnUAtAgUdUAiDG')
-				: genesisHash === DEVNET_GENESIS_HASH
-				? new PublicKey('CkvizjVnm2zA5Wuwan34NhVT3zFc7vqUyGnA6tuEF5aE')
-				: undefined;
-
-		const switchboardRequestKeypair = anchor.web3.Keypair.generate();
-		const switchboardRequest = new FunctionRequestAccount(
-			switchboardProgram,
-			switchboardRequestKeypair.publicKey
-		);
-
-		const switchboardRequestEscrowPubkey =
-			await anchor.utils.token.associatedAddress({
-				mint: switchboardProgram.mint.address,
-				owner: switchboardRequestKeypair.publicKey,
-			});
-
-		const competitionAuthority = getCompetitionAuthorityAddressSync(
-			this.program.programId,
-			competition
-		);
-
-		return await this.program.methods
-			.updateSwitchboardFunction()
-			.accounts({
-				sponsor: this.program.provider.publicKey,
-				competition,
-				competitionAuthority,
-				switchboard: switchboardProgram.attestationProgramId,
-				switchboardState: switchboardProgram.attestationProgramState.publicKey,
-				switchboardAttestationQueue: attestationQueueAddress,
-				switchboardFunction: switchboardFunction,
-				switchboardRequest: switchboardRequest.publicKey,
-				switchboardRequestEscrow: switchboardRequestEscrowPubkey,
-				switchboardMint: switchboardProgram.mint.address,
-			})
-			.signers([switchboardRequestKeypair])
 			.rpc();
 	}
 
@@ -534,55 +475,6 @@ export class CompetitionsClient {
 		}
 	}
 
-	public async requestRandomness(
-		competition: PublicKey,
-		bounty?: BN
-	): Promise<TransactionSignature> {
-		const switchboardProgram = await SwitchboardProgram.fromProvider(
-			// @ts-ignore
-			this.program.provider
-		);
-
-		const genesisHash =
-			await switchboardProgram.provider.connection.getGenesisHash();
-		const attestationQueueAddress =
-			genesisHash === MAINNET_GENESIS_HASH
-				? new PublicKey('2ie3JZfKcvsRLsJaP5fSo43gUo1vsurnUAtAgUdUAiDG')
-				: genesisHash === DEVNET_GENESIS_HASH
-				? new PublicKey('CkvizjVnm2zA5Wuwan34NhVT3zFc7vqUyGnA6tuEF5aE')
-				: undefined;
-
-		const competitionAccount = await this.program.account.competition.fetch(
-			competition
-		);
-
-		const spotMarket = await getSpotMarketPublicKey(
-			this.driftClient.program.programId,
-			QUOTE_SPOT_MARKET_INDEX
-		);
-		const insuranceFundVault = await getInsuranceFundVaultPublicKey(
-			this.driftClient.program.programId,
-			QUOTE_SPOT_MARKET_INDEX
-		);
-
-		return await this.program.methods
-			.requestRandomness(bounty ?? null)
-			.accounts({
-				competition,
-				switchboard: switchboardProgram.attestationProgramId,
-				switchboardState: switchboardProgram.attestationProgramState.publicKey,
-				switchboardAttestationQueue: attestationQueueAddress,
-				switchboardFunction: competitionAccount.switchboardFunction,
-				competitionAuthority: competitionAccount.competitionAuthority,
-				switchboardRequest: competitionAccount.switchboardFunctionRequest,
-				switchboardRequestEscrow:
-					competitionAccount.switchboardFunctionRequestEscrow,
-				insuranceFundVault,
-				spotMarket,
-			})
-			.rpc();
-	}
-
 	public async settleWinner(
 		competition: PublicKey,
 		competitor: PublicKey,
@@ -660,7 +552,7 @@ export class CompetitionsClient {
 		const FIFTYK = new BN(50000).mul(QUOTE_PRECISION);
 
 		// Assuming maxPrize is a BN as well
-		let prizePools: BN[] = [
+		const prizePools: BN[] = [
 					BN.max(BN.min(ONEK, maxPrize.divn(10)), BN.min(maxPrize.divn(25), TENK)),
 					BN.max(BN.min(FIVEK, maxPrize.divn(2)), BN.min(maxPrize.divn(12), FIFTYK)),
 					maxPrize,

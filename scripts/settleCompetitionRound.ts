@@ -4,6 +4,7 @@ import { DriftCompetitions } from '../ts/sdk/src/types/drift_competitions';
 import { CompetitionsClient } from '../ts/sdk/src';
 import { DriftClient, isVariant } from '@drift-labs/sdk';
 import dotenv from 'dotenv';
+import { SwitchboardClient } from '../ts/sdk/src/switchboard';
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ async function settleSweepstakesCompetition(provider) {
 	const competitionClient = new CompetitionsClient({
 		driftClient,
 	});
+	const switchboardClient = new SwitchboardClient(competitionClient);
 
 	const program = competitionClient.program as Program<DriftCompetitions>;
 
@@ -75,7 +77,7 @@ async function settleSweepstakesCompetition(provider) {
 		}
 		await sleep(2000);
 
-		const txSig2 = await competitionClient.requestRandomness(
+		const txSig2 = await switchboardClient.requestRandomness(
 			competitionClient.getCompetitionPublicKey(name)
 		);
 		console.log(txSig2);
@@ -83,7 +85,7 @@ async function settleSweepstakesCompetition(provider) {
 	} else if (
 		isVariant(competitionAccount.status, 'winnerAndPrizeRandomnessRequested')
 	) {
-		const txSig2 = await competitionClient.requestRandomness(
+		const txSig2 = await switchboardClient.requestRandomness(
 			competitionClient.getCompetitionPublicKey(name)
 		);
 		console.log(txSig2);
