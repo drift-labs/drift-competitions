@@ -27,7 +27,7 @@ async function settleSweepstakesCompetition(provider) {
 	const driftClient = new DriftClient({
 		connection: provider.connection,
 		// env: 'mainnet-beta',
-		env: 'devnet',
+		env: 'mainnet-beta',
 
 		wallet: provider.wallet,
 	});
@@ -35,7 +35,7 @@ async function settleSweepstakesCompetition(provider) {
 	const competitionClient = new CompetitionsClient({
 		driftClient,
 	});
-	const switchboardClient = new SwitchboardClient(competitionClient);
+	const switchboardClient = new SwitchboardClient(competitionClient, provider);
 
 	const program = competitionClient.program as Program<DriftCompetitions>;
 

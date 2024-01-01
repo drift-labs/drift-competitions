@@ -7,7 +7,7 @@ import { getCompetitionAuthorityAddressSync } from "./addresses";
 import * as anchor from '@coral-xyz/anchor';
 
 export class SwitchboardClient {
-  constructor(readonly competitionsClient: CompetitionsClient) {}
+  constructor(readonly competitionsClient: CompetitionsClient, readonly provider: anchor.Provider) {}
 
 	public async requestRandomness(
 		competition: PublicKey,
@@ -15,7 +15,7 @@ export class SwitchboardClient {
 	): Promise<TransactionSignature> {
 		const switchboardProgram = await SwitchboardProgram.fromProvider(
 			// @ts-ignore
-			this.program.provider
+			this.provider
 		);
 
 		const genesisHash =
