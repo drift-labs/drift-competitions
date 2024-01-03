@@ -99,6 +99,11 @@
 			"code": 6019,
 			"name": "CompetitionInvariantIssue",
 			"msg": "CompetitionInvariantIssue"
+		},
+		"CompetitorHasPendingInsuranceWithdraw": {
+			"code": 6020,
+			"name": "CompetitorHasPendingInsuranceWithdraw",
+			"msg": "CompetitorHasPendingInsuranceWithdraw"
 		}
 	},
 	"errorCodesMap": {
@@ -121,6 +126,7 @@
 		"6016": "CompetitorSnapshotIssue",
 		"6017": "CompetitorHasInvalidClaim",
 		"6018": "CompetitorUpdateInvalid",
-		"6019": "CompetitionInvariantIssue"
+		"6019": "CompetitionInvariantIssue",
+		"6020": "CompetitorHasPendingInsuranceWithdraw"
 	}
 }
