@@ -48,7 +48,12 @@ async function settleSweepstakesCompetition(provider) {
 	await competitionClient.driftClient.subscribe();
 	const details = await competitionClient.getCompetitionDetails(competitionKey);
 
+	console.log('current time', new Date().toLocaleString());
 	console.log('max prize: ', details.prizePools[2].toNumber() / 1e6);
+	console.log('total number of competitors: ', competitionAccount.numberOfCompetitors.toNumber());
+	console.log('total number of competitors settled: ', competitionAccount.numberOfCompetitorsSettled.toNumber());
+	console.log("total number of winners: ", competitionAccount.numberOfWinners);
+	console.log("total number of winners settled: ", competitionAccount.numberOfWinnersSettled);
 
 	if (isVariant(competitionAccount.status, 'active')) {
 		while (
