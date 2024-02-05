@@ -112,8 +112,8 @@ pub struct ReceiveRandomness<'info> {
     pub switchboard_function: AccountLoader<'info, FunctionAccountData>,
     #[account(
         constraint = switchboard_request.validate_signer(
-            &switchboard_function.to_account_info(),
-            &enclave_signer.to_account_info()
+            &switchboard_function,
+            &enclave_signer
         )? && competition.load()?.switchboard_function_request == switchboard_request.key()
     )]
     pub switchboard_request: Box<Account<'info, FunctionRequestAccountData>>,
