@@ -1118,8 +1118,8 @@ dependencies = [
 
 [[package]]
 name = "drift"
-version = "2.40.0"
-source = "git+https://github.com/drift-labs/protocol-v2.git?rev=65a4386#65a4386bd8d0b72d3f32d604788174b19413f48e"
+version = "2.67.0"
+source = "git+https://github.com/drift-labs/protocol-v2.git?tag=v2.67.0#90cb797f1051ee60fd8db024e288a08fcda7e296"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -1127,7 +1127,9 @@ dependencies = [
  "base64 0.13.0",
  "borsh 0.9.3",
  "bytemuck",
+ "drift-macros",
  "enumflags2",
+ "getrandom 0.2.9",
  "num-derive",
  "num-integer",
  "num-traits",
@@ -1136,6 +1138,8 @@ dependencies = [
  "serum_dex",
  "solana-program",
  "solana-security-txt",
+ "static_assertions",
+ "switchboard-solana",
  "thiserror",
  "uint",
 ]
@@ -2366,7 +2370,7 @@ dependencies = [
 [[package]]
 name = "phoenix-v1"
 version = "0.2.4"
-source = "git+https://github.com/drift-labs/phoenix-v1?rev=4c65c9#4c65c97cd62493e27425ea2830447c833152bed1"
+source = "git+https://github.com/drift-labs/phoenix-v1?rev=bf6b84#bf6b8447047aa16485d8d976528e43f5d53331d9"
 dependencies = [
  "borsh 0.9.3",
  "bytemuck",
