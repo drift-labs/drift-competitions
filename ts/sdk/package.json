@@ -1,6 +1,6 @@
 {
   "name": "@drift-labs/competitions-sdk",
-  "version": "0.2.217",
+  "version": "0.2.218",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "directories": {
@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.26.0",
-    "@drift-labs/sdk": "2.67.0-beta.7",
+    "@drift-labs/sdk": "2.68.0-beta.0",
     "@solana/web3.js": "1.73.2",
     "@switchboard-xyz/solana.js": "^2.7.1",
     "cerializr": "^3.1.4",
