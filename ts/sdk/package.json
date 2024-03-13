@@ -1,6 +1,6 @@
 {
   "name": "@drift-labs/competitions-sdk",
-  "version": "0.2.233",
+  "version": "0.2.234",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "directories": {
