@@ -1,5 +1,5 @@
 use super::constraints::is_sponsor_for_competition;
-use crate::state::{Competition, CompetitionRoundStatus};
+use crate::state::{Competition};
 use anchor_lang::prelude::*;
 
 pub fn update_competition<'info>(
@@ -34,14 +34,6 @@ pub fn update_competition<'info>(
 
     if let Some(number_of_winners) = params.number_of_winners {
         competition.number_of_winners = number_of_winners;
-    }
-
-    if let Some(reset_round_state) = params.reset_round_state {
-        if reset_round_state
-            && competition.status == CompetitionRoundStatus::WinnerAndPrizeRandomnessRequested
-        {
-            competition.status = CompetitionRoundStatus::Active;
-        }
     }
 
     Ok(())
