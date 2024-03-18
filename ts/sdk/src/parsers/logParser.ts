@@ -3,6 +3,7 @@ import { TransactionResponse, TransactionSignature, VersionedTransactionResponse
 import { WrappedEvents } from '../types/types';
 import {parseLogs} from "@drift-labs/sdk";
 
+const programId = 'DraWMeQX9LfzQQSYoeBwHAgM5JcqFkgrX7GbTfjzVMVL';
 export type EventLog = {
 	txSig: TransactionSignature;
 	slot: number;
@@ -28,7 +29,7 @@ export class LogParser {
 		if (!eventLogs.logs) return records;
 
 		// @ts-ignore
-		const parsedLogs = parseLogs(this.program, eventLogs.logs);
+		const parsedLogs = parseLogs(this.program, eventLogs.logs, programId);
 
 		for (const eventLog of parsedLogs) {
 			eventLog.data.txSig = eventLogs.txSig;
