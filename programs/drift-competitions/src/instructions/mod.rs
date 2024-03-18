@@ -1,5 +1,3 @@
-pub use claim_entry::*;
-pub use claim_multiple_entries::*;
 pub use claim_winnings::*;
 pub use initialize_competition::*;
 pub use initialize_competitor::*;
@@ -8,8 +6,6 @@ pub use settle_winner::*;
 pub use update_competition::*;
 pub use update_competitor_status::*;
 
-mod claim_entry;
-mod claim_multiple_entries;
 mod claim_winnings;
 mod constraints;
 mod initialize_competition;
