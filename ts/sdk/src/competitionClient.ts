@@ -61,7 +61,6 @@ export class CompetitionsClient {
 	}
 
 	public async initializeCompetition({
-		name,
 		nextRoundExpiryTs,
 		competitionExpiryTs,
 		roundDuration,
@@ -70,7 +69,6 @@ export class CompetitionsClient {
 		maxSponsorFraction,
 		numberOfWinners,
 	}: {
-		name: string;
 		nextRoundExpiryTs: BN;
 		competitionExpiryTs: BN;
 		roundDuration: BN;
@@ -79,15 +77,12 @@ export class CompetitionsClient {
 		maxSponsorFraction: BN;
 		numberOfWinners: number;
 	}): Promise<TransactionSignature> {
-		const encodedName = encodeName(name);
 		const competitionAddress = getCompetitionAddressSync(
 			this.program.programId,
-			encodedName
 		);
 
 		return await this.program.methods
 			.initializeCompetition({
-				name: encodedName,
 				nextRoundExpiryTs,
 				competitionExpiryTs,
 				roundDuration,
@@ -500,9 +495,8 @@ export class CompetitionsClient {
 			.rpc();
 	}
 
-	public getCompetitionPublicKey(name: string): PublicKey {
-		const encodedName = encodeName(name);
-		return getCompetitionAddressSync(this.program.programId, encodedName);
+	public getCompetitionPublicKey(): PublicKey {
+		return getCompetitionAddressSync(this.program.programId);
 	}
 
 	public async getCompetitionDetails(
