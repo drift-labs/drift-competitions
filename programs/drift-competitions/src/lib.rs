@@ -1,7 +1,6 @@
 use anchor_lang::prelude::*;
 use instructions::*;
 use state::CompetitorStatus;
-use switchboard_solana::prelude::*;
 
 mod error;
 mod instructions;
@@ -32,12 +31,6 @@ pub mod drift_competitions {
         params: UpdateCompetitionParams,
     ) -> Result<()> {
         instructions::update_competition(ctx, params)
-    }
-
-    pub fn update_switchboard_function<'info>(
-        ctx: Context<'_, '_, '_, 'info, UpdateSwitchboardFunction<'info>>,
-    ) -> Result<()> {
-        instructions::update_switchboard_function(ctx)
     }
 
     pub fn update_competitor_status<'info>(
@@ -78,21 +71,6 @@ pub mod drift_competitions {
         ctx: Context<'_, '_, '_, 'info, SettleCompetitor<'info>>,
     ) -> Result<()> {
         instructions::settle_competitor(ctx)
-    }
-
-    pub fn request_randomness<'info>(
-        ctx: Context<'_, '_, '_, 'info, RequestRandomness<'info>>,
-        bounty: Option<u64>,
-    ) -> Result<()> {
-        instructions::request_randomness(ctx, bounty)
-    }
-
-    pub fn receive_randomness<'info>(
-        ctx: Context<'_, '_, '_, 'info, ReceiveRandomness<'info>>,
-        winner_randomness: u128,
-        prize_randomness: u128,
-    ) -> Result<()> {
-        instructions::receive_randomness(ctx, winner_randomness, prize_randomness)
     }
 
     pub fn settle_winner<'info>(

@@ -22,5 +22,3 @@ drift = { git = "https://github.com/drift-labs/protocol-v2.git", tag = "v2.71.0"
 bytemuck = { version = "1.4.0" }
 static_assertions = "1.1.0"
 drift-macros = { git = "https://github.com/drift-labs/drift-macros.git", rev = "c57d87" }
-switchboard-solana = "0.27.26"
-getrandom = { version = "0.2.2", features = ["custom"] }
