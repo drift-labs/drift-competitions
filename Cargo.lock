@@ -636,8 +636,8 @@ dependencies = [
 
 [[package]]
 name = "drift"
-version = "2.71.0"
-source = "git+https://github.com/drift-labs/protocol-v2.git?tag=v2.71.0#7df812dc26f590fd96f8623de0a93faf471d2193"
+version = "2.73.0"
+source = "git+https://github.com/drift-labs/protocol-v2.git?rev=8f193d#8f193d3c6e6cacede7b8456615d7f4452665f1d6"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -1964,7 +1964,7 @@ checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
 [[package]]
 name = "switchboard"
 version = "0.1.0"
-source = "git+https://github.com/drift-labs/protocol-v2.git?tag=v2.71.0#7df812dc26f590fd96f8623de0a93faf471d2193"
+source = "git+https://github.com/drift-labs/protocol-v2.git?rev=8f193d#8f193d3c6e6cacede7b8456615d7f4452665f1d6"
 dependencies = [
  "anchor-lang",
 ]
