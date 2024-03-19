@@ -400,41 +400,6 @@ mod competition_fcn {
     };
 
     #[test]
-    fn test_multi_entries() {
-        let mut spot_market = SpotMarket::default();
-        spot_market.decimals = 6;
-        spot_market.historical_oracle_data.last_oracle_price = 64 * 10000000;
-        spot_market
-            .historical_oracle_data
-            .last_oracle_price_twap_5min = 65 * 10000000;
-
-        let result =
-            utils::calculate_revenue_pool_deposit_tokens_from_entries(0, &spot_market).unwrap();
-        assert_eq!(result, 0);
-
-        let result1 =
-            utils::calculate_revenue_pool_deposit_tokens_from_entries(1000, &spot_market).unwrap();
-
-        spot_market.decimals = 9;
-        let result2 =
-            utils::calculate_revenue_pool_deposit_tokens_from_entries(1000, &spot_market).unwrap();
-        assert_eq!(result1, result2 / 1000 + 1);
-        assert_eq!(result2, 78125);
-
-        // 1M
-        let result2 =
-            utils::calculate_revenue_pool_deposit_tokens_from_entries(1000000, &spot_market)
-                .unwrap();
-        assert_eq!(result2, 78125000);
-
-        // 100 M
-        let result2 =
-            utils::calculate_revenue_pool_deposit_tokens_from_entries(100000000, &spot_market)
-                .unwrap();
-        assert_eq!(result2, 7812500000);
-    }
-
-    #[test]
     fn test_competition_settlement() {
         let mut now = 168000000;
         let sweepstakes = &mut Competition::default();
@@ -496,7 +461,7 @@ mod competition_fcn {
         assert_eq!(comp2.min_draw, 1);
         assert_eq!(comp2.max_draw, 4);
         sweepstakes
-            .request_winner_and_prize_randomness(&spot_market, vault_balance)
+            .update_settlement_complete(&spot_market, vault_balance)
             .unwrap();
 
         sweepstakes.prize_randomness =
@@ -719,7 +684,7 @@ mod competition_fcn {
         assert_eq!(comp2.min_draw, 1);
         assert_eq!(comp2.max_draw, 4);
         sweepstakes
-            .request_winner_and_prize_randomness(&spot_market, vault_balance)
+            .update_settlement_complete(&spot_market, vault_balance)
             .unwrap();
 
         sweepstakes.prize_randomness =
@@ -969,7 +934,7 @@ mod competition_fcn {
         spot_market.insurance_fund.shares_base = 1;
         let vault_balance: u64 = (1580000 * QUOTE_PRECISION) as u64;
         sweepstakes
-            .request_winner_and_prize_randomness(&spot_market, vault_balance)
+            .update_settlement_complete(&spot_market, vault_balance)
             .unwrap();
 
         sweepstakes.prize_randomness =
@@ -1054,7 +1019,7 @@ mod competition_fcn {
             .settle_competitor(comp1, us, now, Pubkey::default(), Pubkey::default())
             .unwrap();
         sweepstakes
-            .request_winner_and_prize_randomness(&spot_market, vault_balance)
+            .update_settlement_complete(&spot_market, vault_balance)
             .unwrap();
 
         sweepstakes.prize_randomness =
@@ -1200,7 +1165,7 @@ mod competition_fcn {
         assert_eq!(comp2.min_draw, 1);
         assert_eq!(comp2.max_draw, 4);
         sweepstakes
-            .request_winner_and_prize_randomness(&spot_market, vault_balance)
+            .update_settlement_complete(&spot_market, vault_balance)
             .unwrap();
 
         sweepstakes.prize_randomness =
@@ -1408,7 +1373,7 @@ mod competition_fcn {
         assert_eq!(sweepstakes.total_score_settled, 1); // comp2 skipped since they already won and didnt claim
         assert!(sweepstakes.number_of_competitors_settled == 2);
         sweepstakes
-            .request_winner_and_prize_randomness(&spot_market, vault_balance)
+            .update_settlement_complete(&spot_market, vault_balance)
             .unwrap();
 
         sweepstakes.prize_randomness =
@@ -1558,7 +1523,7 @@ mod competition_fcn {
         assert_eq!(sweepstakes.total_score_settled, 11);
         assert_eq!(sweepstakes.number_of_competitors_settled, 2);
         sweepstakes
-            .request_winner_and_prize_randomness(&spot_market, vault_balance)
+            .update_settlement_complete(&spot_market, vault_balance)
             .unwrap();
 
         sweepstakes.prize_randomness =
@@ -1888,7 +1853,7 @@ mod competition_multiple_winners {
             .settle_competitor(comp2, us, now, Pubkey::default(), Pubkey::default())
             .unwrap();
         sweepstakes
-            .request_winner_and_prize_randomness(&spot_market, vault_balance)
+            .update_settlement_complete(&spot_market, vault_balance)
             .unwrap();
 
         sweepstakes.prize_randomness =
@@ -1984,7 +1949,7 @@ mod competition_multiple_winners {
         }
 
         sweepstakes
-            .request_winner_and_prize_randomness(&spot_market, vault_balance)
+            .update_settlement_complete(&spot_market, vault_balance)
             .unwrap();
 
         sweepstakes.prize_randomness =

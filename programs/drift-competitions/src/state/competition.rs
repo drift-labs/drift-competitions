@@ -29,10 +29,9 @@ use drift::math::insurance::{if_shares_to_vault_amount, vault_amount_to_if_share
 #[derive(Clone, Copy, BorshSerialize, BorshDeserialize, PartialOrd, Ord, PartialEq, Eq, Debug)]
 pub enum CompetitionRoundStatus {
     Active = 0,
-    WinnerAndPrizeRandomnessRequested = 1,
-    WinnerAndPrizeRandomnessComplete = 2,
-    WinnerSettlementComplete = 3,
-    Expired = 4,
+    CompetitorSettlementComplete = 1,
+    WinnerSettlementComplete = 2,
+    Expired = 3,
 }
 
 impl Default for CompetitionRoundStatus {
@@ -54,12 +53,8 @@ pub struct SponsorInfo {
 #[derive(Default, Eq, PartialEq, Debug)]
 #[repr(C)]
 pub struct Competition {
-    pub name: [u8; 32],
     pub sponsor_info: SponsorInfo,
 
-    pub switchboard_function: Pubkey,
-    pub switchboard_function_request: Pubkey,
-    pub switchboard_function_request_escrow: Pubkey,
     pub competition_authority: Pubkey,
 
     // entries
@@ -99,7 +94,7 @@ pub struct Competition {
 }
 
 impl Size for Competition {
-    const SIZE: usize = 456 + 8;
+    const SIZE: usize = 328 + 8;
 }
 
 const_assert_eq!(Competition::SIZE, std::mem::size_of::<Competition>() + 8);
@@ -107,7 +102,7 @@ const_assert_eq!(Competition::SIZE, std::mem::size_of::<Competition>() + 8);
 impl Competition {
     pub fn update_status(&mut self, new_status: CompetitionRoundStatus) -> CompetitionResult {
         if new_status != CompetitionRoundStatus::Expired {
-            let status_delta = (new_status as i32 + 1) - ((self.status as i32 + 1) % 4);
+            let status_delta = (new_status as i32 + 1) - ((self.status as i32 + 1) % 3);
             validate!(
                 status_delta == 1,
                 ErrorCode::InvalidStatusUpdateDetected,
@@ -257,7 +252,7 @@ impl Competition {
 
     pub fn validate_competitor_is_winner(&self, competitor: &Competitor) -> CompetitionResult {
         validate!(
-            self.status == CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
+            self.status == CompetitionRoundStatus::CompetitorSettlementComplete
                 && self.winner_randomness != 0,
             ErrorCode::CompetitionWinnerNotDetermined,
             "CompetitionWinnerNotDetermined, winner randomness = {}",
@@ -434,30 +429,14 @@ impl Competition {
         Ok((prize_buckets, ratios))
     }
 
-    pub fn request_winner_and_prize_randomness(
+    pub fn update_settlement_complete(
         &mut self,
-        spot_market: &SpotMarket,
-        vault_balance: u64,
     ) -> CompetitionResult {
         self.validate_round_resolved()?;
-        let (_, ratios) = self.calculate_prize_buckets_and_ratios(spot_market, vault_balance)?;
 
-        let ratio_sum = ratios.iter().sum();
-        self.prize_randomness_max = ratio_sum;
+        // todo: update some aggregate stats
 
-        self.update_status(CompetitionRoundStatus::WinnerAndPrizeRandomnessRequested)?;
-
-        Ok(())
-    }
-
-    pub fn resolve_winner_and_prize_randomness(
-        &mut self,
-        spot_market: &SpotMarket,
-        vault_balance: u64,
-    ) -> CompetitionResult {
-        self.validate_round_resolved()?;
-        self.resolve_prize_amount(spot_market, vault_balance)?;
-        self.update_status(CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete)?;
+        self.update_status(CompetitionRoundStatus::CompetitorSettlementComplete)?;
 
         Ok(())
     }

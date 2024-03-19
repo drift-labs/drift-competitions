@@ -33,6 +33,8 @@ pub fn settle_competitor<'info>(
             ErrorCode::InvalidRoundSettlementDetected,
             "total_score_settled is 0 after settling all competitors, round cannot end until competitors have one entry"
         )?;
+
+        competition.update_settlement_complete()?;
     }
 
     Ok(())

@@ -64,78 +64,6 @@ export type DriftCompetitions = {
 			];
 		},
 		{
-			name: 'updateSwitchboardFunction';
-			accounts: [
-				{
-					name: 'sponsor';
-					isMut: true;
-					isSigner: true;
-				},
-				{
-					name: 'competition';
-					isMut: true;
-					isSigner: false;
-				},
-				{
-					name: 'competitionAuthority';
-					isMut: false;
-					isSigner: false;
-					docs: ['CHECK'];
-				},
-				{
-					name: 'switchboard';
-					isMut: false;
-					isSigner: false;
-				},
-				{
-					name: 'switchboardState';
-					isMut: false;
-					isSigner: false;
-				},
-				{
-					name: 'switchboardAttestationQueue';
-					isMut: false;
-					isSigner: false;
-				},
-				{
-					name: 'switchboardFunction';
-					isMut: true;
-					isSigner: false;
-				},
-				{
-					name: 'switchboardRequest';
-					isMut: true;
-					isSigner: true;
-				},
-				{
-					name: 'switchboardRequestEscrow';
-					isMut: true;
-					isSigner: false;
-				},
-				{
-					name: 'switchboardMint';
-					isMut: false;
-					isSigner: false;
-				},
-				{
-					name: 'tokenProgram';
-					isMut: false;
-					isSigner: false;
-				},
-				{
-					name: 'associatedTokenProgram';
-					isMut: false;
-					isSigner: false;
-				},
-				{
-					name: 'systemProgram';
-					isMut: false;
-					isSigner: false;
-				}
-			];
-			args: [];
-		},
-		{
 			name: 'updateCompetitorStatus';
 			accounts: [
 				{
@@ -399,130 +327,6 @@ export type DriftCompetitions = {
 			args: [];
 		},
 		{
-			name: 'requestRandomness';
-			accounts: [
-				{
-					name: 'competition';
-					isMut: true;
-					isSigner: false;
-				},
-				{
-					name: 'keeper';
-					isMut: true;
-					isSigner: true;
-				},
-				{
-					name: 'competitionAuthority';
-					isMut: false;
-					isSigner: false;
-					docs: ['CHECK'];
-				},
-				{
-					name: 'spotMarket';
-					isMut: false;
-					isSigner: false;
-				},
-				{
-					name: 'insuranceFundVault';
-					isMut: false;
-					isSigner: false;
-				},
-				{
-					name: 'switchboard';
-					isMut: false;
-					isSigner: false;
-				},
-				{
-					name: 'switchboardState';
-					isMut: false;
-					isSigner: false;
-				},
-				{
-					name: 'switchboardAttestationQueue';
-					isMut: false;
-					isSigner: false;
-				},
-				{
-					name: 'switchboardFunction';
-					isMut: true;
-					isSigner: false;
-				},
-				{
-					name: 'switchboardRequest';
-					isMut: true;
-					isSigner: false;
-				},
-				{
-					name: 'switchboardRequestEscrow';
-					isMut: true;
-					isSigner: false;
-				},
-				{
-					name: 'tokenProgram';
-					isMut: false;
-					isSigner: false;
-				},
-				{
-					name: 'systemProgram';
-					isMut: false;
-					isSigner: false;
-				}
-			];
-			args: [
-				{
-					name: 'bounty';
-					type: {
-						option: 'u64';
-					};
-				}
-			];
-		},
-		{
-			name: 'receiveRandomness';
-			accounts: [
-				{
-					name: 'competition';
-					isMut: true;
-					isSigner: false;
-				},
-				{
-					name: 'spotMarket';
-					isMut: false;
-					isSigner: false;
-				},
-				{
-					name: 'insuranceFundVault';
-					isMut: false;
-					isSigner: false;
-				},
-				{
-					name: 'switchboardFunction';
-					isMut: false;
-					isSigner: false;
-				},
-				{
-					name: 'switchboardRequest';
-					isMut: false;
-					isSigner: false;
-				},
-				{
-					name: 'enclaveSigner';
-					isMut: false;
-					isSigner: true;
-				}
-			];
-			args: [
-				{
-					name: 'winnerRandomness';
-					type: 'u128';
-				},
-				{
-					name: 'prizeRandomness';
-					type: 'u128';
-				}
-			];
-		},
-		{
 			name: 'settleWinner';
 			accounts: [
 				{
@@ -566,28 +370,10 @@ export type DriftCompetitions = {
 				kind: 'struct';
 				fields: [
 					{
-						name: 'name';
-						type: {
-							array: ['u8', 32];
-						};
-					},
-					{
 						name: 'sponsorInfo';
 						type: {
 							defined: 'SponsorInfo';
 						};
-					},
-					{
-						name: 'switchboardFunction';
-						type: 'publicKey';
-					},
-					{
-						name: 'switchboardFunctionRequest';
-						type: 'publicKey';
-					},
-					{
-						name: 'switchboardFunctionRequestEscrow';
-						type: 'publicKey';
 					},
 					{
 						name: 'competitionAuthority';
@@ -752,12 +538,6 @@ export type DriftCompetitions = {
 				kind: 'struct';
 				fields: [
 					{
-						name: 'name';
-						type: {
-							array: ['u8', 32];
-						};
-					},
-					{
 						name: 'nextRoundExpiryTs';
 						type: 'i64';
 					},
@@ -873,10 +653,7 @@ export type DriftCompetitions = {
 						name: 'Active';
 					},
 					{
-						name: 'WinnerAndPrizeRandomnessRequested';
-					},
-					{
-						name: 'WinnerAndPrizeRandomnessComplete';
+						name: 'CompetitorSettlementComplete';
 					},
 					{
 						name: 'WinnerSettlementComplete';
@@ -1341,78 +1118,6 @@ export const IDL: DriftCompetitions = {
 			],
 		},
 		{
-			name: 'updateSwitchboardFunction',
-			accounts: [
-				{
-					name: 'sponsor',
-					isMut: true,
-					isSigner: true,
-				},
-				{
-					name: 'competition',
-					isMut: true,
-					isSigner: false,
-				},
-				{
-					name: 'competitionAuthority',
-					isMut: false,
-					isSigner: false,
-					docs: ['CHECK'],
-				},
-				{
-					name: 'switchboard',
-					isMut: false,
-					isSigner: false,
-				},
-				{
-					name: 'switchboardState',
-					isMut: false,
-					isSigner: false,
-				},
-				{
-					name: 'switchboardAttestationQueue',
-					isMut: false,
-					isSigner: false,
-				},
-				{
-					name: 'switchboardFunction',
-					isMut: true,
-					isSigner: false,
-				},
-				{
-					name: 'switchboardRequest',
-					isMut: true,
-					isSigner: true,
-				},
-				{
-					name: 'switchboardRequestEscrow',
-					isMut: true,
-					isSigner: false,
-				},
-				{
-					name: 'switchboardMint',
-					isMut: false,
-					isSigner: false,
-				},
-				{
-					name: 'tokenProgram',
-					isMut: false,
-					isSigner: false,
-				},
-				{
-					name: 'associatedTokenProgram',
-					isMut: false,
-					isSigner: false,
-				},
-				{
-					name: 'systemProgram',
-					isMut: false,
-					isSigner: false,
-				},
-			],
-			args: [],
-		},
-		{
 			name: 'updateCompetitorStatus',
 			accounts: [
 				{
@@ -1676,130 +1381,6 @@ export const IDL: DriftCompetitions = {
 			args: [],
 		},
 		{
-			name: 'requestRandomness',
-			accounts: [
-				{
-					name: 'competition',
-					isMut: true,
-					isSigner: false,
-				},
-				{
-					name: 'keeper',
-					isMut: true,
-					isSigner: true,
-				},
-				{
-					name: 'competitionAuthority',
-					isMut: false,
-					isSigner: false,
-					docs: ['CHECK'],
-				},
-				{
-					name: 'spotMarket',
-					isMut: false,
-					isSigner: false,
-				},
-				{
-					name: 'insuranceFundVault',
-					isMut: false,
-					isSigner: false,
-				},
-				{
-					name: 'switchboard',
-					isMut: false,
-					isSigner: false,
-				},
-				{
-					name: 'switchboardState',
-					isMut: false,
-					isSigner: false,
-				},
-				{
-					name: 'switchboardAttestationQueue',
-					isMut: false,
-					isSigner: false,
-				},
-				{
-					name: 'switchboardFunction',
-					isMut: true,
-					isSigner: false,
-				},
-				{
-					name: 'switchboardRequest',
-					isMut: true,
-					isSigner: false,
-				},
-				{
-					name: 'switchboardRequestEscrow',
-					isMut: true,
-					isSigner: false,
-				},
-				{
-					name: 'tokenProgram',
-					isMut: false,
-					isSigner: false,
-				},
-				{
-					name: 'systemProgram',
-					isMut: false,
-					isSigner: false,
-				},
-			],
-			args: [
-				{
-					name: 'bounty',
-					type: {
-						option: 'u64',
-					},
-				},
-			],
-		},
-		{
-			name: 'receiveRandomness',
-			accounts: [
-				{
-					name: 'competition',
-					isMut: true,
-					isSigner: false,
-				},
-				{
-					name: 'spotMarket',
-					isMut: false,
-					isSigner: false,
-				},
-				{
-					name: 'insuranceFundVault',
-					isMut: false,
-					isSigner: false,
-				},
-				{
-					name: 'switchboardFunction',
-					isMut: false,
-					isSigner: false,
-				},
-				{
-					name: 'switchboardRequest',
-					isMut: false,
-					isSigner: false,
-				},
-				{
-					name: 'enclaveSigner',
-					isMut: false,
-					isSigner: true,
-				},
-			],
-			args: [
-				{
-					name: 'winnerRandomness',
-					type: 'u128',
-				},
-				{
-					name: 'prizeRandomness',
-					type: 'u128',
-				},
-			],
-		},
-		{
 			name: 'settleWinner',
 			accounts: [
 				{
@@ -1843,28 +1424,10 @@ export const IDL: DriftCompetitions = {
 				kind: 'struct',
 				fields: [
 					{
-						name: 'name',
-						type: {
-							array: ['u8', 32],
-						},
-					},
-					{
 						name: 'sponsorInfo',
 						type: {
 							defined: 'SponsorInfo',
 						},
-					},
-					{
-						name: 'switchboardFunction',
-						type: 'publicKey',
-					},
-					{
-						name: 'switchboardFunctionRequest',
-						type: 'publicKey',
-					},
-					{
-						name: 'switchboardFunctionRequestEscrow',
-						type: 'publicKey',
 					},
 					{
 						name: 'competitionAuthority',
@@ -2029,12 +1592,6 @@ export const IDL: DriftCompetitions = {
 				kind: 'struct',
 				fields: [
 					{
-						name: 'name',
-						type: {
-							array: ['u8', 32],
-						},
-					},
-					{
 						name: 'nextRoundExpiryTs',
 						type: 'i64',
 					},
@@ -2150,10 +1707,7 @@ export const IDL: DriftCompetitions = {
 						name: 'Active',
 					},
 					{
-						name: 'WinnerAndPrizeRandomnessRequested',
-					},
-					{
-						name: 'WinnerAndPrizeRandomnessComplete',
+						name: 'CompetitorSettlementComplete',
 					},
 					{
 						name: 'WinnerSettlementComplete',

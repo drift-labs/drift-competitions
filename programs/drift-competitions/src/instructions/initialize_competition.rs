@@ -1,12 +1,6 @@
-use crate::error::ErrorCode;
 use crate::state::Size;
 use crate::state::{Competition, CompetitionRoundStatus};
 use anchor_lang::prelude::*;
-
-const SWEEPSTAKES_NAME: [u8; 32] = [
-    115, 119, 101, 101, 112, 115, 116, 97, 107, 101, 115, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-];
 
 pub fn initialize_competition<'info>(
     ctx: Context<'_, '_, '_, 'info, InitializeCompetition<'info>>,
@@ -15,12 +9,6 @@ pub fn initialize_competition<'info>(
     let competition_key = ctx.accounts.competition.key();
     let mut competition = ctx.accounts.competition.load_init()?;
 
-    if params.name != SWEEPSTAKES_NAME {
-        msg!("Invalid competition name");
-        return Err(ErrorCode::Default.into());
-    }
-
-    competition.name = params.name;
     competition.sponsor_info.sponsor = ctx.accounts.sponsor.key();
     competition.sponsor_info.min_sponsor_amount = params.min_sponsor_amount;
     competition.sponsor_info.max_sponsor_fraction = params.max_sponsor_fraction;
@@ -49,8 +37,6 @@ pub fn initialize_competition<'info>(
 
 #[derive(Debug, Clone, Copy, AnchorSerialize, AnchorDeserialize, PartialEq, Eq)]
 pub struct CompetitionParams {
-    pub name: [u8; 32],
-
     //scheduling variables
     pub next_round_expiry_ts: i64,
     pub competition_expiry_ts: i64, // when competition ends, perpetual when == 0
@@ -66,11 +52,10 @@ pub struct CompetitionParams {
 }
 
 #[derive(Accounts)]
-#[instruction(params: CompetitionParams)]
 pub struct InitializeCompetition<'info> {
     #[account(
         init,
-        seeds = [b"competition", params.name.as_ref()],
+        seeds = [b"competition"],
         space = Competition::SIZE,
         bump,
         payer = payer

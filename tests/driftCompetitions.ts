@@ -72,18 +72,13 @@ describe('drift competitions', () => {
 	});
 
 	it('initialize competition', async () => {
-		const name = 'sweepstakes';
-		const encodedName = encodeName(name);
-
 		const competitionAddress = getCompetitionAddressSync(
 			program.programId,
-			encodedName
 		);
 
 		// Add your test here.
 		const tx = await program.methods
 			.initializeCompetition({
-				name: encodeName(name),
 				nextRoundExpiryTs: ZERO,
 				competitionExpiryTs: ZERO,
 				roundDuration: ZERO,
@@ -100,7 +95,6 @@ describe('drift competitions', () => {
 		const competitionAccount = await program.account.competition.fetch(
 			competitionAddress
 		);
-		assert(decodeName(competitionAccount.name) === name);
 		console.log(competitionAccount.sponsorInfo.sponsor.toString());
 		assert(
 			competitionAccount.sponsorInfo.sponsor.equals(provider.wallet.publicKey)
@@ -111,12 +105,8 @@ describe('drift competitions', () => {
 	});
 
 	it('initialize competitor', async () => {
-		const name = 'sweepstakes';
-		const encodedName = encodeName(name);
-
 		const competitionAddress = getCompetitionAddressSync(
 			program.programId,
-			encodedName
 		);
 
 		const competitionAccount = await program.account.competition.fetch(
@@ -158,7 +148,6 @@ describe('drift competitions', () => {
 		);
 		assert(competitionAccount.numberOfCompetitors.eq(ZERO));
 
-		assert(decodeName(competitionAccountAfter.name) === name);
 		assert(competitionAccountAfter.numberOfCompetitors.eq(ONE));
 
 		assert(competitorAccount.authority.equals(authority));
