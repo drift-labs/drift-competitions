@@ -30,6 +30,7 @@ async function settleSweepstakesCompetition(provider) {
 		env: 'mainnet-beta',
 
 		wallet: provider.wallet,
+		txParams: { computeUnits: 600_000, computeUnitsPrice: 10000 },
 	});
 
 	const competitionClient = new CompetitionsClient({
@@ -50,10 +51,19 @@ async function settleSweepstakesCompetition(provider) {
 
 	console.log('current time', new Date().toLocaleString());
 	console.log('max prize: ', details.prizePools[2].toNumber() / 1e6);
-	console.log('total number of competitors: ', competitionAccount.numberOfCompetitors.toNumber());
-	console.log('total number of competitors settled: ', competitionAccount.numberOfCompetitorsSettled.toNumber());
-	console.log("total number of winners: ", competitionAccount.numberOfWinners);
-	console.log("total number of winners settled: ", competitionAccount.numberOfWinnersSettled);
+	console.log(
+		'total number of competitors: ',
+		competitionAccount.numberOfCompetitors.toNumber()
+	);
+	console.log(
+		'total number of competitors settled: ',
+		competitionAccount.numberOfCompetitorsSettled.toNumber()
+	);
+	console.log('total number of winners: ', competitionAccount.numberOfWinners);
+	console.log(
+		'total number of winners settled: ',
+		competitionAccount.numberOfWinnersSettled
+	);
 
 	if (isVariant(competitionAccount.status, 'active')) {
 		while (

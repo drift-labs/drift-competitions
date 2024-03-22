@@ -411,12 +411,13 @@ export class CompetitionsClient {
 					try {
 						this.createAndSendTxn(instructions, {
 							computeUnitParams: {
-								units: 1_400_000,
+								units: 80_000,
 							},
 						});
 					} catch {
 						console.log('couldnt createAndSendTxn');
 					}
+					await sleep(250);
 					instructions = [];
 				}
 			}
@@ -426,7 +427,7 @@ export class CompetitionsClient {
 			// send remainder
 			this.createAndSendTxn(instructions, {
 				computeUnitParams: {
-					units: 1_400_000,
+					units: 80_000,
 				},
 			});
 		}
@@ -449,23 +450,30 @@ export class CompetitionsClient {
 
 			const competitorProgramAccounts =
 				await this.program.account.competitor.all();
-
 			for (const competitor of competitorProgramAccounts) {
 				if (
 					competitor.account.competition.equals(competition) &&
 					competitor.account.minDraw.lt(competitionAccount.winnerRandomness) &&
 					competitor.account.maxDraw.gte(competitionAccount.winnerRandomness)
 				) {
-					const txSig = await this.program.methods
-						.settleWinner()
-						.accounts({
+					let instructions = [];
+					const initCompetitorIx = this.program.instruction.settleWinner({
+						accounts: {
+							keeper: this.program.provider.publicKey,
 							competition,
 							competitor: competitor.publicKey,
 							driftUserStats: competitor.account.userStats,
 							spotMarket,
 							insuranceFundVault,
-						})
-						.rpc();
+						},
+					});
+					instructions.push(initCompetitorIx);
+			
+					const txSig = await this.createAndSendTxn(instructions, {
+						computeUnitParams: {
+							units: 400_000,
+						},
+					});
 					console.log(
 						`Settled winner authority ${competitor.account.authority.toBase58()}:`,
 						txSig
@@ -488,7 +496,7 @@ export class CompetitionsClient {
 			this.driftClient.program.programId,
 			QUOTE_SPOT_MARKET_INDEX
 		);
-		return await this.program.methods
+		const instr = await this.program.methods
 			.settleWinner()
 			.accounts({
 				competitor,
@@ -497,7 +505,12 @@ export class CompetitionsClient {
 				spotMarket,
 				insuranceFundVault: insuranceFundVault,
 			})
-			.rpc();
+			.instruction();
+		return await this.createAndSendTxn([instr], {
+			computeUnitParams: {
+				units: 400_000,
+			},
+		});
 	}
 
 	public getCompetitionPublicKey(name: string): PublicKey {
@@ -579,7 +592,14 @@ export class CompetitionsClient {
 			tx.add(
 				ComputeBudgetProgram.setComputeUnitLimit(
 					txOpts?.computeUnitParams || {
-						units: 400_000,
+						units: 100_000,
+					}
+				)
+			);
+			tx.add(
+				ComputeBudgetProgram.setComputeUnitPrice(
+					{
+						microLamports: 90000,
 					}
 				)
 			);
