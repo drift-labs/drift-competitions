@@ -368,7 +368,7 @@ export class CompetitionsClient {
 		competition: PublicKey,
 		roundNumber: BN,
 		chunkSize = 1,
-		claimEntryMax = 1
+		claimEntryMax = 0
 	): Promise<void> {
 		const competitorProgramAccounts =
 			await this.program.account.competitor.all();
@@ -471,7 +471,7 @@ export class CompetitionsClient {
 			
 					const txSig = await this.createAndSendTxn(instructions, {
 						computeUnitParams: {
-							units: 400_000,
+							units: 20_000,
 						},
 					});
 					console.log(
