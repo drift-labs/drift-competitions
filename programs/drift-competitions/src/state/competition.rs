@@ -410,11 +410,11 @@ impl Competition {
         const FIFTYK: u128 = 50000 * QUOTE_PRECISION;
 
         // prize ratios match [$1k, $5k, >= $10k] ratios, but lower prizes never exceed 1k, 5k
-        // as max_prize grows, never let min buckets pass 50k
+        // as max_prize grows, never let min buckets pass 25k or max cross 50k
         let prize_buckets = [
                 (max_prize / 25).clamp(ONEK.min(max_prize / 10), TENK),
-                (max_prize / 12).clamp(FIVEK.min(max_prize / 2), FIFTYK),
-                max_prize,
+                (max_prize / 12).clamp(FIVEK.min(max_prize / 2), FIFTYK / 2),
+                max_prize.min(FIFTYK),
             ];
 
         let total_prize_bucket: u128 = prize_buckets.iter().sum();
