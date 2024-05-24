@@ -412,10 +412,10 @@ impl Competition {
         // prize ratios match [$1k, $5k, >= $10k] ratios, but lower prizes never exceed 1k, 5k
         // as max_prize grows, never let min buckets pass 25k or max cross 50k
         let prize_buckets = [
-                (max_prize / 25).clamp(ONEK.min(max_prize / 10), TENK),
-                (max_prize / 12).clamp(FIVEK.min(max_prize / 2), FIFTYK / 2),
-                max_prize.min(FIFTYK),
-            ];
+            (max_prize / 25).clamp(ONEK.min(max_prize / 10), TENK),
+            (max_prize / 12).clamp(FIVEK.min(max_prize / 2), FIFTYK / 2),
+            max_prize.min(FIFTYK),
+        ];
 
         let total_prize_bucket: u128 = prize_buckets.iter().sum();
         let mut ratios: Vec<u128> = vec![0; prize_buckets.len()]; // Using .len() to set the size
@@ -688,10 +688,14 @@ impl Competition {
         self.next_round_expiry_ts = self.calculate_next_round_expiry_ts(now)?;
 
         // update min sponsor amount based on amount given
-        self.sponsor_info.min_sponsor_amount = self
-            .sponsor_info
-            .min_sponsor_amount
-            .saturating_add(self.prize_amount_settled.cast()?);
+        if self.sponsor_info.max_sponsor_fraction > 0 {
+            self.sponsor_info.min_sponsor_amount = self.sponsor_info.min_sponsor_amount.saturating_add(
+                self.prize_amount_settled
+                    .safe_mul(PERCENTAGE_PRECISION)?
+                    .safe_div(self.sponsor_info.max_sponsor_fraction.cast()?)?
+                    .cast()?,
+            );
+        }
 
         // 'nice to clear'
         self.winner_randomness = 0;

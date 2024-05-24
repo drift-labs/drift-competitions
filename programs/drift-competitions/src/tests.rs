@@ -1037,7 +1037,7 @@ mod competition_fcn {
             prize_randomness_max: 0,
             winner_randomness: 0,
             sponsor_info: SponsorInfo {
-                min_sponsor_amount: 6962025,
+                min_sponsor_amount: 6962025 * 2,
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
                 ..SponsorInfo::default()
             },
@@ -1111,7 +1111,7 @@ mod competition_fcn {
             prize_randomness_max: 14,
             winner_randomness: 1,
             sponsor_info: SponsorInfo {
-                min_sponsor_amount: 6962025,
+                min_sponsor_amount: 6962025 * 2,
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
                 ..SponsorInfo::default()
             },
@@ -1132,7 +1132,7 @@ mod competition_fcn {
         expected_sweepstakes2.prize_randomness_max = 0;
         expected_sweepstakes2.prize_amount_settled = 0;
         expected_sweepstakes2.number_of_winners_settled = 0;
-        expected_sweepstakes2.sponsor_info.min_sponsor_amount = 41772151;
+        expected_sweepstakes2.sponsor_info.min_sponsor_amount = 83544302;
         assert_eq!(expected_sweepstakes2, sweepstakes);
         // todo do another assert for
         // assert_eq!(expected_sweepstakes2, sweepstakes);
@@ -1347,7 +1347,7 @@ mod competition_fcn {
         expected_sweepstakes.prize_randomness_max = 0;
         expected_sweepstakes.number_of_winners_settled = 0;
         expected_sweepstakes.prize_amount_settled = 0;
-        expected_sweepstakes.sponsor_info.min_sponsor_amount += 199;
+        expected_sweepstakes.sponsor_info.min_sponsor_amount += 199*2;
         assert_eq!(expected_sweepstakes, sweepstakes);
 
         assert_eq!(sweepstakes.round_number, 1);
@@ -1428,7 +1428,7 @@ mod competition_fcn {
             .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
             .unwrap();
 
-        assert_eq!(prize_buckets, [2872721552, 5984836566, 50000000000]);
+        assert_eq!(prize_buckets, [2872721548, 5984836558, 50000000000]);
         assert_eq!(ratios, [21, 10, 1]);
 
         sweepstakes
@@ -1578,7 +1578,7 @@ mod competition_fcn {
             .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
             .unwrap();
 
-        assert_eq!(prize_buckets, [2872682097, 5984754370, 50000000000]);
+        assert_eq!(prize_buckets, [2872642094, 5984671029, 50000000000]);
         assert_eq!(ratios, [21, 10, 1]);
 
         sweepstakes
@@ -1589,7 +1589,7 @@ mod competition_fcn {
             CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
         );
         assert!(sweepstakes.prize_amount > 0);
-        assert_eq!(sweepstakes.prize_amount, 1999968); // if shares
+        assert_eq!(sweepstakes.prize_amount, 1999940); // if shares
         assert_eq!(spot_market.insurance_fund.total_shares, 1100000000);
 
         let prize_amount_quote = if_shares_to_vault_amount(
@@ -1600,9 +1600,9 @@ mod competition_fcn {
         .unwrap();
 
         assert!(prize_amount_quote as u128 <= prize_buckets[0]);
-        assert_eq!(prize_amount_quote, 2872681309); // slightly less from IF share rounding
+        assert_eq!(prize_amount_quote, 2872641090); // slightly less from IF share rounding
 
-        assert_eq!(sweepstakes.prize_amount, 1999968);
+        assert_eq!(sweepstakes.prize_amount, 1999940);
 
         assert!(sweepstakes.reset_round(now).is_err());
         assert_eq!(sweepstakes.winner_randomness, 6);
@@ -1649,10 +1649,7 @@ mod competition_fcn {
                 now
             )
             .is_err());
-        assert_eq!(
-            share_to_claim_3,
-            1999968
-        );
+        assert_eq!(share_to_claim_3, 1999940);
     }
 
     #[test]
