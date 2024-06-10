@@ -567,8 +567,8 @@ export class CompetitionsClient {
 		// Assuming maxPrize is a BN as well
 		const prizePools: BN[] = [
 					BN.max(BN.min(ONEK, maxPrize.divn(10)), BN.min(maxPrize.divn(25), TENK)),
-					BN.max(BN.min(FIVEK, maxPrize.divn(2)), BN.min(maxPrize.divn(12), FIFTYK)),
-					maxPrize,
+					BN.max(BN.min(FIVEK, maxPrize.divn(2)), BN.min(maxPrize.divn(12), FIFTYK.divn(2))),
+					BN.min(maxPrize, FIFTYK),
 			  ];
 
 		return {

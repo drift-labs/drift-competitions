@@ -93,9 +93,9 @@ mod competition_helpers {
             .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
             .unwrap();
 
-        assert_eq!(prize_buckets, [4000000000, 8333333333, 100000000000]);
-        assert_eq!(ratios, [29, 14, 1]);
-        assert!(ratios[0] / 25 >= ratios[2]);
+        assert_eq!(prize_buckets, [4000000000, 8333333333, 50000000000]);
+        assert_eq!(ratios, [16, 8, 1]);
+        assert!(ratios[0] / 5 >= ratios[2]);
 
         let total = ratios.iter().sum();
         let mut cnt = 0;
@@ -137,7 +137,7 @@ mod competition_helpers {
             .calculate_prize_amount(&spot_market, vault_balance)
             .unwrap()
             .0;
-        assert_eq!(prize_shares, spot_market.insurance_fund.total_shares);
+        assert_eq!(prize_shares, spot_market.insurance_fund.total_shares / 2);
         let prize_quote = if_shares_to_vault_amount(
             prize_shares,
             spot_market.insurance_fund.total_shares,
@@ -168,9 +168,9 @@ mod competition_helpers {
             .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
             .unwrap();
 
-        assert_eq!(prize_buckets, [10000000000, 50000000000, 3954552595151]);
-        assert_eq!(ratios, [402, 81, 1]);
-        assert!(ratios[0] / 10 >= ratios[2]);
+        assert_eq!(prize_buckets, [10000000000, 25000000000, 50000000000]);
+        assert_eq!(ratios, [9, 4, 1]);
+        assert!(ratios[0] / 2 >= ratios[2]);
 
         // 10.1k max
         let vault_balance: u64 = (10100 * QUOTE_PRECISION + 35235) as u64;
@@ -282,9 +282,9 @@ mod competition_helpers {
             .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
             .unwrap();
 
-        assert_eq!(prize_buckets, [10000000000, 50000000000, 3954552595151]);
-        assert_eq!(ratios, [402, 81, 1]);
-        assert!(ratios[0] / 10 >= ratios[2]);
+        assert_eq!(prize_buckets, [10000000000, 25000000000, 50000000000]);
+        assert_eq!(ratios, [9, 4, 1]);
+        assert!(ratios[0] / 2 >= ratios[2]);
 
         let total: u128 = ratios.iter().sum();
         sweepstakes.prize_randomness_max = total; // would win max prize (if unchanged)
@@ -333,7 +333,7 @@ mod competition_helpers {
             }
             cnt += 1;
         }
-        assert_eq!(min_prize_times, [5007, 804, 9]); // only when cnt = max prize draw
+        assert_eq!(min_prize_times, [125, 44, 11]); // only when cnt = max prize draw
         assert!(min_prize_times[2] < if_deltas.len());
     }
 
@@ -740,8 +740,8 @@ mod competition_fcn {
             .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
             .unwrap();
 
-        assert_eq!(prize_buckets, [2872727272, 5984848484, 71818181818]);
-        assert_eq!(ratios, [29, 14, 1]);
+        assert_eq!(prize_buckets, [2872727272, 5984848484, 50000000000]);
+        assert_eq!(ratios, [21, 10, 1]);
 
         sweepstakes
             .resolve_prize_amount(&spot_market, vault_balance)
@@ -838,8 +838,8 @@ mod competition_fcn {
             prize_base: 5,
             prize_amount: 199,
             prize_amount_settled: 199,
-            prize_randomness: 22,
-            prize_randomness_max: 44,
+            prize_randomness: 16,
+            prize_randomness_max: 32,
             outstanding_unclaimed_winnings: 199,
 
             winner_randomness: 2,
@@ -1010,8 +1010,8 @@ mod competition_fcn {
             prize_amount: 6962025,
             outstanding_unclaimed_winnings: 6962025,
             prize_amount_settled: 6962025,
-            prize_randomness: 51,
-            prize_randomness_max: 103,
+            prize_randomness: 7,
+            prize_randomness_max: 14,
             winner_randomness: 1,
             sponsor_info: SponsorInfo {
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
@@ -1037,7 +1037,7 @@ mod competition_fcn {
             prize_randomness_max: 0,
             winner_randomness: 0,
             sponsor_info: SponsorInfo {
-                min_sponsor_amount: 6962025,
+                min_sponsor_amount: 6962025 * 2,
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
                 ..SponsorInfo::default()
             },
@@ -1104,14 +1104,14 @@ mod competition_fcn {
             total_score_settled: 1,
             round_duration: 60,
             prize_base: 1,
-            prize_amount: 546016564,
-            outstanding_unclaimed_winnings: 552978589,
-            prize_amount_settled: 546016564,
-            prize_randomness: 103,
-            prize_randomness_max: 103,
+            prize_amount: 34810126,
+            outstanding_unclaimed_winnings: 41772151,
+            prize_amount_settled: 34810126,
+            prize_randomness: 14,
+            prize_randomness_max: 14,
             winner_randomness: 1,
             sponsor_info: SponsorInfo {
-                min_sponsor_amount: 6962025,
+                min_sponsor_amount: 6962025 * 2,
                 max_sponsor_fraction: PRICE_PRECISION_U64 / 2,
                 ..SponsorInfo::default()
             },
@@ -1132,7 +1132,7 @@ mod competition_fcn {
         expected_sweepstakes2.prize_randomness_max = 0;
         expected_sweepstakes2.prize_amount_settled = 0;
         expected_sweepstakes2.number_of_winners_settled = 0;
-        expected_sweepstakes2.sponsor_info.min_sponsor_amount = 552978589;
+        expected_sweepstakes2.sponsor_info.min_sponsor_amount = 83544302;
         assert_eq!(expected_sweepstakes2, sweepstakes);
         // todo do another assert for
         // assert_eq!(expected_sweepstakes2, sweepstakes);
@@ -1222,8 +1222,8 @@ mod competition_fcn {
             .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
             .unwrap();
 
-        assert_eq!(prize_buckets, [2872727272, 5984848484, 71818181818]);
-        assert_eq!(ratios, [29, 14, 1]);
+        assert_eq!(prize_buckets, [2872727272, 5984848484, 50000000000]);
+        assert_eq!(ratios, [21, 10, 1]);
 
         sweepstakes
             .resolve_prize_amount(&spot_market, vault_balance)
@@ -1321,8 +1321,8 @@ mod competition_fcn {
             prize_amount: 199,
             prize_amount_settled: 199,
             outstanding_unclaimed_winnings: 199,
-            prize_randomness_max: 44,
-            prize_randomness: 22,
+            prize_randomness_max: 32,
+            prize_randomness: 16,
             winner_randomness: 2,
             sponsor_info: SponsorInfo {
                 min_sponsor_amount: 0,
@@ -1347,7 +1347,7 @@ mod competition_fcn {
         expected_sweepstakes.prize_randomness_max = 0;
         expected_sweepstakes.number_of_winners_settled = 0;
         expected_sweepstakes.prize_amount_settled = 0;
-        expected_sweepstakes.sponsor_info.min_sponsor_amount += 199;
+        expected_sweepstakes.sponsor_info.min_sponsor_amount += 199*2;
         assert_eq!(expected_sweepstakes, sweepstakes);
 
         assert_eq!(sweepstakes.round_number, 1);
@@ -1428,8 +1428,8 @@ mod competition_fcn {
             .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
             .unwrap();
 
-        assert_eq!(prize_buckets, [2872721552, 5984836566, 71818038800]);
-        assert_eq!(ratios, [29, 14, 1]);
+        assert_eq!(prize_buckets, [2872721548, 5984836558, 50000000000]);
+        assert_eq!(ratios, [21, 10, 1]);
 
         sweepstakes
             .resolve_prize_amount(&spot_market, vault_balance)
@@ -1578,8 +1578,8 @@ mod competition_fcn {
             .calculate_prize_buckets_and_ratios(&spot_market, vault_balance)
             .unwrap();
 
-        assert_eq!(prize_buckets, [2872682097, 5984754370, 71817052447]);
-        assert_eq!(ratios, [29, 14, 1]);
+        assert_eq!(prize_buckets, [2872642094, 5984671029, 50000000000]);
+        assert_eq!(ratios, [21, 10, 1]);
 
         sweepstakes
             .resolve_prize_amount(&spot_market, vault_balance)
@@ -1589,7 +1589,7 @@ mod competition_fcn {
             CompetitionRoundStatus::WinnerAndPrizeRandomnessComplete
         );
         assert!(sweepstakes.prize_amount > 0);
-        assert_eq!(sweepstakes.prize_amount, 1999968); // if shares
+        assert_eq!(sweepstakes.prize_amount, 1999940); // if shares
         assert_eq!(spot_market.insurance_fund.total_shares, 1100000000);
 
         let prize_amount_quote = if_shares_to_vault_amount(
@@ -1600,9 +1600,9 @@ mod competition_fcn {
         .unwrap();
 
         assert!(prize_amount_quote as u128 <= prize_buckets[0]);
-        assert_eq!(prize_amount_quote, 2872681309); // slightly less from IF share rounding
+        assert_eq!(prize_amount_quote, 2872641090); // slightly less from IF share rounding
 
-        assert_eq!(sweepstakes.prize_amount, 1999968);
+        assert_eq!(sweepstakes.prize_amount, 1999940);
 
         assert!(sweepstakes.reset_round(now).is_err());
         assert_eq!(sweepstakes.winner_randomness, 6);
@@ -1649,10 +1649,7 @@ mod competition_fcn {
                 now
             )
             .is_err());
-        assert_eq!(
-            share_to_claim_3,
-            1999968
-        );
+        assert_eq!(share_to_claim_3, 1999940);
     }
 
     #[test]
