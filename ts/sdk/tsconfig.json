@@ -1,16 +1,16 @@
 {
-  "compilerOptions": {
-    "module": "commonjs",
-    "target": "ES2019",
-    "esModuleInterop": true,
-    "declaration": true,
-    "outDir": "./lib",
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "moduleResolution": "node",
-    "baseUrl": "./",
-    "experimentalDecorators" : true
-  },
-  "include": ["src"],
-  "exclude": ["node_modules", "tests"]
+	"compilerOptions": {
+		"module": "commonjs",
+		"target": "ES2019",
+		"esModuleInterop": true,
+		"declaration": true,
+		"outDir": "./lib",
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"moduleResolution": "node",
+		"baseUrl": "./",
+		"experimentalDecorators": true
+	},
+	"include": ["src"],
+	"exclude": ["node_modules", "tests"]
 }

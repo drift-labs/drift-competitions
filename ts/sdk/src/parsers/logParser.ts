@@ -1,7 +1,9 @@
 import { Program } from '@coral-xyz/anchor';
 import { TransactionResponse, TransactionSignature, VersionedTransactionResponse } from '@solana/web3.js';
 import { WrappedEvents } from '../types/types';
+import {parseLogs} from "@drift-labs/sdk";
 
+const programId = 'DraWMeQX9LfzQQSYoeBwHAgM5JcqFkgrX7GbTfjzVMVL';
 export type EventLog = {
 	txSig: TransactionSignature;
 	slot: number;
@@ -27,15 +29,13 @@ export class LogParser {
 		if (!eventLogs.logs) return records;
 
 		// @ts-ignore
-		const eventGenerator = this.program._events._eventParser.parseLogs(
-			eventLogs.logs,
-			false
-		);
+		const parsedLogs = parseLogs(this.program, eventLogs.logs, programId);
 
-		for (const eventLog of eventGenerator) {
+		for (const eventLog of parsedLogs) {
 			eventLog.data.txSig = eventLogs.txSig;
 			eventLog.data.slot = eventLogs.slot;
 			eventLog.data.eventType = eventLog.name;
+			// @ts-ignore
 			records.push(eventLog.data);
 		}
 
