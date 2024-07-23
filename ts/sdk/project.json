@@ -1,14 +1,15 @@
 {
-  "name": "competitions-sdk",
-  "targets": {
-    "build": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "bun install && bun run build && bun link",
-        "cwd": "drift-competitions/ts/sdk"
-      },
-      
-      "outputs": ["dist"]
-    }
-  }
+	"name": "competitions-sdk",
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "bun install && bun run build && bun link",
+				"cwd": "drift-competitions/ts/sdk"
+			},
+			"outputs": [
+				"{workspaceRoot}/dist"
+			]
+		}
+	}
 }
