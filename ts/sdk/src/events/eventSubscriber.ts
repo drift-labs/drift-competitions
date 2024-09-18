@@ -13,7 +13,11 @@ import {
 } from '../types/types';
 import { EventList } from './eventList';
 import { getSortFn } from './sort';
-import { LogProvider, fetchLogs } from '@drift-labs/sdk';
+import {
+	LogProvider,
+	PollingLogProviderConfig,
+	fetchLogs,
+} from '@drift-labs/sdk';
 import { WebSocketLogProvider } from '@drift-labs/sdk';
 import { PollingLogProvider } from '@drift-labs/sdk';
 import { TxEventCache } from './txEventCache';
@@ -65,8 +69,8 @@ export class EventSubscriber {
 				this.connection,
 				this.address,
 				options.commitment,
-				this.options.logProviderConfig.frequency,
-				this.options.logProviderConfig.batchSize
+				(this.options.logProviderConfig as PollingLogProviderConfig).frequency,
+				(this.options.logProviderConfig as PollingLogProviderConfig).batchSize
 			);
 		}
 	}

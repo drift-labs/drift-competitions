@@ -1,13 +1,25 @@
-import { BN } from "@coral-xyz/anchor";
-import { getSpotMarketPublicKey, QUOTE_SPOT_MARKET_INDEX, getInsuranceFundVaultPublicKey } from "@drift-labs/sdk";
-import { PublicKey, TransactionSignature } from "@solana/web3.js";
-import { SwitchboardProgram, MAINNET_GENESIS_HASH, DEVNET_GENESIS_HASH, FunctionRequestAccount } from "@switchboard-xyz/solana.js";
-import { CompetitionsClient } from "./competitionClient";
-import { getCompetitionAuthorityAddressSync } from "./addresses";
+import { BN } from '@coral-xyz/anchor';
+import {
+	getSpotMarketPublicKey,
+	QUOTE_SPOT_MARKET_INDEX,
+	getInsuranceFundVaultPublicKey,
+} from '@drift-labs/sdk';
+import { PublicKey, TransactionSignature } from '@solana/web3.js';
+import {
+	SwitchboardProgram,
+	MAINNET_GENESIS_HASH,
+	DEVNET_GENESIS_HASH,
+	FunctionRequestAccount,
+} from '@switchboard-xyz/solana.js';
+import { CompetitionsClient } from './competitionClient';
+import { getCompetitionAuthorityAddressSync } from './addresses';
 import * as anchor from '@coral-xyz/anchor';
 
 export class SwitchboardClient {
-  constructor(readonly competitionsClient: CompetitionsClient, readonly provider: anchor.Provider) {}
+	constructor(
+		readonly competitionsClient: CompetitionsClient,
+		readonly provider: anchor.Provider
+	) {}
 
 	public async requestRandomness(
 		competition: PublicKey,
@@ -27,9 +39,10 @@ export class SwitchboardClient {
 				? new PublicKey('CkvizjVnm2zA5Wuwan34NhVT3zFc7vqUyGnA6tuEF5aE')
 				: undefined;
 
-		const competitionAccount = await this.competitionsClient.program.account.competition.fetch(
-			competition
-		);
+		const competitionAccount =
+			await this.competitionsClient.program.account.competition.fetch(
+				competition
+			);
 
 		const spotMarket = await getSpotMarketPublicKey(
 			this.competitionsClient.driftClient.program.programId,
@@ -58,7 +71,7 @@ export class SwitchboardClient {
 			.rpc();
 	}
 
-  public async updateSwitchboardFunction(
+	public async updateSwitchboardFunction(
 		competition: PublicKey,
 		switchboardFunction: PublicKey
 	): Promise<TransactionSignature> {

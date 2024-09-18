@@ -17,7 +17,12 @@ const ENV = 'mainnet-beta';
 const RPC_ENDPOINT =
 	process.env.RPC_OVERRIDE ?? 'https://api.' + ENV + '.solana.com';
 
-async function donateForEntries(provider, authority: PublicKey, t: number, m: number) {
+async function donateForEntries(
+	provider,
+	authority: PublicKey,
+	t: number,
+	m: number
+) {
 	// Configure client to use the provider.
 	anchor.setProvider(provider);
 
@@ -54,17 +59,26 @@ async function donateForEntries(provider, authority: PublicKey, t: number, m: nu
 		authority
 	);
 
-	const spotMarket = competitionClient.driftClient.getSpotMarketAccount(marketIndex);
+	const spotMarket =
+		competitionClient.driftClient.getSpotMarketAccount(marketIndex);
 
 	const tokenAmount = new anchor.BN(tokenAmountNoPrecision * 10 ** 6);
 
-	const entries = competitionClient.getEntriesForDonation(tokenAmount, spotMarket);
+	const entries = competitionClient.getEntriesForDonation(
+		tokenAmount,
+		spotMarket
+	);
 
 	console.log('entries:', entries.toNumber());
 
 	const tokenAccount = await driftClient.getAssociatedTokenAccount(marketIndex);
 
-	const txSig = await competitionClient.claimMultipleEntries(entries, tokenAccount, competitionKey, competitorKey);
+	const txSig = await competitionClient.claimMultipleEntries(
+		entries,
+		tokenAccount,
+		competitionKey,
+		competitorKey
+	);
 
 	console.log(txSig);
 

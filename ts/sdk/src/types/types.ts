@@ -197,9 +197,10 @@ export type WrappedEvent<Type extends EventType> =
 	};
 export type WrappedEvents = WrappedEvent<EventType>[];
 
-export type DriftSweepstakesEvent = CompetitionsEventMap['CompetitionRoundSummaryRecord'] | 
-CompetitionsEventMap['CompetitionRoundWinnerRecord'] | 
-CompetitionsEventMap['CompetitorSettledRecord']
+export type DriftSweepstakesEvent =
+	| CompetitionsEventMap['CompetitionRoundSummaryRecord']
+	| CompetitionsEventMap['CompetitionRoundWinnerRecord']
+	| CompetitionsEventMap['CompetitorSettledRecord'];
 
 export interface EventSubscriberEvents {
 	newEvent: (event: WrappedEvent<EventType>) => void;
@@ -234,20 +235,20 @@ export type CompetitorAccountSubscriber =
 	>;
 
 export type CompetitionResult = {
-		startTs: number;
-		endTs: number;
-		roundNumber: number;
-		competitors: BN;
-		totalTickets: BN;
-		summaryEvent: Event<CompetitionRoundSummaryRecord>;
-		winners: {
-			authority: PublicKey;
-			prize: BigNum;
-			tickets: BN;
-			placement: number;
-			winnerEvent: Event<CompetitionRoundWinnerRecord>;
-		}[];
-	};
+	startTs: number;
+	endTs: number;
+	roundNumber: number;
+	competitors: BN;
+	totalTickets: BN;
+	summaryEvent: Event<CompetitionRoundSummaryRecord>;
+	winners: {
+		authority: PublicKey;
+		prize: BigNum;
+		tickets: BN;
+		placement: number;
+		winnerEvent: Event<CompetitionRoundWinnerRecord>;
+	}[];
+};
 
 export type LiveCompetitionInfo = {
 	lastFetchedTs: number;

@@ -468,7 +468,7 @@ export class CompetitionsClient {
 						},
 					});
 					instructions.push(initCompetitorIx);
-			
+
 					const txSig = await this.createAndSendTxn(instructions, {
 						computeUnitParams: {
 							units: 20_000,
@@ -566,10 +566,13 @@ export class CompetitionsClient {
 
 		// Assuming maxPrize is a BN as well
 		const prizePools: BN[] = [
-					BN.max(BN.min(ONEK, maxPrize.divn(10)), BN.min(maxPrize.divn(25), TENK)),
-					BN.max(BN.min(FIVEK, maxPrize.divn(2)), BN.min(maxPrize.divn(12), FIFTYK)),
-					maxPrize,
-			  ];
+			BN.max(BN.min(ONEK, maxPrize.divn(10)), BN.min(maxPrize.divn(25), TENK)),
+			BN.max(
+				BN.min(FIVEK, maxPrize.divn(2)),
+				BN.min(maxPrize.divn(12), FIFTYK)
+			),
+			maxPrize,
+		];
 
 		return {
 			roundNumber: competitionAccount.roundNumber,
@@ -597,11 +600,9 @@ export class CompetitionsClient {
 				)
 			);
 			tx.add(
-				ComputeBudgetProgram.setComputeUnitPrice(
-					{
-						microLamports: 90000,
-					}
-				)
+				ComputeBudgetProgram.setComputeUnitPrice({
+					microLamports: 90000,
+				})
 			);
 		}
 		tx.add(...ixs);

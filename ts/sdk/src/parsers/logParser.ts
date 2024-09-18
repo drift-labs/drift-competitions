@@ -1,7 +1,11 @@
 import { Program } from '@coral-xyz/anchor';
-import { TransactionResponse, TransactionSignature, VersionedTransactionResponse } from '@solana/web3.js';
+import {
+	TransactionResponse,
+	TransactionSignature,
+	VersionedTransactionResponse,
+} from '@solana/web3.js';
 import { WrappedEvents } from '../types/types';
-import {parseLogs} from "@drift-labs/sdk";
+import { parseLogs } from '@drift-labs/sdk';
 
 const programId = 'DraWMeQX9LfzQQSYoeBwHAgM5JcqFkgrX7GbTfjzVMVL';
 export type EventLog = {
