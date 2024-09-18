@@ -245,9 +245,11 @@ export class SerializableCompetitionResult implements CompetitionResult {
 	totalTickets: BN;
 	// @ts-ignore
 	@autoserializeAs(SerializableSummaryEvent)
+	// @ts-ignore
 	summaryEvent: SerializableSummaryEvent;
 	//@ts-ignore
 	@autoserializeAsArray(SerializableCompetitionRoundWinner)
+	// @ts-ignore
 	winners: SerializableCompetitionRoundWinner[];
 }
 
