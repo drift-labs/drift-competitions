@@ -433,6 +433,8 @@ export class CompetitionsClient {
 		}
 	}
 
+	private cachedCompetitorProgramAccounts : Awaited<ReturnType<typeof this.program.account.competitor.all>>;
+
 	public async settleNextWinner(competition: PublicKey): Promise<void> {
 		const competitionAccount = await this.program.account.competition.fetch(
 			competition
@@ -448,8 +450,12 @@ export class CompetitionsClient {
 				QUOTE_SPOT_MARKET_INDEX
 			);
 
-			const competitorProgramAccounts =
-				await this.program.account.competitor.all();
+			if (!this.cachedCompetitorProgramAccounts) {
+				this.cachedCompetitorProgramAccounts = await this.program.account.competitor.all();
+			}
+
+			const competitorProgramAccounts = this.cachedCompetitorProgramAccounts;
+
 			for (const competitor of competitorProgramAccounts) {
 				if (
 					competitor.account.competition.equals(competition) &&
