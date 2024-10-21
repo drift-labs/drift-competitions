@@ -157,10 +157,10 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@drift-labs/sdk@2.97.0-beta.24":
-  version "2.97.0-beta.24"
-  resolved "https://registry.yarnpkg.com/@drift-labs/sdk/-/sdk-2.97.0-beta.24.tgz#1922796e5279a9ba3c164241816935b601060f34"
-  integrity sha512-Z0i70dIQ/u13KYs+SUXmx/+Bqm4ImA87RthenxzPNvJeEgJ/sPxK4IPmdJSlU6d3Xp2b/PJ/JRS42ZYjSTE4Qw==
+"@drift-labs/sdk@2.97.0-beta.25":
+  version "2.97.0-beta.25"
+  resolved "https://registry.yarnpkg.com/@drift-labs/sdk/-/sdk-2.97.0-beta.25.tgz#634e542b9b10ed53637dc53190ad83c981ad5bf6"
+  integrity sha512-E85xT7dKBrEJq5alxI5DDEsxUKOuFjQDqivbnw6mu7MgbLWNaaJJBXOhk01v+Rb6EpS62tEqiG/yo8k1V6XQcg==
   dependencies:
     "@coral-xyz/anchor" "0.28.0"
     "@coral-xyz/anchor-30" "npm:@coral-xyz/anchor@0.30.1"
